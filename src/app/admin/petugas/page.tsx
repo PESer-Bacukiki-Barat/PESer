@@ -53,7 +53,7 @@ export default function PetugasPage() {
       </nav>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between mb-6">
+      <div className="mb-6">
         <h1 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">
           Manajemen Petugas
         </h1>
