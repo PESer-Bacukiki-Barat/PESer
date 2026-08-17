@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ReceiptText,
   ShieldUser,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/kelurahan", label: "Kelurahan", icon: Building2 },
   { href: "/admin/petugas", label: "Petugas", icon: ShieldUser },
+  { href: "/admin/pembeli", label: "Pembeli", icon: Users },
   { href: "/admin/transaksi", label: "Transaksi", icon: ReceiptText },
   { href: "/admin/laporan", label: "Laporan", icon: BarChart3 },
   { href: "/admin/bantuan", label: "Bantuan", icon: HelpCircle },
