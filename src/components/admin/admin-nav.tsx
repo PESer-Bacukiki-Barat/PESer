@@ -6,6 +6,7 @@ import {
   BarChart3,
   Building2,
   HelpCircle,
+  Landmark,
   LayoutDashboard,
   ReceiptText,
   ShieldUser,
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/kelurahan", label: "Kelurahan", icon: Building2 },
+  { href: "/admin/bank-sampah", label: "Bank Sampah", icon: Landmark },
   { href: "/admin/petugas", label: "Petugas", icon: ShieldUser },
   { href: "/admin/pembeli", label: "Pembeli", icon: Users },
   { href: "/admin/jenis-sampah", label: "Jenis Sampah", icon: Tags },
