@@ -1,6 +1,6 @@
 # PRD — Bank Sampah Digital Kecamatan
 
-**Versi:** 1.0
+**Versi:** 1.2
 **Tanggal:** 12 Agustus 2026
 **Sumber:** Notulensi 3 Agustus 2026 + Board Whimsical "Bank Sampah Digital — Logic"
 **Status:** Siap dieksekusi, dengan 6 keputusan terbuka di Bagian 8 (Keputusan Terbuka)
@@ -133,7 +133,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | ID | Fungsi | Actor |
 |---|---|---|
 | FR-F1 | Manifest + service worker | Semua |
-| FR-F2 | Antrean IndexedDB + idempotency key untuk setoran | PETUGAS |
+<!-- | FR-F2 | Antrean IndexedDB + idempotency key untuk setoran | PETUGAS | -->
 | FR-F3 | Background sync saat koneksi pulih | PETUGAS |
 | FR-F4 | Badge antrean + peringatan sebelum logout | PETUGAS |
 
@@ -192,6 +192,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | BR-14 | Setiap transisi status wajib menulis `AuditLog` | Ketertelusuran |
 | BR-15 | Uang dari pembeli tidak pernah dipegang petugas | Diterima Pak Camat langsung |
 | BR-16 | Jenis sampah tanpa harga aktif tidak muncul di form setoran | Mencegah kalkulasi nol |
+| BR-17 | Master data tidak dihapus fisik | Soft delete via `deletedAt`; query selalu filter `deletedAt IS NULL` (kecuali audit) |
 
 ## 2.4 Matriks Hak Akses
 
@@ -575,6 +576,7 @@ sequenceDiagram
 - Relational (PostgreSQL). Semua uang & berat pakai `Decimal` (bukan `Float`).
 - Semua id pakai `cuid()` (bukan auto-increment).
 - Tidak ada `onDelete: Cascade` pada tabel transaksi.
+- Master data (Kelurahan, BankSampah, User, Nasabah, JenisSampah, HargaSampah, Pembeli) pakai soft delete: `deletedAt DateTime?`; tidak ada hard delete (BR-17). Query list selalu filter `deletedAt IS NULL`.
 - FK yang sering di-query wajib punya `@@index`.
 - Nama tabel `snake_case` via `@@map`; model Prisma `PascalCase`.
 - **[WAJIB]** Skema adalah kontrak; perubahan lewat PR terpisah yang di-review tim DB & Logic.
@@ -589,37 +591,44 @@ sequenceDiagram
 | | nama | String | |
 | | kodeWilayah | String | UNIQUE |
 | | createdAt, updatedAt | DateTime | |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `bank_sampah` | id | String | PK |
 | | nama | String | |
 | | kelurahanId | String | UNIQUE, FK→kelurahan (BR-01) |
 | | alamat | String | |
 | | latitude, longitude | Decimal(10,7) | |
 | | isActive | Boolean | default true |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `user` | id | String | PK |
 | | authUserId | String | UNIQUE |
 | | email | String | UNIQUE |
 | | nama | String | |
 | | role | Role | |
 | | bankSampahId | String? | FK→bank_sampah, wajib kalau PETUGAS (BR-02), index |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `nasabah` | id | String | PK |
 | | kodeNasabah | String | UNIQUE |
 | | bankSampahId | String | FK→bank_sampah, index |
 | | nama, alamat, rt, rw | String | |
 | | noHp | String? | |
 | | isActive | Boolean | |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `jenis_sampah` | id | String | PK |
 | | kode | Int | UNIQUE |
 | | nama | String | |
 | | kategori | String | default "PLASTIK" |
 | | satuan | String | default "KG" |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `harga_sampah` | id | String | PK |
 | | jenisSampahId | String | FK→jenis_sampah, index(jenisSampahId,berlakuSampai) |
 | | hargaBeli, hargaJual | Decimal(14,2) | |
 | | berlakuMulai | DateTime | |
 | | berlakuSampai | DateTime? | NULL = aktif (BR-16) |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `pembeli` | id | String | PK |
 | | nama, noHp, alamat | String | |
 | | perusahaan, catatan | String? | |
+| | deletedAt | DateTime? | soft delete (BR-17) |
 | `setoran` | id | String | PK |
 | | kodeTransaksi | String | UNIQUE |
 | | bankSampahId | String | FK→bank_sampah, index(bankSampahId,tanggal) |
@@ -724,6 +733,7 @@ model Kelurahan {
   bankSampah  BankSampah?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
   @@map("kelurahan")
 }
 
@@ -738,6 +748,7 @@ model BankSampah {
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
   petugas     User[]
   nasabah     Nasabah[]
   setoran     Setoran[]
@@ -757,6 +768,7 @@ model User {
   isActive     Boolean     @default(true)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
   setoranDicatat  Setoran[]        @relation("PetugasSetoran")
   dispatchDibuat  Dispatch[]       @relation("AdminDispatch")
   mutasiStock     StockMutation[]
@@ -777,10 +789,11 @@ model Nasabah {
   alamat       String
   rt           String
   rw           String
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  setoran      Setoran[]
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt      DateTime?
+  setoran       Setoran[]
   @@index([bankSampahId])
   @@map("nasabah")
 }
@@ -792,9 +805,10 @@ model JenisSampah {
   kategori    String   @default("PLASTIK")
   satuan      String   @default("KG")
   deskripsi   String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
   harga        HargaSampah[]
   setoranItem  SetoranItem[]
   dispatchItem DispatchItem[]
@@ -811,6 +825,7 @@ model HargaSampah {
   berlakuMulai  DateTime
   berlakuSampai DateTime?
   createdAt     DateTime    @default(now())
+  deletedAt     DateTime?
   @@index([jenisSampahId, berlakuSampai])
   @@map("harga_sampah")
 }
@@ -825,6 +840,7 @@ model Pembeli {
   isActive   Boolean    @default(true)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
   dispatch   Dispatch[]
   @@map("pembeli")
 }
@@ -1107,5 +1123,6 @@ export const TARGET_SENTUH_MIN_PX = 44
 |---|---|---|
 | 1.0 | 12 Agu 2026 | Versi awal, turunan notulensi 3 Agustus 2026 dan board Whimsical |
 | 1.1 | 15 Agu 2026 | Restrukturisasi ke format 8-bagian (Overview, Requirements, Core Features, User Flow, Architecture, Sequence, DB Schema, Tech Stack) tanpa menghilangkan aturan terkunci, matriks akses, kontrak API, skema, dan keputusan terbuka. |
+| 1.2 | 17 Agu 2026 | Tambah soft delete (`deletedAt DateTime?`) pada 7 model master data; aturan BR-17 + query filter `deletedAt IS NULL`. |
 
 **Catatan akhir:** Dokumen ini akan usang kalau tidak diperbarui. Setiap keputusan di rapat wajib masuk ke sini di hari yang sama, dengan menaikkan nomor versi.
