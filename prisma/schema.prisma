@@ -1,0 +1,319 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Skema adalah kontrak (PRD §7.1). Perubahan lewat PR terpisah.
+// Semua id = cuid(); uang & berat = Decimal; tidak ada onDelete: Cascade
+// pada tabel transaksi (BR-10); FK sering di-query punya @@index.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  PETUGAS
+}
+
+enum StatusDispatch {
+  DRAFT
+  DISPATCHED
+  DITERIMA
+  DITOLAK
+  SERAH_TERIMA
+  SELESAI
+  DIBATALKAN
+}
+
+enum TipeMutasi {
+  MASUK
+  KELUAR
+  ADJUST
+}
+
+enum KondisiSampah {
+  BERSIH
+  KOTOR
+  CAMPUR
+}
+
+enum StatusKoreksi {
+  DIAJUKAN
+  DISETUJUI
+  DITOLAK
+}
+
+model Kelurahan {
+  id          String      @id @default(cuid())
+  nama        String
+  kodeWilayah String      @unique
+  bankSampah  BankSampah?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime? // soft delete (BR-17)
+
+  @@map("kelurahan")
+}
+
+model BankSampah {
+  id          String     @id @default(cuid())
+  nama        String
+  kelurahanId String     @unique // BR-01: 1 kelurahan = 1 bank sampah
+  kelurahan   Kelurahan  @relation(fields: [kelurahanId], references: [id])
+  alamat      String
+  latitude    Decimal    @db.Decimal(10, 7)
+  longitude   Decimal    @db.Decimal(10, 7)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime? // soft delete (BR-17)
+  petugas     User[]
+  nasabah     Nasabah[]
+  setoran     Setoran[]
+  stock       Stock[]
+  dispatch    Dispatch[]
+
+  @@map("bank_sampah")
+}
+
+model User {
+  id               String          @id @default(cuid())
+  authUserId       String          @unique
+  email            String          @unique
+  nama             String
+  role             Role
+  bankSampahId     String? // wajib kalau PETUGAS (BR-02)
+  bankSampah   BankSampah? @relation(fields: [bankSampahId], references: [id])
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime? // soft delete (BR-17)
+  setoranDicatat  Setoran[]        @relation("PetugasSetoran")
+  dispatchDibuat   Dispatch[]      @relation("AdminDispatch")
+  mutasiStock      StockMutation[]
+  koreksiDiajukan  KoreksiStock[]  @relation("PengajuKoreksi")
+  koreksiDisetujui KoreksiStock[]  @relation("PenyetujuKoreksi")
+  auditLog         AuditLog[]
+
+  @@index([bankSampahId])
+  @@map("user")
+}
+
+model Nasabah {
+  id           String     @id @default(cuid())
+  kodeNasabah  String     @unique
+  bankSampahId String
+  bankSampah   BankSampah @relation(fields: [bankSampahId], references: [id])
+  nama         String
+  noHp         String?
+  alamat       String
+  rt            String
+  rw            String
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime? // soft delete (BR-17)
+  setoran       Setoran[]
+
+  @@index([bankSampahId])
+  @@map("nasabah")
+}
+
+model JenisSampah {
+  id           String         @id @default(cuid())
+  kode         Int            @unique
+  nama         String
+  kategori     String         @default("PLASTIK")
+  satuan       String         @default("KG")
+  deskripsi    String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime? // soft delete (BR-17)
+  harga        HargaSampah[]
+  setoranItem  SetoranItem[]
+  dispatchItem DispatchItem[]
+  stock        Stock[]
+
+  @@map("jenis_sampah")
+}
+
+model HargaSampah {
+  id            String      @id @default(cuid())
+  jenisSampahId String
+  jenisSampah   JenisSampah @relation(fields: [jenisSampahId], references: [id])
+  hargaBeli     Decimal     @db.Decimal(14, 2)
+  hargaJual     Decimal     @db.Decimal(14, 2)
+  berlakuMulai  DateTime
+  berlakuSampai DateTime? // NULL = aktif (BR-16)
+  createdAt     DateTime    @default(now())
+  deletedAt     DateTime? // soft delete (BR-17)
+
+  @@index([jenisSampahId, berlakuSampai])
+  @@map("harga_sampah")
+}
+
+model Pembeli {
+  id         String     @id @default(cuid())
+  nama       String
+  perusahaan String?
+  noHp       String
+  alamat     String
+  catatan    String?
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime? // soft delete (BR-17)
+  dispatch   Dispatch[]
+
+  @@map("pembeli")
+}
+
+model Setoran {
+  id             String        @id @default(cuid())
+  kodeTransaksi  String        @unique
+  bankSampahId   String
+  bankSampah     BankSampah    @relation(fields: [bankSampahId], references: [id])
+  nasabahId      String
+  nasabah        Nasabah       @relation(fields: [nasabahId], references: [id])
+  petugasId      String
+  petugas        User          @relation("PetugasSetoran", fields: [petugasId], references: [id])
+  totalBerat     Decimal       @db.Decimal(10, 2)
+  totalNilai     Decimal       @db.Decimal(14, 2)
+  cashDibayar    Boolean       @default(false) // BR-04: tunai di luar sistem
+  tanggal        DateTime
+  idempotencyKey String        @unique
+  createdAt      DateTime      @default(now())
+  items          SetoranItem[]
+
+  @@index([bankSampahId, tanggal])
+  @@map("setoran")
+}
+
+model SetoranItem {
+  id            String        @id @default(cuid())
+  setoranId     String
+  setoran       Setoran       @relation(fields: [setoranId], references: [id])
+  jenisSampahId String
+  jenisSampah   JenisSampah   @relation(fields: [jenisSampahId], references: [id])
+  berat         Decimal       @db.Decimal(10, 2)
+  hargaSaatItu  Decimal       @db.Decimal(14, 2) // BR-09: snapshot, bukan relasi
+  subtotal      Decimal       @db.Decimal(14, 2)
+  kondisi       KondisiSampah
+
+  @@index([setoranId])
+  @@map("setoran_item")
+}
+
+model Stock {
+  id             String          @id @default(cuid())
+  bankSampahId   String
+  bankSampah     BankSampah      @relation(fields: [bankSampahId], references: [id])
+  jenisSampahId  String
+  jenisSampah    JenisSampah     @relation(fields: [jenisSampahId], references: [id])
+  berat          Decimal         @default(0) @db.Decimal(10, 2) // BR-07: CHECK (berat >= 0) di migration
+  beratReservasi Decimal         @default(0) @db.Decimal(10, 2)
+  threshold      Decimal         @default(0) @db.Decimal(10, 2)
+  updatedAt      DateTime        @updatedAt
+  mutasi         StockMutation[]
+  koreksi        KoreksiStock[]
+
+  @@unique([bankSampahId, jenisSampahId])
+  @@map("stock")
+}
+
+model StockMutation {
+  id           String     @id @default(cuid())
+  stockId      String
+  stock        Stock      @relation(fields: [stockId], references: [id])
+  tipe         TipeMutasi
+  berat        Decimal    @db.Decimal(10, 2)
+  beratSebelum Decimal    @db.Decimal(10, 2)
+  beratSesudah Decimal    @db.Decimal(10, 2)
+  refType      String
+  refId        String
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  keterangan   String?
+  createdAt    DateTime   @default(now())
+
+  @@index([stockId, createdAt])
+  @@map("stock_mutation")
+}
+
+model KoreksiStock {
+  id              String        @id @default(cuid())
+  stockId         String
+  stock           Stock         @relation(fields: [stockId], references: [id])
+  beratSelisih    Decimal       @db.Decimal(10, 2)
+  alasan          String
+  status          StatusKoreksi @default(DIAJUKAN)
+  diajukanOlehId  String
+  diajukanOleh    User          @relation("PengajuKoreksi", fields: [diajukanOlehId], references: [id])
+  disetujuiOlehId String?
+  disetujuiOleh   User?         @relation("PenyetujuKoreksi", fields: [disetujuiOlehId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([stockId, status])
+  @@map("koreksi_stock")
+}
+
+model Dispatch {
+  id                String         @id @default(cuid())
+  kodeDispatch      String         @unique
+  bankSampahId      String
+  bankSampah        BankSampah     @relation(fields: [bankSampahId], references: [id])
+  pembeliId         String
+  pembeli           Pembeli        @relation(fields: [pembeliId], references: [id])
+  dibuatOlehId      String
+  dibuatOleh        User           @relation("AdminDispatch", fields: [dibuatOlehId], references: [id])
+  status            StatusDispatch @default(DRAFT)
+  tanggalJemput     DateTime
+  totalNilai        Decimal?       @db.Decimal(14, 2)
+  alasanTolak       String?
+  alasanSelisih     String?
+  selisihSignifikan Boolean        @default(false)
+  fotoBuktiUrl      String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  items             DispatchItem[]
+
+  @@index([bankSampahId, status])
+  @@map("dispatch")
+}
+
+model DispatchItem {
+  id             String      @id @default(cuid())
+  dispatchId     String
+  dispatch       Dispatch    @relation(fields: [dispatchId], references: [id])
+  jenisSampahId  String
+  jenisSampah    JenisSampah @relation(fields: [jenisSampahId], references: [id])
+  beratTarget    Decimal     @db.Decimal(10, 2)
+  beratAktual    Decimal?    @db.Decimal(10, 2)
+  hargaJualPerKg Decimal     @db.Decimal(14, 2)
+  subtotal       Decimal?    @db.Decimal(14, 2)
+
+  @@index([dispatchId])
+  @@map("dispatch_item")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  aksi          String
+  entitas       String
+  entitasId     String
+  payloadBefore Json?
+  payloadAfter  Json?
+  createdAt     DateTime @default(now())
+
+  @@index([entitas, entitasId])
+  @@index([userId, createdAt])
+  @@map("audit_log")
+}
