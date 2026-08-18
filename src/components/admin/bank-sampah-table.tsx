@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -30,7 +31,6 @@ export const KELURAHAN = [
 
 export function BankSampahTable({
   bankSampah,
-  onAdd,
   onEdit,
   onDelete,
   onView,
@@ -38,7 +38,6 @@ export function BankSampahTable({
   onSelectedChange,
 }: {
   bankSampah: BankSampah[];
-  onAdd?: () => void;
   onEdit?: (b: BankSampah) => void;
   onDelete?: (b: BankSampah) => void;
   onView?: (b: BankSampah) => void;
@@ -155,14 +154,13 @@ export function BankSampahTable({
             <Download className="size-[18px]" />
             <span>Export</span>
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
+          <Link
+            href="/admin/bank-sampah/tambah"
             className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-fixed-variant transition-colors font-label-md text-label-md shadow-sm"
           >
             <Plus className="size-[18px]" />
             <span>Tambah Bank Sampah</span>
-          </button>
+          </Link>
         </>
       }
       actions={() => [
