@@ -1,41 +1,12 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
-import { PetugasTable, type Petugas } from "@/components/admin/petugas-table";
+import { PetugasTable } from "@/components/admin/petugas-table";
+import { PETUGAS } from "@/lib/petugas-data";
 
 export const metadata: Metadata = {
   title: "Manajemen Petugas",
 };
-
-const PETUGAS: Petugas[] = [
-  {
-    initials: "BS",
-    initialsClass: "bg-surface-container-high text-on-surface",
-    nama: "Budi Santoso",
-    nip: "ID-00124",
-    unitKerja: "Kelurahan Menteng",
-    noHp: "+62 812-3456-7890",
-    status: "Active",
-  },
-  {
-    initials: "SR",
-    initialsClass: "bg-surface-container-high text-on-surface",
-    nama: "Siti Rahma",
-    nip: "ID-00125",
-    unitKerja: "Kelurahan Senayan",
-    noHp: "+62 856-7890-1234",
-    status: "Disabled",
-  },
-  {
-    initials: "AW",
-    initialsClass: "bg-secondary-container text-on-secondary-container",
-    nama: "Ahmad Wijaya",
-    nip: "ID-00126",
-    unitKerja: "Kelurahan Cikini",
-    noHp: "+62 813-5555-9999",
-    status: "Pending",
-  },
-];
 
 export default function PetugasPage() {
   return (
