@@ -1,33 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { EditBankSampahModal } from "@/components/admin/bank-sampah-edit-modal";
+import { KELURAHAN, type BankSampah, type BankSampahStatus } from "@/lib/bank-sampah-data";
 
-export type BankSampahStatus = "Active" | "Non-aktif";
-
-export type BankSampah = {
-  id: string;
-  nama: string;
-  kelurahan: string;
-  alamat: string;
-  latitude: number;
-  longitude: number;
-  status: BankSampahStatus;
-};
+export type { BankSampah, BankSampahStatus } from "@/lib/bank-sampah-data";
 
 const STATUS_STYLES: Record<BankSampahStatus, string> = {
   Active: "bg-secondary-container text-on-secondary-container border border-secondary-fixed",
   "Non-aktif": "bg-surface-variant text-on-surface-variant border border-outline-variant",
 };
-
-export const KELURAHAN = [
-  { value: "Menteng", label: "Menteng" },
-  { value: "Senayan", label: "Senayan" },
-  { value: "Cikini", label: "Cikini" },
-];
 
 export function BankSampahTable({
   bankSampah,
@@ -44,6 +30,8 @@ export function BankSampahTable({
   onExport?: () => void;
   onSelectedChange?: (ids: string[]) => void;
 }) {
+  const [editing, setEditing] = useState<BankSampah | null>(null);
+
   const indexById = useMemo(() => {
     const map = new Map<string, number>();
     bankSampah.forEach((b, i) => map.set(b.id, i + 1));
@@ -118,7 +106,8 @@ export function BankSampahTable({
   );
 
   return (
-    <DataTable
+    <>
+      <DataTable
       data={bankSampah}
       columns={columns}
       getRowId={(b) => b.id}
@@ -174,7 +163,10 @@ export function BankSampahTable({
           label: "Edit",
           icon: Pencil,
           className: "hover:text-primary hover:bg-primary-container/20",
-          onClick: (b) => onEdit?.(b),
+          onClick: (b) => {
+            onEdit?.(b);
+            setEditing(b);
+          },
         },
         {
           label: "Hapus",
@@ -183,6 +175,17 @@ export function BankSampahTable({
           onClick: (b) => onDelete?.(b),
         },
       ]}
-    />
+      />
+
+      {editing && (
+        <EditBankSampahModal
+          bankSampah={editing}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }
