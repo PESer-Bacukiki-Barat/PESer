@@ -1,32 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { EditJenisSampahModal } from "@/components/admin/jenis-sampah-edit-modal";
+import { KATEGORI, type JenisSampah, type JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
-export type JenisSampahStatus = "Aktif" | "Non-aktif";
-
-export type JenisSampah = {
-  kode: string;
-  nama: string;
-  kategori: string;
-  berat: number;
-  deskripsi: string;
-  status: JenisSampahStatus;
-};
+export type { JenisSampah, JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
 const STATUS_STYLES: Record<JenisSampahStatus, string> = {
   Aktif: "bg-secondary-container text-on-secondary-container border border-secondary/20",
   "Non-aktif": "bg-surface-variant text-on-surface-variant border border-outline-variant",
 };
-
-export const KATEGORI = [
-  { value: "Plastik", label: "Plastik" },
-  { value: "Kertas", label: "Kertas" },
-  { value: "Kaca", label: "Kaca" },
-  { value: "Logam", label: "Logam" },
-];
 
 const columns: Column<JenisSampah>[] = [
   {
@@ -87,8 +74,11 @@ export function JenisSampahTable({
   onExport?: () => void;
   onSelectedChange?: (ids: string[]) => void;
 }) {
+  const [editing, setEditing] = useState<JenisSampah | null>(null);
+
   return (
-    <DataTable
+    <>
+      <DataTable
       data={jenisSampahs}
       columns={columns}
       getRowId={(j) => j.kode}
@@ -144,7 +134,10 @@ export function JenisSampahTable({
           label: "Edit",
           icon: Pencil,
           className: "hover:text-primary",
-          onClick: (j) => onEdit?.(j),
+          onClick: (j) => {
+            onEdit?.(j);
+            setEditing(j);
+          },
         },
         {
           label: "Hapus",
@@ -158,6 +151,17 @@ export function JenisSampahTable({
           Tidak ada jenis sampah ditemukan.
         </p>
       }
-    />
+      />
+
+      {editing && (
+        <EditJenisSampahModal
+          jenisSampah={editing}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }

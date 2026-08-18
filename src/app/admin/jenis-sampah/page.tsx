@@ -1,49 +1,12 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
-import {
-  JenisSampahTable,
-  type JenisSampah,
-} from "@/components/admin/jenis-sampah-table";
+import { JenisSampahTable } from "@/components/admin/jenis-sampah-table";
+import { JENIS_SAMPAH } from "@/lib/jenis-sampah-data";
 
 export const metadata: Metadata = {
   title: "Manajemen Jenis Sampah",
 };
-
-const JENIS_SAMPAH: JenisSampah[] = [
-  {
-    kode: "PLS-001",
-    nama: "Botol PET Bening",
-    kategori: "Plastik",
-    berat: 0.5,
-    deskripsi: "Botol plastik minuman mineral ukuran 600ml",
-    status: "Aktif",
-  },
-  {
-    kode: "PLS-002",
-    nama: "Gelas Plastik (PP)",
-    kategori: "Plastik",
-    berat: 0.2,
-    deskripsi: "Gelas plastik minuman kemasan",
-    status: "Aktif",
-  },
-  {
-    kode: "KRT-001",
-    nama: "Kardus Campur",
-    kategori: "Kertas",
-    berat: 1.0,
-    deskripsi: "Kardus bekas packing, kering",
-    status: "Aktif",
-  },
-  {
-    kode: "KCA-002",
-    nama: "Pecahan Kaca",
-    kategori: "Kaca",
-    berat: 5.0,
-    deskripsi: "Pecahan kaca campuran, bahaya",
-    status: "Non-aktif",
-  },
-];
 
 export default function JenisSampahPage() {
   return (

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
-import { KATEGORI } from "@/components/admin/jenis-sampah-table";
+import { KATEGORI } from "@/lib/jenis-sampah-data";
 
 export type JenisSampahFormValues = {
   kode: string;
@@ -31,6 +31,7 @@ export function JenisSampahForm({
   cancelHref,
   onSubmit,
   onCancel,
+  bare = false,
 }: {
   initialData?: Partial<JenisSampahFormValues>;
   kategoriOptions?: SelectOption[];
@@ -40,6 +41,7 @@ export function JenisSampahForm({
   cancelHref?: string;
   onSubmit?: (values: JenisSampahFormValues) => void;
   onCancel?: () => void;
+  bare?: boolean;
 }) {
   const router = useRouter();
 
@@ -74,98 +76,104 @@ export function JenisSampahForm({
     }
   }
 
-  return (
-    <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Sampah Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Kode Sampah" required htmlFor="kode">
-            <input
-              id="kode"
-              type="text"
-              value={kode}
-              onChange={(e) => setKode(e.target.value)}
-              placeholder="Masukkan kode sampah (mis. PLS-001)"
-              required
-              className={inputClasses}
-            />
-          </Field>
-          <Field label="Nama Sampah" required htmlFor="nama">
-            <input
-              id="nama"
-              type="text"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              placeholder="Masukkan nama sampah"
-              required
-              className={inputClasses}
-            />
-          </Field>
-          <SelectField
-            id="kategori"
-            label="Kategori"
+  const form = (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Sampah Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Kode Sampah" required htmlFor="kode">
+          <input
+            id="kode"
+            type="text"
+            value={kode}
+            onChange={(e) => setKode(e.target.value)}
+            placeholder="Masukkan kode sampah (mis. PLS-001)"
             required
-            value={kategori}
-            onChange={setKategori}
-            options={kategoriOptions}
-            placeholder={kategori === "" ? "Pilih Kategori" : undefined}
-          />
-          <Field label="Berat (kg)" required htmlFor="berat">
-            <input
-              id="berat"
-              type="number"
-              min={0}
-              step="0.1"
-              value={berat}
-              onChange={(e) => setBerat(e.target.value)}
-              placeholder="0.0"
-              required
-              className={inputClasses}
-            />
-          </Field>
-        </div>
-
-        {/* Deskripsi */}
-        <Field label="Deskripsi" htmlFor="deskripsi">
-          <textarea
-            id="deskripsi"
-            rows={3}
-            value={deskripsi}
-            onChange={(e) => setDeskripsi(e.target.value)}
-            placeholder="Deskripsi singkat tentang jenis sampah..."
-            className={cn(inputClasses, "resize-none")}
+            className={inputClasses}
           />
         </Field>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SelectField
-            id="status"
-            label="Status"
+        <Field label="Nama Sampah" required htmlFor="nama">
+          <input
+            id="nama"
+            type="text"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            placeholder="Masukkan nama sampah"
             required
-            value={status}
-            onChange={setStatus}
-            options={statusOptions}
+            className={inputClasses}
           />
-        </div>
+        </Field>
+        <SelectField
+          id="kategori"
+          label="Kategori"
+          required
+          value={kategori}
+          onChange={setKategori}
+          options={kategoriOptions}
+          placeholder={kategori === "" ? "Pilih Kategori" : undefined}
+        />
+        <Field label="Berat (kg)" required htmlFor="berat">
+          <input
+            id="berat"
+            type="number"
+            min={0}
+            step="0.1"
+            value={berat}
+            onChange={(e) => setBerat(e.target.value)}
+            placeholder="0.0"
+            required
+            className={inputClasses}
+          />
+        </Field>
+      </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
-          >
-            <Save className="size-[18px]" />
-            {submitLabel}
-          </button>
-        </div>
-      </form>
+      {/* Deskripsi */}
+      <Field label="Deskripsi" htmlFor="deskripsi">
+        <textarea
+          id="deskripsi"
+          rows={3}
+          value={deskripsi}
+          onChange={(e) => setDeskripsi(e.target.value)}
+          placeholder="Deskripsi singkat tentang jenis sampah..."
+          className={cn(inputClasses, "resize-none")}
+        />
+      </Field>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SelectField
+          id="status"
+          label="Status"
+          required
+          value={status}
+          onChange={setStatus}
+          options={statusOptions}
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+        >
+          {cancelLabel}
+        </button>
+        <button
+          type="submit"
+          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
+        >
+          <Save className="size-[18px]" />
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+
+  if (bare) return form;
+
+  return (
+    <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
+      {form}
     </div>
   );
 }
