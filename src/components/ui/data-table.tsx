@@ -48,8 +48,14 @@ type DataTableProps<T> = {
 };
 
 const headerClass = "p-4 font-label-md text-label-md text-on-surface-variant";
-const cellClass = "p-4 font-label-md text-label-md text-on-surface";
 const alignClass = { left: "text-left", right: "text-right", center: "text-center" } as const;
+const alignDesktopClass = {
+  left: "md:text-left",
+  right: "md:text-right",
+  center: "md:text-center",
+} as const;
+const cellLabelClass = "md:hidden shrink-0 font-label-sm text-label-sm text-on-surface-variant";
+const cellValueClass = "flex-1 min-w-0 text-right font-label-md text-label-md text-on-surface md:block";
 
 export function DataTable<T>({
   data,
@@ -179,8 +185,8 @@ export function DataTable<T>({
 
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
+          <table className="w-full block md:table text-left border-collapse">
+            <thead className="hidden md:table-header-group">
               <tr className="bg-surface-container-low border-b border-outline-variant">
                 {selectable && (
                   <th className={cn(headerClass, "w-12 text-center")}>
@@ -211,12 +217,12 @@ export function DataTable<T>({
                 {actions && <th className={cn(headerClass, "text-right")}>Aksi</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant">
+            <tbody className="block md:table-row-group md:divide-y divide-outline-variant space-y-3 md:space-y-0 p-3 md:p-0">
               {pageItems.length === 0 && (
-                <tr>
+                <tr className="block md:table-row border border-outline-variant md:border-0 rounded-xl md:rounded-none">
                   <td
                     colSpan={columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}
-                    className="p-8 text-center text-on-surface-variant font-label-md text-label-md"
+                    className="block md:table-cell p-6 md:p-8 text-center text-on-surface-variant font-label-md text-label-md"
                   >
                     {emptyState ?? "Tidak ada data."}
                   </td>
@@ -225,9 +231,13 @@ export function DataTable<T>({
               {pageItems.map((row) => {
                 const id = getRowId(row);
                 return (
-                  <tr key={id} className="hover:bg-surface-container-low transition-colors group">
+                  <tr
+                    key={id}
+                    className="block md:table-row border border-outline-variant md:border-0 rounded-xl md:rounded-none overflow-hidden hover:bg-surface-container-low transition-colors"
+                  >
                     {selectable && (
-                      <td className="p-4 text-center">
+                      <td className="flex items-center justify-between gap-4 py-1.5 px-4 md:table-cell md:p-4 md:text-center">
+                        <span className={cellLabelClass}>Pilih</span>
                         <input
                           type="checkbox"
                           checked={selected.has(id)}
@@ -241,17 +251,24 @@ export function DataTable<T>({
                       <td
                         key={col.id}
                         className={cn(
-                          cellClass,
-                          col.align && alignClass[col.align],
+                          "flex items-center justify-between gap-4 py-1.5 px-4 md:table-cell md:p-4",
                           col.className,
                         )}
                       >
-                        {col.cell(row)}
+                        <span className={cellLabelClass}>{col.header}</span>
+                        <span
+                          className={cn(
+                            cellValueClass,
+                            col.align && alignDesktopClass[col.align],
+                          )}
+                        >
+                          {col.cell(row)}
+                        </span>
                       </td>
                     ))}
                     {actions && (
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <td className="py-1.5 px-4 md:table-cell md:p-4 md:text-right">
+                        <div className="flex items-center justify-end gap-1">
                           {actions(row).map((action) => {
                             const Icon = action.icon;
                             return (
@@ -261,7 +278,7 @@ export function DataTable<T>({
                                 title={action.label}
                                 onClick={() => action.onClick(row)}
                                 className={cn(
-                                  "p-1.5 text-on-surface-variant hover:bg-surface-container rounded-md transition-colors",
+                                  "p-2 text-on-surface-variant hover:bg-surface-container rounded-md transition-colors",
                                   action.className,
                                 )}
                               >

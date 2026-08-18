@@ -131,7 +131,7 @@ export function PetugasTable({
           </button>
           <Link
             href="/admin/petugas/tambah"
-            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-fixed-variant transition-colors font-label-md text-label-md shadow-sm"
+            className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary text-white rounded-lg hover:bg-primary-fixed-variant transition-colors font-label-md text-label-md shadow-sm"
           >
             <Plus className="size-[18px]" />
             <span>Tambah Petugas</span>
