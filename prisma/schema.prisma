@@ -41,12 +41,6 @@ enum KondisiSampah {
   CAMPUR
 }
 
-enum StatusKoreksi {
-  DIAJUKAN
-  DISETUJUI
-  DITOLAK
-}
-
 model Kelurahan {
   id          String      @id @default(cuid())
   nama        String
@@ -95,8 +89,7 @@ model User {
   setoranDicatat  Setoran[]        @relation("PetugasSetoran")
   dispatchDibuat   Dispatch[]      @relation("AdminDispatch")
   mutasiStock      StockMutation[]
-  koreksiDiajukan  KoreksiStock[]  @relation("PengajuKoreksi")
-  koreksiDisetujui KoreksiStock[]  @relation("PenyetujuKoreksi")
+  koreksiStock     KoreksiStock[]  @relation("PelakuKoreksi")
   auditLog         AuditLog[]
 
   @@index([bankSampahId])
@@ -142,32 +135,17 @@ model JenisSampah {
   nama         String
   kategori     String         @default("PLASTIK")
   satuan       String         @default("KG")
+  harga        Decimal        @default(0) @db.Decimal(14, 2) // harga beli/jual tunggal (flatten dari HargaSampah)
   deskripsi    String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime? // soft delete (BR-17)
-  harga        HargaSampah[]
   setoranItem  SetoranItem[]
   dispatchItem DispatchItem[]
   stock        Stock[]
 
   @@map("jenis_sampah")
-}
-
-model HargaSampah {
-  id            String      @id @default(cuid())
-  jenisSampahId String
-  jenisSampah   JenisSampah @relation(fields: [jenisSampahId], references: [id])
-  hargaBeli     Decimal     @db.Decimal(14, 2)
-  hargaJual     Decimal     @db.Decimal(14, 2)
-  berlakuMulai  DateTime
-  berlakuSampai DateTime? // NULL = aktif (BR-16)
-  createdAt     DateTime    @default(now())
-  deletedAt     DateTime? // soft delete (BR-17)
-
-  @@index([jenisSampahId, berlakuSampai])
-  @@map("harga_sampah")
 }
 
 model Pembeli {
@@ -259,20 +237,18 @@ model StockMutation {
 }
 
 model KoreksiStock {
-  id              String        @id @default(cuid())
+  id              String      @id @default(cuid())
   stockId         String
-  stock           Stock         @relation(fields: [stockId], references: [id])
-  beratSelisih    Decimal       @db.Decimal(10, 2)
+  stock           Stock       @relation(fields: [stockId], references: [id])
+  beratSebelum    Decimal     @db.Decimal(10, 2)
+  beratSesudah    Decimal     @db.Decimal(10, 2)
   alasan          String
-  status          StatusKoreksi @default(DIAJUKAN)
-  diajukanOlehId  String
-  diajukanOleh    User          @relation("PengajuKoreksi", fields: [diajukanOlehId], references: [id])
-  disetujuiOlehId String?
-  disetujuiOleh   User?         @relation("PenyetujuKoreksi", fields: [disetujuiOlehId], references: [id])
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  dilakukanOlehId String
+  dilakukanOleh   User        @relation("PelakuKoreksi", fields: [dilakukanOlehId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  @@index([stockId, status])
+  @@index([stockId])
   @@map("koreksi_stock")
 }
 

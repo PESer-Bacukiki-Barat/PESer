@@ -5,6 +5,7 @@ export const jenisSampahSchema = z.object({
   nama: z.string().trim().min(1, "nama wajib"),
   kategori: z.string().trim().default("PLASTIK"),
   satuan: z.string().trim().default("KG"),
+  harga: z.number().min(0, "harga tidak boleh negatif").default(0),
   deskripsi: z.string().trim().optional(),
   isActive: z.boolean().optional().default(true),
 })

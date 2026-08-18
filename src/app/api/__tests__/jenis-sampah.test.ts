@@ -27,7 +27,7 @@ const prismaError = (code: string) =>
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
 const json = (res: Response) => res.json()
 
-const validBody = { kode: 1, nama: "Plastik", kategori: "PLASTIK", satuan: "KG" }
+const validBody = { kode: 1, nama: "Plastik", kategori: "PLASTIK", satuan: "KG", harga: 0 }
 
 const body = (over: object = {}) => new Request("http://x", { method: "POST", body: JSON.stringify({ ...validBody, ...over }) })
 

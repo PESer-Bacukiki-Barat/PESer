@@ -92,7 +92,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | FR-B2 | CRUD Bank Sampah (+ map picker) | ADMIN |
 | FR-B3 | CRUD Akun Petugas + assign bank sampah | ADMIN |
 | FR-B4 | CRUD Jenis Sampah | ADMIN |
-| FR-B5 | CRUD Harga (riwayat berlaku) | ADMIN |
+| FR-B5 | Kelola harga per Jenis Sampah | ADMIN |
 | FR-B6 | CRUD Pembeli | ADMIN |
 | FR-B7 | CRUD Nasabah (scoped ke 1 bank sampah) | PETUGAS |
 
@@ -105,8 +105,8 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | FR-C4 | Halaman bukti setor | PETUGAS |
 | FR-C5 | Lihat stock bank sampah sendiri | PETUGAS, ADMIN |
 | FR-C6 | Lihat stock semua bank sampah | ADMIN |
-| FR-C7 | Ajukan koreksi stock | PETUGAS |
-| FR-C8 | Setujui / tolak koreksi stock | ADMIN |
+| FR-C7 | Koreksi stock (ubah langsung, tanpa approval) | PETUGAS |
+| FR-C8 | Lihat riwayat koreksi stock | PETUGAS, ADMIN |
 | FR-C9 | Riwayat transaksi + filter tanggal | PETUGAS (sendiri), ADMIN (semua) |
 
 ### Modul D — Dispatch & Penjualan
@@ -191,7 +191,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | BR-13 | Status `SELESAI` bersifat final (immutable) | Laporan tidak boleh berubah retroaktif |
 | BR-14 | Setiap transisi status wajib menulis `AuditLog` | Ketertelusuran |
 | BR-15 | Uang dari pembeli tidak pernah dipegang petugas | Diterima Pak Camat langsung |
-| BR-16 | Jenis sampah tanpa harga aktif tidak muncul di form setoran | Mencegah kalkulasi nol |
+| BR-16 | Jenis sampah dengan harga = 0 tidak muncul di form setoran | Mencegah kalkulasi nol |
 | BR-17 | Master data tidak dihapus fisik | Soft delete via `deletedAt`; query selalu filter `deletedAt IS NULL` (kecuali audit) |
 
 ## 2.4 Matriks Hak Akses
@@ -206,14 +206,14 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | CRUD Bank Sampah | ✅ | ❌ |
 | CRUD Akun Petugas | ✅ | ❌ |
 | CRUD Jenis Sampah | ✅ | ❌ |
-| CRUD Harga | ✅ | ❌ |
+| Kelola harga (di Jenis Sampah) | ✅ | ❌ |
 | CRUD Pembeli | ✅ | ❌ |
 | CRUD Nasabah | ❌ | ✅ (bank sampah sendiri) |
 | Input setoran | ❌ | ✅ (bank sampah sendiri) |
 | Lihat stock semua bank sampah | ✅ | ❌ |
 | Lihat stock bank sampah sendiri | ✅ | ✅ |
-| Ajukan koreksi stock | ❌ | ✅ |
-| Setujui koreksi stock | ✅ | ❌ |
+| Koreksi stock (ubah langsung) | ❌ | ✅ |
+| Lihat riwayat koreksi stock | ✅ | ✅ |
 | Buat dispatch | ✅ | ❌ |
 | Terbitkan dispatch | ✅ | ❌ |
 | Terima / tolak dispatch | ❌ | ✅ (yang ditujukan padanya) |
@@ -263,8 +263,8 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | POST | `/api/setoran` | PETUGAS | Wajib header `Idempotency-Key` |
 | GET | `/api/setoran` | PETUGAS, ADMIN | Filter tanggal, scoped |
 | GET | `/api/stock` | PETUGAS, ADMIN | Scoped otomatis |
-| POST | `/api/koreksi-stock` | PETUGAS | Ajukan koreksi |
-| PATCH | `/api/koreksi-stock/:id` | ADMIN | Setujui / tolak |
+| POST | `/api/koreksi-stock` | PETUGAS | Koreksi langsung (ubah stock) |
+| GET | `/api/koreksi-stock` | PETUGAS, ADMIN | Riwayat koreksi |
 | POST | `/api/dispatch` | ADMIN | Buat DRAFT |
 | POST | `/api/dispatch/:id/terbitkan` | ADMIN | DRAFT → DISPATCHED |
 | POST | `/api/dispatch/:id/terima` | PETUGAS | DISPATCHED → DITERIMA |
@@ -369,7 +369,7 @@ flowchart TD
 4. Sampah ditimbang secara fisik.
 5. **Gerbang kualitas:** apakah tersortir & sesuai master jenis sampah? Tidak → sortir ulang/tolak + **wajib catat alasan**. Ya → lanjut.
 6. Input item: jenis, berat (kg), kondisi.
-7. **Sistem** ambil harga beli aktif, `subtotal = berat × hargaBeli`.
+7. **Sistem** ambil `harga` dari `JenisSampah`, `subtotal = berat × harga`.
 8. Ulangi 6–7 untuk jenis lain.
 9. Tampilkan total berat & rupiah.
 10. Petugas konfirmasi simpan.
@@ -380,7 +380,7 @@ flowchart TD
 15. Tampilkan bukti setor.
 16. Cek stock vs threshold → lewat → notifikasi Admin.
 
-**Aturan Harga [WAJIB]:** harga aktif = `HargaSampah` dengan `berlakuSampai IS NULL`; tidak ada → tidak muncul di dropdown; harga dikunci saat item masuk keranjang (bukan submit); disimpan ke `SetoranItem.hargaSaatItu` sebagai angka.
+**Aturan Harga [WAJIB]:** harga = kolom `harga` di `JenisSampah` (sudah flat; tabel `HargaSampah` dihapus); `harga = 0` → tidak muncul di dropdown (BR-16); harga dikunci saat item masuk keranjang (bukan submit); disimpan ke `SetoranItem.hargaSaatItu` sebagai angka.
 
 **Aturan Pembulatan [DEFAULT]:** subtotal dibulatkan ke rupiah terdekat (setengah ke atas); total setoran dibulatkan ke **Rp 500 terdekat**. Selisih pembulatan tidak dicatat terpisah. Contoh: `1,33 kg × Rp 1.800 = Rp 2.394` → total dibulatkan `Rp 2.500`.
 
@@ -574,14 +574,14 @@ sequenceDiagram
 - Relational (PostgreSQL). Semua uang & berat pakai `Decimal` (bukan `Float`).
 - Semua id pakai `cuid()` (bukan auto-increment).
 - Tidak ada `onDelete: Cascade` pada tabel transaksi.
-- Master data (Kelurahan, BankSampah, User, Nasabah, JenisSampah, HargaSampah, Pembeli) pakai soft delete: `deletedAt DateTime?`; tidak ada hard delete (BR-17). Query list selalu filter `deletedAt IS NULL`.
+- Master data (Kelurahan, BankSampah, User, Nasabah, JenisSampah, Pembeli) pakai soft delete: `deletedAt DateTime?`; tidak ada hard delete (BR-17). Query list selalu filter `deletedAt IS NULL`.
 - FK yang sering di-query wajib punya `@@index`.
 - Nama tabel `snake_case` via `@@map`; model Prisma `PascalCase`.
 - **[WAJIB]** Skema adalah kontrak; perubahan lewat PR terpisah yang di-review tim DB & Logic.
 
 ## 7.2 Daftar Tabel, Kolom, Tipe & Constraints
 
-**Enum:** `Role{ADMIN,PETUGAS}`, `StatusDispatch{DRAFT,DISPATCHED,DITERIMA,DITOLAK,SERAH_TERIMA,SELESAI,DIBATALKAN}`, `TipeMutasi{MASUK,KELUAR,ADJUST}`, `KondisiSampah{BERSIH,KOTOR,CAMPUR}`, `StatusKoreksi{DIAJUKAN,DISETUJUI,DITOLAK}`.
+**Enum:** `Role{ADMIN,PETUGAS}`, `StatusDispatch{DRAFT,DISPATCHED,DITERIMA,DITOLAK,SERAH_TERIMA,SELESAI,DIBATALKAN}`, `TipeMutasi{MASUK,KELUAR,ADJUST}`, `KondisiSampah{BERSIH,KOTOR,CAMPUR}`.
 
 | Tabel | Kolom | Tipe | Constraint |
 |---|---|---|---|
@@ -620,12 +620,7 @@ sequenceDiagram
 | | nama | String | |
 | | kategori | String | default "PLASTIK" |
 | | satuan | String | default "KG" |
-| | deletedAt | DateTime? | soft delete (BR-17) |
-| `harga_sampah` | id | String | PK |
-| | jenisSampahId | String | FK→jenis_sampah, index(jenisSampahId,berlakuSampai) |
-| | hargaBeli, hargaJual | Decimal(14,2) | |
-| | berlakuMulai | DateTime | |
-| | berlakuSampai | DateTime? | NULL = aktif (BR-16) |
+| | harga | Decimal(14,2) | default 0 |
 | | deletedAt | DateTime? | soft delete (BR-17) |
 | `pembeli` | id | String | PK |
 | | nama, noHp, alamat | String | |
@@ -662,12 +657,11 @@ sequenceDiagram
 | | refType, refId, keterangan? | String | |
 | | userId | String | FK→user |
 | `koreksi_stock` | id | String | PK |
-| | stockId | String | FK→stock, index(stockId,status) |
-| | beratSelisih | Decimal(10,2) | |
+| | stockId | String | FK→stock, index(stockId) |
+| | beratSebelum | Decimal(10,2) | |
+| | beratSesudah | Decimal(10,2) | |
 | | alasan | String | |
-| | status | StatusKoreksi | default DIAJUKAN |
-| | diajukanOlehId | String | FK→user |
-| | disetujuiOlehId | String? | FK→user |
+| | dilakukanOlehId | String | FK→user |
 | `dispatch` | id | String | PK |
 | | kodeDispatch | String | UNIQUE |
 | | bankSampahId | String | FK→bank_sampah, index(bankSampahId,status) |
@@ -708,7 +702,6 @@ erDiagram
     User ||--o{ KoreksiStock : "ajukan/setujui"
     User ||--o{ AuditLog : "penulis"
     Nasabah ||--o{ Setoran : "menyetor"
-    JenisSampah ||--o{ HargaSampah : "riwayat"
     JenisSampah ||--o{ SetoranItem : "item"
     JenisSampah ||--o{ DispatchItem : "item"
     JenisSampah ||--o{ Stock : "jenis"
@@ -726,7 +719,6 @@ enum Role { ADMIN PETUGAS }
 enum StatusDispatch { DRAFT DISPATCHED DITERIMA DITOLAK SERAH_TERIMA SELESAI DIBATALKAN }
 enum TipeMutasi { MASUK KELUAR ADJUST }
 enum KondisiSampah { BERSIH KOTOR CAMPUR }
-enum StatusKoreksi { DIAJUKAN DISETUJUI DITOLAK }
 
 model Kelurahan {
   id          String      @id @default(cuid())
@@ -774,8 +766,7 @@ model User {
   setoranDicatat  Setoran[]        @relation("PetugasSetoran")
   dispatchDibuat  Dispatch[]       @relation("AdminDispatch")
   mutasiStock     StockMutation[]
-  koreksiDiajukan KoreksiStock[]   @relation("PengajuKoreksi")
-  koreksiDisetujui KoreksiStock[]  @relation("PenyetujuKoreksi")
+  koreksiStock    KoreksiStock[]   @relation("PelakuKoreksi")
   auditLog        AuditLog[]
   @@index([bankSampahId])
   @@map("user")
@@ -818,30 +809,16 @@ model JenisSampah {
   nama        String
   kategori    String   @default("PLASTIK")
   satuan      String   @default("KG")
+  harga       Decimal   @default(0) @db.Decimal(14, 2)
   deskripsi   String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime?
-  harga        HargaSampah[]
   setoranItem  SetoranItem[]
   dispatchItem DispatchItem[]
   stock        Stock[]
   @@map("jenis_sampah")
-}
-
-model HargaSampah {
-  id            String      @id @default(cuid())
-  jenisSampahId String
-  jenisSampah   JenisSampah @relation(fields: [jenisSampahId], references: [id])
-  hargaBeli     Decimal     @db.Decimal(14, 2)
-  hargaJual     Decimal     @db.Decimal(14, 2)
-  berlakuMulai  DateTime
-  berlakuSampai DateTime?
-  createdAt     DateTime    @default(now())
-  deletedAt     DateTime?
-  @@index([jenisSampahId, berlakuSampai])
-  @@map("harga_sampah")
 }
 
 model Pembeli {
@@ -928,19 +905,17 @@ model StockMutation {
 }
 
 model KoreksiStock {
-  id             String        @id @default(cuid())
-  stockId        String
-  stock          Stock         @relation(fields: [stockId], references: [id])
-  beratSelisih   Decimal       @db.Decimal(10, 2)
-  alasan         String
-  status         StatusKoreksi @default(DIAJUKAN)
-  diajukanOlehId String
-  diajukanOleh   User          @relation("PengajuKoreksi", fields: [diajukanOlehId], references: [id])
-  disetujuiOlehId String?
-  disetujuiOleh  User?         @relation("PenyetujuKoreksi", fields: [disetujuiOlehId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  @@index([stockId, status])
+  id              String      @id @default(cuid())
+  stockId         String
+  stock           Stock       @relation(fields: [stockId], references: [id])
+  beratSebelum    Decimal     @db.Decimal(10, 2)
+  beratSesudah    Decimal     @db.Decimal(10, 2)
+  alasan          String
+  dilakukanOlehId String
+  dilakukanOleh   User        @relation("PelakuKoreksi", fields: [dilakukanOlehId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  @@index([stockId])
   @@map("koreksi_stock")
 }
 
@@ -1063,9 +1038,9 @@ Hanya transisi di tabel ini diizinkan; lainnya → HTTP 409.
 
 **E1 — Auth & Role Guard:** T1.1 Skema User+Role+Credential (DB); T1.2 Login/logout NextAuth (Logic); T1.3 Middleware per role (Logic); T1.4 `scopeToBankSampah()` (Logic); T1.5 Ubah profil & password (Logic+UI).
 
-**E2 — Master Data:** T2.1 CRUD Kelurahan; T2.2 CRUD Bank Sampah+map (Logic+UI); T2.3 CRUD Petugas+assign (Logic); T2.4 CRUD Jenis Sampah+seed 1–7 (Logic+DB); T2.5 CRUD Harga riwayat (Logic); T2.6 CRUD Pembeli.
+**E2 — Master Data:** T2.1 CRUD Kelurahan; T2.2 CRUD Bank Sampah+map (Logic+UI); T2.3 CRUD Petugas+assign (Logic); T2.4 CRUD Jenis Sampah+seed 1–7 (Logic+DB); T2.5 Harga dikelola di Jenis Sampah (Logic); T2.6 CRUD Pembeli.
 
-**E3 — Setoran & Stock:** T3.1 CRUD Nasabah scoped; T3.2 Form setoran multi-item (Logic+UI); T3.3 `POST /api/setoran` `$transaction`; T3.4 Update Stock+Mutation MASUK; T3.5 Gerbang kualitas+alasan; T3.6 Bukti setor (UI); T3.7 Halaman stock sendiri (UI); T3.8 Ajukan koreksi; T3.9 Setujui koreksi; T3.10 Riwayat+filter.
+**E3 — Setoran & Stock:** T3.1 CRUD Nasabah scoped; T3.2 Form setoran multi-item (Logic+UI); T3.3 `POST /api/setoran` `$transaction`; T3.4 Update Stock+Mutation MASUK; T3.5 Gerbang kualitas+alasan; T3.6 Bukti setor (UI); T3.7 Halaman stock sendiri (UI); T3.8 Koreksi stock langsung; T3.9 Riwayat koreksi; T3.10 Riwayat+filter.
 
 **E4 — Dispatch & Penjualan:** T4.1 Form dispatch+validasi; T4.2 Tombol Terbitkan; T4.3 `transisiDispatch()`+guard; T4.4 Reservasi stock; T4.5 Terima/tolak (UI); T4.6 Berat aktual+selisih; T4.7 Serah terima+foto; T4.8 Verifikasi & tutup.
 
@@ -1139,5 +1114,6 @@ export const TARGET_SENTUH_MIN_PX = 44
 | 1.1 | 15 Agu 2026 | Restrukturisasi ke format 8-bagian (Overview, Requirements, Core Features, User Flow, Architecture, Sequence, DB Schema, Tech Stack) tanpa menghilangkan aturan terkunci, matriks akses, kontrak API, skema, dan keputusan terbuka. |
 | 1.2 | 17 Agu 2026 | Tambah soft delete (`deletedAt DateTime?`) pada 7 model master data; aturan BR-17 + query filter `deletedAt IS NULL`. |
 | 1.3 | 19 Agu 2026 | Ganti Supabase Auth → NextAuth (Auth.js) Credentials: tabel `credential` baru (hash bcrypt), `User.authUserId` dihapus, guard 2 lapis (menghapus RLS), update §5, §7, §8. |
+| 1.4 | 19 Agu 2026 | Hapus model `HargaSampah`; harga dipindah ke kolom `harga` di `JenisSampah` (flat, tidak ada lagi riwayat). `KoreksiStock` diubah jadi koreksi langsung oleh PETUGAS tanpa approval: `beratSebelum`/`beratSesudah`/`dilakukanOlehId`, hapus enum `StatusKoreksi`. Update §2, §5.2, §7, §8.4. |
 
 **Catatan akhir:** Dokumen ini akan usang kalau tidak diperbarui. Setiap keputusan di rapat wajib masuk ke sini di hari yang sama, dengan menaikkan nomor versi.
