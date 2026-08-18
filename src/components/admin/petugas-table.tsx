@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Download, Eye, KeyRound, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -75,7 +76,6 @@ const columns: Column<Petugas>[] = [
 
 export function PetugasTable({
   petugas,
-  onAdd,
   onEdit,
   onDelete,
   onView,
@@ -84,7 +84,6 @@ export function PetugasTable({
   onSelectedChange,
 }: {
   petugas: Petugas[];
-  onAdd?: () => void;
   onEdit?: (p: Petugas) => void;
   onDelete?: (p: Petugas) => void;
   onView?: (p: Petugas) => void;
@@ -130,14 +129,13 @@ export function PetugasTable({
             <Download className="size-[18px]" />
             <span>Export Data</span>
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
+          <Link
+            href="/admin/petugas/tambah"
             className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary-fixed-variant transition-colors font-label-md text-label-md shadow-sm"
           >
             <Plus className="size-[18px]" />
             <span>Tambah Petugas</span>
-          </button>
+          </Link>
         </>
       }
       actions={() => [
