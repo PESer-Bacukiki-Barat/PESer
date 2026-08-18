@@ -2,12 +2,12 @@
 
 Base URL: `/api/user`
 
-Semua response JSON. `deletedAt` bukan `null` berarti sudah soft-delete (disembunyikan dari list/detail). Endpoint ini **terintegrasi langsung dengan Supabase Auth** via service role key (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di `.env`):
+Semua response JSON. `deletedAt` bukan `null` berarti sudah soft-delete (disembunyikan dari list/detail). Endpoint ini **terintegrasi langsung dengan tabel `credential`** (login email + password via NextAuth/Credentials):
 
-- **POST** → buat akun di Supabase Auth (`auth.admin.createUser`, email langsung terkonfirmasi), lalu simpan row lokal dengan `authUserId` hasilnya. Kalau gagal simpan lokal, akun auth di-rollback (`deleteUser`).
-- **PUT** → kalau `email`/`password` diubah, disinkron ke Supabase Auth (`updateUserById`).
-- **DELETE** → soft-delete lokal (`deletedAt`) + ban akun auth (`ban_duration: 876000h`) supaya tidak bisa login.
-- **GET** → read-only, tidak menyentuh Auth.
+- **POST** → hash password (`bcrypt`), simpan row `User` + `Credential` (`passwordHash`) dalam satu transaksi atomik.
+- **PUT** → kalau `email`/`password` diubah, update juga `Credential` (password di-hash ulang).
+- **DELETE** → soft-delete lokal (`deletedAt`) pada `User` + `Credential` supaya tidak bisa login.
+- **GET** → read-only, tidak menyentuh kredensial.
 
 `bankSampahId` wajib kalau `role = PETUGAS` (BR-02).
 
@@ -19,7 +19,7 @@ curl http://localhost:3000/api/user
 
 ```json
 [
-  { "id": "c_u1", "authUserId": "auth_abc", "email": "a@b.co", "nama": "Budi", "role": "PETUGAS", "bankSampahId": "c_bs1", "isActive": true, "bankSampah": { "id": "c_bs1", "nama": "Bank Sukamaju" }, "createdAt": "...", "updatedAt": "...", "deletedAt": null }
+  { "id": "c_u1", "email": "a@b.co", "nama": "Budi", "role": "PETUGAS", "bankSampahId": "c_bs1", "isActive": true, "bankSampah": { "id": "c_bs1", "nama": "Bank Sukamaju" }, "createdAt": "...", "updatedAt": "...", "deletedAt": null }
 ]
 ```
 
@@ -31,7 +31,7 @@ curl -X POST http://localhost:3000/api/user \
   -d '{"email": "a@b.co", "password": "rahasia123", "nama": "Budi", "role": "PETUGAS", "bankSampahId": "c_bs1"}'
 ```
 
-- `201` sukses, `400` validasi gagal / `bankSampahId` kosong padahal PETUGAS / password < 6, `409` kalau email sudah dipakai (Auth maupun lokal).
+- `201` sukses, `400` validasi gagal / `bankSampahId` kosong padahal PETUGAS / password < 6, `409` kalau email sudah dipakai.
 
 ## Detail — `GET /api/user/[id]`
 
@@ -51,7 +51,7 @@ curl -X PUT http://localhost:3000/api/user/c_u1 \
 
 - `400` validasi gagal, `404` kalau tidak ditemukan, `409` kalau email sudah dipakai user lain.
 
-## Delete (soft + ban auth) — `DELETE /api/user/[id]`
+## Delete (soft) — `DELETE /api/user/[id]`
 
 ```bash
 curl -X DELETE http://localhost:3000/api/user/c_u1

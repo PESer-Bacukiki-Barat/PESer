@@ -1,7 +1,7 @@
 # PRD — Bank Sampah Digital Kecamatan
 
-**Versi:** 1.2
-**Tanggal:** 12 Agustus 2026
+**Versi:** 1.3
+**Tanggal:** 19 Agustus 2026
 **Sumber:** Notulensi 3 Agustus 2026 + Board Whimsical "Bank Sampah Digital — Logic"
 **Status:** Siap dieksekusi, dengan 6 keputusan terbuka di Bagian 8 (Keputusan Terbuka)
 
@@ -43,7 +43,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | G2 | Ketertelusuran transaksi | 100% aksi tulis memiliki `AuditLog` (payloadBefore/after) |
 | G3 | Akurasi stock | Stock tidak pernah minus (`CHECK` constraint + validasi API) |
 | G4 | Operasional di sinyal lemah | Alur setoran bisa diselesaikan offline & tersinkron saat koneksi pulih (idempoten) |
-| G5 | Keamanan akses | 0 kebocoran `passwordHash`/`SERVICE_ROLE_KEY`; guard 3 lapis aktif |
+| G5 | Keamanan akses | 0 kebocoran `passwordHash`; guard berlapis aktif |
 | G6 | Laporan akurat | Laporan volume & penjualan bisa diekspor CSV tanpa selisih retroaktif |
 | G7 | Penjualan tanpa dobel jual | Reservasi stock mencegah 1 stock dijanjikan ke 2 pembeli |
 
@@ -146,7 +146,7 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 - Diuji di viewport **360px**.
 
 ### Security
-- **[WAJIB]** Guard 3 lapis: Middleware Next.js → Handler API → Supabase RLS (lihat Bagian 5.3).
+- **[WAJIB]** Guard 2 lapis: Middleware Next.js → Handler API (lihat Bagian 5.3). Semua akses DB lewat satu Prisma client + `requireAuth`.
 - **[WAJIB]** Scope bank sampah selalu dari sesi, bukan body request.
 - **[WAJIB]** Tidak ada `passwordHash`/data sesi ke client; `SERVICE_ROLE_KEY` tidak di client; tidak percaya `role`/`bankSampahId` dari client.
 - **[WAJIB]** Pesan error database mentah tidak boleh tampil ke user.
@@ -287,7 +287,7 @@ Prioritas menggunakan **MoSCoW**. Setiap fitur menyertakan **Acceptance Criteria
 
 | Fitur | Prioritas | Deskripsi |
 |---|---|---|
-| Auth & Role Guard | **Must** | Login/logout Supabase, middleware per role, helper `scopeToBankSampah()`, RLS lapis 3. |
+| Auth & Role Guard | **Must** | Login/logout NextAuth (Auth.js, Credentials), middleware per role, helper `scopeToBankSampah()`, guard 2 lapis. |
 | Master Data (Kelurahan, Bank Sampah, Petugas, Jenis, Harga, Pembeli, Nasabah) | **Must** | CRUD terbatas per role; seed jenis sampah plastik kode 1–7. |
 | Setoran Sampah (multi-item) | **Must** | Input oleh petugas, harga snapshot, kalkulasi otomatis, bukti setor. |
 | Stock & Mutasi | **Must** | Stock per bank×jenis, mutasi MASUK/KELUAR/ADJUST, threshold & notifikasi. |
@@ -460,10 +460,9 @@ Stock tersedia = `berat − beratReservasi`.
 flowchart LR
     U[Petugas / Admin - PWA Client] -->|HTTPS| MW[Next.js Middleware - Role Guard]
     MW --> API[Route Handlers / Server Actions - API Layer]
-    API --> AUTH[Supabase Auth]
-    API --> DB[(PostgreSQL - Supabase)]
-    API --> STORE[Supabase Storage - Foto Bukti]
-    API -->|RLS - safety net| DB
+    API --> AUTH[NextAuth - Credentials]
+    API --> DB[(PostgreSQL)]
+    API --> STORE[Upload Foto Bukti]
     API --> MAP[Leaflet / OSM - Peta]
     API --> IDB[(IndexedDB - Offline Queue)]
     ADM[Admin Dashboard] --> API
@@ -473,22 +472,21 @@ flowchart LR
 - **Frontend (PWA):** Next.js App Router, Tailwind, Shadcn UI. Route terbagi `(auth)`, `(admin)`, `(petugas)`.
 - **API Gateway / API Layer:** Next.js Route Handlers + Server Actions; validasi Zod; guard role + scope; tulis `AuditLog` dalam transaksi.
 - **Backend Services:** Prisma sebagai satu-satunya jalur akses DB; helper `scopeToBankSampah()`; `transisiDispatch()` tunggal untuk state machine.
-- **Database:** PostgreSQL via Supabase (relasional).
-- **Third-party Integrations:** Supabase Auth, Supabase Storage, Leaflet + OpenStreetMap tiles. Tidak ada payment gateway / hardware.
+- **Database:** PostgreSQL (relasional).
+- **Third-party Integrations:** NextAuth (Auth.js, Credentials), Leaflet + OpenStreetMap tiles. Tidak ada payment gateway / hardware.
 
 ## 5.2 Caching, Queue & Deployment
 
 - **Caching:** Cache sisi client untuk daftar nasabah & stock sendiri (IndexedDB / SWR dengan penanda "data per jam X"). **[WAJIB]** tidak ada cache untuk halaman dispatch & laporan.
 - **Queue / Messaging:** Tidak ada message broker. Antrean offline = IndexedDB + Background Sync (PWA). Notifikasi in-app disimpan & di-poll/ditarik dari DB (tanpa cron — BR-06).
-- **Deployment / Infrastructure:** Vercel. Supabase managed (Postgres + Auth + Storage). CI/CD lewat branch strategy (lihat 8.6).
+- **Deployment / Infrastructure:** Vercel, PostgreSQL managed. CI/CD lewat branch strategy (lihat 8.6).
 
 ## 5.3 Keamanan (Guard Berlapis) [WAJIB]
 
 | Lapis | Letak | Fungsi |
 |---|---|---|
-| 1 | Middleware Next.js | Tolak route yang tidak sesuai role |
+| 1 | Middleware Next.js (Auth.js `auth`) | Tolak route yang tidak sesuai sesi |
 | 2 | Handler API | Verifikasi sesi, cek role, terapkan scope |
-| 3 | Supabase RLS | Jaring pengaman kalau lapis 1–2 bocor |
 
 **Helper wajib:**
 ```ts
@@ -500,7 +498,7 @@ export async function scopeToBankSampah(session: Session): Promise<string> {
 }
 ```
 
-**[WAJIB]** Semua query petugas wajib lewat helper ini. **Larangan:** jangan kirim `passwordHash`/data sesi ke client; jangan taruh `SUPABASE_SERVICE_ROLE_KEY` di client; jangan percaya `role`/`bankSampahId` dari client; jangan tampilkan error DB mentah.
+**[WAJIB]** Semua query petugas wajib lewat helper ini. **Larangan:** jangan kirim `passwordHash`/data sesi ke client; jangan percaya `role`/`bankSampahId` dari client; jangan tampilkan error DB mentah.
 
 ---
 
@@ -600,11 +598,15 @@ sequenceDiagram
 | | isActive | Boolean | default true |
 | | deletedAt | DateTime? | soft delete (BR-17) |
 | `user` | id | String | PK |
-| | authUserId | String | UNIQUE |
 | | email | String | UNIQUE |
 | | nama | String | |
 | | role | Role | |
 | | bankSampahId | String? | FK→bank_sampah, wajib kalau PETUGAS (BR-02), index |
+| | deletedAt | DateTime? | soft delete (BR-17) |
+| `credential` | id | String | PK |
+| | userId | String | UNIQUE, FK→user (1:1) |
+| | email | String | UNIQUE (kunci login via NextAuth) |
+| | passwordHash | String | hash bcrypt; tidak boleh bocor ke client |
 | | deletedAt | DateTime? | soft delete (BR-17) |
 | `nasabah` | id | String | PK |
 | | kodeNasabah | String | UNIQUE |
@@ -759,7 +761,6 @@ model BankSampah {
 
 model User {
   id           String      @id @default(cuid())
-  authUserId   String      @unique
   email        String      @unique
   nama         String
   role         Role
@@ -769,6 +770,7 @@ model User {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   deletedAt    DateTime?
+  credential   Credential?
   setoranDicatat  Setoran[]        @relation("PetugasSetoran")
   dispatchDibuat  Dispatch[]       @relation("AdminDispatch")
   mutasiStock     StockMutation[]
@@ -777,6 +779,18 @@ model User {
   auditLog        AuditLog[]
   @@index([bankSampahId])
   @@map("user")
+}
+
+model Credential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+  @@map("credential")
 }
 
 model Nasabah {
@@ -995,16 +1009,16 @@ model AuditLog {
 | UI / Komponen | **Tailwind CSS** + **Shadcn UI** | Utility-first ringan untuk sinyal lemah; komponen bisa dimodifikasi & diakses (WCAG). |
 | Mobile | PWA (installable, offline) | Tidak perlu native; petugas pakai HP. |
 | Backend Framework & Language | **Next.js Route Handlers / Server Actions** (TypeScript) | Tidak ada server terpisah; guard & scope terpusat. |
-| Database (Relational) | **PostgreSQL via Supabase** | Relasional untuk transaksi & constraint `CHECK`; managed. |
+| Database (Relational) | **PostgreSQL** | Relasional untuk transaksi & constraint `CHECK`; managed. |
 | Caching / NoSQL | **IndexedDB** (client offline queue) | Antrean setoran offline + idempotency; tanpa server cache untuk dispatch/laporan. |
 | ORM | **Prisma** | Satu-satunya jalur akses DB; skema sebagai kontrak. |
-| Auth | **Supabase Auth** (email + password) | Terintegrasi dengan RLS sebagai lapis ke-3. |
-| Storage | **Supabase Storage** | Foto bukti serah terima. |
+| Auth | **NextAuth (Auth.js)** — Credentials (email + password) | Password di-hash (`bcrypt`) di tabel `credential`; sesi JWT; guard berlapis. |
+| Storage | *(belum ditentukan)* | Foto bukti serah terima (form `fotoBuktiUrl` sudah ada; provider upload belum dipilih). |
 | Peta | **Leaflet + React Leaflet** (OSM tiles) | Tanpa biaya tile; marker warna by level stock. |
 | Validasi | **Zod** | Dipakai client & server (satu sumber kebenaran). |
 | Message Broker / Queue | *(tidak ada)* | Antrean offline cukup IndexedDB + Background Sync; tidak ada cron (BR-06). |
-| Third-party | Supabase Auth/Storage, OSM, **Pak Camat & Pembeli (di luar sistem)** | Negosiasi & pembayaran tunai di luar sistem (BR-04, BR-15). |
-| DevOps & Infrastructure | **Vercel** (deploy) + **Supabase** (managed) + Git branch strategy | CI/CD sederhana; proteksi `main`. Containerization tidak diperlukan (Vercel serverless). |
+| Third-party | NextAuth (Auth.js), OSM, **Pak Camat & Pembeli (di luar sistem)** | Negosiasi & pembayaran tunai di luar sistem (BR-04, BR-15). |
+| DevOps & Infrastructure | **Vercel** (deploy) + **PostgreSQL managed** + Git branch strategy | CI/CD sederhana; proteksi `main`. Containerization tidak diperlukan (Vercel serverless). |
 
 ## 8.1 Aturan Dependency [WAJIB]
 
@@ -1047,7 +1061,7 @@ Hanya transisi di tabel ini diizinkan; lainnya → HTTP 409.
 
 ## 8.4 Daftar Task
 
-**E1 — Auth & Role Guard:** T1.1 Skema User+Role (DB); T1.2 Login/logout (Logic); T1.3 Middleware per role (Logic); T1.4 `scopeToBankSampah()` (Logic); T1.5 Ubah profil & password (Logic+UI); T1.6 RLS lapis 3 (DB).
+**E1 — Auth & Role Guard:** T1.1 Skema User+Role+Credential (DB); T1.2 Login/logout NextAuth (Logic); T1.3 Middleware per role (Logic); T1.4 `scopeToBankSampah()` (Logic); T1.5 Ubah profil & password (Logic+UI).
 
 **E2 — Master Data:** T2.1 CRUD Kelurahan; T2.2 CRUD Bank Sampah+map (Logic+UI); T2.3 CRUD Petugas+assign (Logic); T2.4 CRUD Jenis Sampah+seed 1–7 (Logic+DB); T2.5 CRUD Harga riwayat (Logic); T2.6 CRUD Pembeli.
 
@@ -1124,5 +1138,6 @@ export const TARGET_SENTUH_MIN_PX = 44
 | 1.0 | 12 Agu 2026 | Versi awal, turunan notulensi 3 Agustus 2026 dan board Whimsical |
 | 1.1 | 15 Agu 2026 | Restrukturisasi ke format 8-bagian (Overview, Requirements, Core Features, User Flow, Architecture, Sequence, DB Schema, Tech Stack) tanpa menghilangkan aturan terkunci, matriks akses, kontrak API, skema, dan keputusan terbuka. |
 | 1.2 | 17 Agu 2026 | Tambah soft delete (`deletedAt DateTime?`) pada 7 model master data; aturan BR-17 + query filter `deletedAt IS NULL`. |
+| 1.3 | 19 Agu 2026 | Ganti Supabase Auth → NextAuth (Auth.js) Credentials: tabel `credential` baru (hash bcrypt), `User.authUserId` dihapus, guard 2 lapis (menghapus RLS), update §5, §7, §8. |
 
 **Catatan akhir:** Dokumen ini akan usang kalau tidak diperbarui. Setiap keputusan di rapat wajib masuk ke sini di hari yang sama, dengan menaikkan nomor versi.

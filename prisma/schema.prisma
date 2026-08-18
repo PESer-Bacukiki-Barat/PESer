@@ -82,7 +82,6 @@ model BankSampah {
 
 model User {
   id               String          @id @default(cuid())
-  authUserId       String          @unique
   email            String          @unique
   nama             String
   role             Role
@@ -92,6 +91,7 @@ model User {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   deletedAt    DateTime? // soft delete (BR-17)
+  credential      Credential?
   setoranDicatat  Setoran[]        @relation("PetugasSetoran")
   dispatchDibuat   Dispatch[]      @relation("AdminDispatch")
   mutasiStock      StockMutation[]
@@ -101,6 +101,19 @@ model User {
 
   @@index([bankSampahId])
   @@map("user")
+}
+
+model Credential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime? // soft delete (BR-17)
+
+  @@map("credential")
 }
 
 model Nasabah {

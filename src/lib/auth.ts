@@ -1,16 +1,13 @@
 import { cache } from "react"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 
 export const getServerUser = cache(async () => {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
+  const session = await auth()
+  if (!session?.user?.id) return null
 
-  return prisma.user.findFirst({
-    where: { authUserId: user.id, deletedAt: null },
+  return prisma.user.findUnique({
+    where: { id: session.user.id, deletedAt: null },
     include: { bankSampah: { select: { id: true, nama: true } } },
   })
 })
@@ -18,22 +15,19 @@ export const getServerUser = cache(async () => {
 export type AppUser = NonNullable<Awaited<ReturnType<typeof getServerUser>>>
 
 export type AuthResult =
-  | { ok: true; user: AppUser; authUserId: string }
+  | { ok: true; user: AppUser }
   | { ok: false; response: Response }
 
-// Guard untuk Route Handler: cek session Supabase + profil lokal.
+// Guard untuk Route Handler: cek session NextAuth + profil lokal.
 // role diisi kalau butuh otorisasi peran (mis. ADMIN).
 export async function requireAuth(role?: "ADMIN" | "PETUGAS"): Promise<AuthResult> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
+  const session = await auth()
+  if (!session?.user?.id) {
     return { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
   }
 
-  const profile = await prisma.user.findFirst({
-    where: { authUserId: user.id, deletedAt: null },
+  const profile = await prisma.user.findUnique({
+    where: { id: session.user.id, deletedAt: null },
     include: { bankSampah: { select: { id: true, nama: true } } },
   })
   if (!profile) {
@@ -43,5 +37,5 @@ export async function requireAuth(role?: "ADMIN" | "PETUGAS"): Promise<AuthResul
     return { ok: false, response: Response.json({ error: "forbidden" }, { status: 403 }) }
   }
 
-  return { ok: true, user: profile, authUserId: user.id }
+  return { ok: true, user: profile }
 }

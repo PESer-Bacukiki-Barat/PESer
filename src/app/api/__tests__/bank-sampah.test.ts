@@ -20,7 +20,7 @@ const mAuth = requireAuth as jest.Mock
 type ModelMock = { findMany: jest.Mock; create: jest.Mock; findFirst: jest.Mock; update: jest.Mock }
 const m = prisma.bankSampah as unknown as ModelMock
 
-const authOk = { ok: true, user: { id: "u1" }, authUserId: "u1" }
+const authOk = { ok: true, user: { id: "u1" } }
 const unauthorized = { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
 const prismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError("boom", { code, clientVersion: "7.0.0" })

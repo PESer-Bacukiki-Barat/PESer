@@ -1,9 +1,21 @@
-import { type NextRequest } from "next/server"
-import { updateSession } from "@/lib/supabase/proxy"
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
 
-export async function middleware(request: NextRequest) {
-  return updateSession(request)
-}
+export default auth((req) => {
+  const { pathname } = req.nextUrl
+  if (pathname.startsWith("/api")) return NextResponse.next()
+
+  const isPublic = pathname === "/" || pathname === "/login"
+  const isLoggedIn = !!req.auth
+
+  if (!isLoggedIn && !isPublic) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl))
+  }
+  if (isLoggedIn && pathname === "/login") {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+  }
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: [

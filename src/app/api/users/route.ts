@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { supabaseAdmin } from "@/lib/supabase-admin"
+import bcrypt from "bcryptjs"
 import { userCreateSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 
@@ -23,23 +23,18 @@ export async function POST(request: Request) {
     return Response.json({ error: parsed.error.issues }, { status: 400 })
   }
   const { password, ...rest } = parsed.data
-
-  const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: rest.email,
-    password,
-    email_confirm: true,
-  })
-  if (authError) {
-    return Response.json({ error: authError.message }, { status: 409 })
-  }
+  const passwordHash = await bcrypt.hash(password, 10)
 
   try {
     const data = await prisma.user.create({
-      data: { ...rest, authUserId: authUser.user.id },
+      data: {
+        ...rest,
+        credential: { create: { email: rest.email, passwordHash } },
+      },
+      include: { bankSampah: { select: { id: true, nama: true } } },
     })
     return Response.json(data, { status: 201 })
   } catch {
-    await supabaseAdmin.auth.admin.deleteUser(authUser.user.id).catch(() => null)
     return Response.json({ error: "email sudah dipakai" }, { status: 409 })
   }
 }
