@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import {
@@ -56,7 +57,6 @@ const columns: Column<Kelurahan>[] = [
 
 export function KelurahanTable({
   kelurahans,
-  onAdd,
   onEdit,
   onDelete,
   onView,
@@ -64,7 +64,6 @@ export function KelurahanTable({
   onSelectedChange,
 }: {
   kelurahans: Kelurahan[];
-  onAdd?: () => void;
   onEdit?: (kel: Kelurahan) => void;
   onDelete?: (kel: Kelurahan) => void;
   onView?: (kel: Kelurahan) => void;
@@ -101,14 +100,13 @@ export function KelurahanTable({
             <Download className="size-[18px]" />
             <span className="hidden sm:inline">Export Data</span>
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
+          <Link
+            href="/admin/kelurahan/tambah"
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
           >
             <Plus className="size-[18px]" />
             <span className="hidden sm:inline">Tambah Kelurahan</span>
-          </button>
+          </Link>
         </>
       }
       actions={() => [
