@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
@@ -73,7 +74,6 @@ const columns: Column<JenisSampah>[] = [
 
 export function JenisSampahTable({
   jenisSampahs,
-  onAdd,
   onEdit,
   onDelete,
   onView,
@@ -81,7 +81,6 @@ export function JenisSampahTable({
   onSelectedChange,
 }: {
   jenisSampahs: JenisSampah[];
-  onAdd?: () => void;
   onEdit?: (j: JenisSampah) => void;
   onDelete?: (j: JenisSampah) => void;
   onView?: (j: JenisSampah) => void;
@@ -125,14 +124,13 @@ export function JenisSampahTable({
             <Download className="size-[18px]" />
             <span className="hidden sm:inline">Export Data</span>
           </button>
-          <button
-            type="button"
-            onClick={onAdd}
+          <Link
+            href="/admin/jenis-sampah/tambah"
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
           >
             <Plus className="size-[18px]" />
             <span className="hidden sm:inline">Tambah Jenis Sampah</span>
-          </button>
+          </Link>
         </>
       }
       actions={() => [
