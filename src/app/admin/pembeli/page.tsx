@@ -1,32 +1,12 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
-import { PembeliTable, type Pembeli } from "@/components/admin/pembeli-table";
+import { PembeliTable } from "@/components/admin/pembeli-table";
+import { PEMBELI } from "@/lib/pembeli-data";
 
 export const metadata: Metadata = {
   title: "Manajemen Pembeli",
 };
-
-const PEMBELI: Pembeli[] = [
-  {
-    id: "P-001",
-    nama: "Andi Wijaya",
-    perusahaan: "PT Daur Ulang Sejahtera",
-    noHp: "+62 812-1111-2222",
-    alamat: "Jl. Industri No. 5",
-    catatan: "Pembeli rutin plastik",
-    status: "Aktif",
-  },
-  {
-    id: "P-002",
-    nama: "Siti Aminah",
-    perusahaan: "CV Kertas Jaya",
-    noHp: "+62 813-3333-4444",
-    alamat: "Pergudangan B-12",
-    catatan: "-",
-    status: "Non-aktif",
-  },
-];
 
 export default function PembeliPage() {
   return (
