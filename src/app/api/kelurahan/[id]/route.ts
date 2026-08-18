@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma"
 import { kelurahanSchema } from "../schema"
+import { requireAuth } from "@/lib/auth"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.response
   const { id } = await params
   const data = await prisma.kelurahan.findFirst({ where: { id, deletedAt: null } })
   if (!data) return Response.json({ error: "tidak ditemukan" }, { status: 404 })
@@ -9,6 +12,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.response
   const { id } = await params
   const parsed = kelurahanSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
@@ -23,6 +28,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.response
   const { id } = await params
   try {
     await prisma.kelurahan.update({ where: { id }, data: { deletedAt: new Date() } })
