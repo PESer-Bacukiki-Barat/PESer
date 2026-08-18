@@ -1,45 +1,12 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
-import {
-  KelurahanTable,
-  type Kelurahan,
-} from "@/components/admin/kelurahan-table";
+import { KelurahanTable } from "@/components/admin/kelurahan-table";
+import { KELURAHAN } from "@/lib/kelurahan-data";
 
 export const metadata: Metadata = {
   title: "Manajemen Kelurahan",
 };
-
-const KELURAHANS: Kelurahan[] = [
-  {
-    id: "KBY-001",
-    name: "Cipete Utara",
-    kecamatan: "Kebayoran Baru",
-    bankSampah: 12,
-    status: "Aktif",
-  },
-  {
-    id: "KBY-002",
-    name: "Gandaria Utara",
-    kecamatan: "Kebayoran Baru",
-    bankSampah: 8,
-    status: "Aktif",
-  },
-  {
-    id: "KBY-003",
-    name: "Pulo",
-    kecamatan: "Kebayoran Baru",
-    bankSampah: 3,
-    status: "Non-aktif",
-  },
-  {
-    id: "KBY-004",
-    name: "Melawai",
-    kecamatan: "Kebayoran Baru",
-    bankSampah: 5,
-    status: "Aktif",
-  },
-];
 
 export default function KelurahanPage() {
   return (
@@ -67,7 +34,7 @@ export default function KelurahanPage() {
         </p>
       </div>
 
-      <KelurahanTable kelurahans={KELURAHANS} />
+      <KelurahanTable kelurahans={KELURAHAN} />
     </>
   );
 }

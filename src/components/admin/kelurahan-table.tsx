@@ -1,22 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import {
   DataTable,
   type Column,
 } from "@/components/ui/data-table";
+import { EditKelurahanModal } from "@/components/admin/kelurahan-edit-modal";
+import type { Kelurahan, KelurahanStatus } from "@/lib/kelurahan-data";
 
-export type KelurahanStatus = "Aktif" | "Non-aktif";
-
-export type Kelurahan = {
-  id: string;
-  name: string;
-  kecamatan: string;
-  bankSampah: number;
-  status: KelurahanStatus;
-};
+export type { Kelurahan, KelurahanStatus } from "@/lib/kelurahan-data";
 
 const STATUS_STYLES: Record<KelurahanStatus, string> = {
   Aktif: "bg-primary-container text-on-primary-container border border-primary/20",
@@ -70,8 +65,11 @@ export function KelurahanTable({
   onExport?: () => void;
   onSelectedChange?: (ids: string[]) => void;
 }) {
+  const [editing, setEditing] = useState<Kelurahan | null>(null);
+
   return (
-    <DataTable
+    <>
+      <DataTable
       data={kelurahans}
       columns={columns}
       getRowId={(k) => k.id}
@@ -120,7 +118,10 @@ export function KelurahanTable({
           label: "Edit",
           icon: Pencil,
           className: "hover:text-primary",
-          onClick: (k) => onEdit?.(k),
+          onClick: (k) => {
+            onEdit?.(k);
+            setEditing(k);
+          },
         },
         {
           label: "Hapus",
@@ -134,6 +135,17 @@ export function KelurahanTable({
           Tidak ada kelurahan ditemukan.
         </p>
       }
-    />
+      />
+
+      {editing && (
+        <EditKelurahanModal
+          kelurahan={editing}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+        />
+      )}
+    </>
   );
 }
