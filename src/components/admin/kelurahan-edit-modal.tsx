@@ -8,25 +8,29 @@ export function EditKelurahanModal({
   kelurahan,
   open,
   onOpenChange,
+  onSubmit,
 }: {
   kelurahan: Kelurahan;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit: (values: { nama: string; kodeWilayah: string }) => void;
 }) {
   return (
     <Modal
       title="Edit Kelurahan"
-      description={`Perbarui informasi kelurahan ${kelurahan.name} (${kelurahan.id}).`}
+      description={`Perbarui informasi kelurahan ${kelurahan.nama} (${kelurahan.kodeWilayah}).`}
       open={open}
       onOpenChange={onOpenChange}
       size="md"
     >
       <KelurahanForm
         bare
+        mode="edit"
+        id={kelurahan.id}
         initialData={kelurahan}
         submitLabel="Simpan Perubahan"
         cancelLabel="Batal"
-        onSubmit={() => onOpenChange(false)}
+        onSubmit={onSubmit}
         onCancel={() => onOpenChange(false)}
       />
     </Modal>

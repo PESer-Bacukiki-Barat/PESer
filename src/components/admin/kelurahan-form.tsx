@@ -4,58 +4,65 @@ import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
-
-export type KelurahanFormValues = {
-  name: string;
-  kecamatan: string;
-  bankSampah: number;
-  status: string;
-};
-
-export const KELURAHAN_STATUS_OPTIONS: SelectOption[] = [
-  { value: "Aktif", label: "Aktif" },
-  { value: "Non-aktif", label: "Non-aktif" },
-];
+import { Field, inputClasses } from "@/components/admin/form-fields";
+import { api, apiError } from "@/lib/api";
+import type { KelurahanPayload } from "@/lib/kelurahan-data";
 
 export function KelurahanForm({
   initialData,
-  statusOptions = KELURAHAN_STATUS_OPTIONS,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
+  mode = "create",
+  id,
   onSubmit,
   onCancel,
   bare = false,
 }: {
-  initialData?: Partial<KelurahanFormValues>;
-  statusOptions?: SelectOption[];
+  initialData?: Partial<KelurahanPayload>;
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
-  onSubmit?: (values: KelurahanFormValues) => void;
+  mode?: "create" | "edit";
+  id?: string;
+  onSubmit?: (values: KelurahanPayload) => void;
   onCancel?: () => void;
   bare?: boolean;
 }) {
   const router = useRouter();
 
-  const [name, setName] = useState(initialData?.name ?? "");
-  const [kecamatan, setKecamatan] = useState(initialData?.kecamatan ?? "");
-  const [bankSampah, setBankSampah] = useState(
-    initialData?.bankSampah != null ? String(initialData.bankSampah) : "0",
-  );
-  const [status, setStatus] = useState(
-    initialData?.status ?? statusOptions[0]?.value ?? "",
-  );
+  const [nama, setNama] = useState(initialData?.nama ?? "");
+  const [kodeWilayah, setKodeWilayah] = useState(initialData?.kodeWilayah ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit?.({
-      name: name.trim(),
-      kecamatan: kecamatan.trim(),
-      bankSampah: Number(bankSampah) || 0,
-      status,
-    });
+    const values: KelurahanPayload = { nama: nama.trim(), kodeWilayah: kodeWilayah.trim() };
+    if (!values.nama || !values.kodeWilayah) {
+      setError("Nama dan kode wilayah wajib diisi");
+      return;
+    }
+
+    if (onSubmit) {
+      onSubmit(values);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (mode === "edit" && id) {
+        await api.put(`/kelurahan/${id}`, values);
+      } else {
+        await api.post("/kelurahan", values);
+      }
+      router.push(cancelHref ?? "/admin/kelurahan");
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -68,52 +75,37 @@ export function KelurahanForm({
 
   const form = (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Wilayah Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Nama Kelurahan" required htmlFor="name">
+        <Field label="Nama Kelurahan" required htmlFor="nama">
           <input
-            id="name"
+            id="nama"
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
             placeholder="Masukkan nama kelurahan"
             required
             className={inputClasses}
           />
         </Field>
-        <Field label="Kecamatan" required htmlFor="kecamatan">
+        <Field label="Kode Wilayah" required htmlFor="kodeWilayah">
           <input
-            id="kecamatan"
+            id="kodeWilayah"
             type="text"
-            value={kecamatan}
-            onChange={(e) => setKecamatan(e.target.value)}
-            placeholder="Masukkan nama kecamatan"
+            value={kodeWilayah}
+            onChange={(e) => setKodeWilayah(e.target.value)}
+            placeholder="cth. 32.01.01"
             required
             className={inputClasses}
           />
         </Field>
-        <Field label="Jumlah Bank Sampah" htmlFor="bankSampah">
-          <input
-            id="bankSampah"
-            type="number"
-            min={0}
-            value={bankSampah}
-            onChange={(e) => setBankSampah(e.target.value)}
-            placeholder="0"
-            className={inputClasses}
-          />
-        </Field>
-        <SelectField
-          id="status"
-          label="Status"
-          required
-          value={status}
-          onChange={setStatus}
-          options={statusOptions}
-        />
       </div>
 
-      {/* Action Buttons */}
+      {error && (
+        <p className="rounded-md bg-error-container px-3 py-2 font-label-md text-label-md text-error">
+          {error}
+        </p>
+      )}
+
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
         <button
           type="button"
@@ -124,10 +116,11 @@ export function KelurahanForm({
         </button>
         <button
           type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
+          disabled={saving}
+          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60"
         >
           <Save className="size-[18px]" />
-          {submitLabel}
+          {saving ? "Menyimpan..." : submitLabel}
         </button>
       </div>
     </form>
