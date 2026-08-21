@@ -261,19 +261,21 @@ model Dispatch {
   pembeli           Pembeli        @relation(fields: [pembeliId], references: [id])
   dibuatOlehId      String
   dibuatOleh        User           @relation("AdminDispatch", fields: [dibuatOlehId], references: [id])
-  status            StatusDispatch @default(DRAFT)
-  tanggalJemput     DateTime
-  totalNilai        Decimal?       @db.Decimal(14, 2)
-  alasanTolak       String?
-  alasanSelisih     String?
-  selisihSignifikan Boolean        @default(false)
-  fotoBuktiUrl      String?
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  items             DispatchItem[]
+   status              StatusDispatch @default(DRAFT)
+   tanggalJemput       DateTime
+   totalNilai          Decimal?       @db.Decimal(14, 2)
+   alasanTolak         String?
+   alasanSelisih       String?
+   selisihSignifikan   Boolean        @default(false)
+   fotoBuktiUrl        String?
+   createdAt           DateTime       @default(now())
+   updatedAt           DateTime       @updatedAt
+   deletedAt           DateTime?      // soft delete — admin dapat hapus dispatch (diperbolehkan, BR-10 revisi)
+   items               DispatchItem[]
 
-  @@index([bankSampahId, status])
-  @@map("dispatch")
+   @@index([bankSampahId, status])
+   @@index([bankSampahId, deletedAt])
+   @@map("dispatch")
 }
 
 model DispatchItem {
