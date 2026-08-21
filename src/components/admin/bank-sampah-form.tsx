@@ -3,19 +3,23 @@
 import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
-import { cn } from "@/lib/utils";
 import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
-import { KELURAHAN } from "@/lib/bank-sampah-data";
+import { api, apiError } from "@/lib/api";
+import type { BankSampahPayload } from "@/lib/bank-sampah-data";
 
-export type BankSampahFormValues = {
-  nama: string;
-  kelurahan: string;
-  alamat: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-};
+const LocationPicker = dynamic(
+  () => import("@/components/admin/location-picker").then((m) => m.LocationPicker),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-80 rounded-lg border border-outline-variant bg-surface-container-low flex items-center justify-center font-label-md text-label-md text-on-surface-variant">
+        Memuat peta...
+      </div>
+    ),
+  },
+);
 
 export const BANK_SAMPAH_STATUS_OPTIONS: SelectOption[] = [
   { value: "Active", label: "Active" },
@@ -24,29 +28,33 @@ export const BANK_SAMPAH_STATUS_OPTIONS: SelectOption[] = [
 
 export function BankSampahForm({
   initialData,
-  kelurahanOptions = KELURAHAN,
+  kelurahanOptions = [],
   statusOptions = BANK_SAMPAH_STATUS_OPTIONS,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
+  mode = "create",
+  id,
   onSubmit,
   onCancel,
   bare = false,
 }: {
-  initialData?: Partial<BankSampahFormValues>;
+  initialData?: Partial<BankSampahPayload>;
   kelurahanOptions?: SelectOption[];
   statusOptions?: SelectOption[];
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
-  onSubmit?: (values: BankSampahFormValues) => void;
+  mode?: "create" | "edit";
+  id?: string;
+  onSubmit?: (values: BankSampahPayload) => void;
   onCancel?: () => void;
   bare?: boolean;
 }) {
   const router = useRouter();
 
   const [nama, setNama] = useState(initialData?.nama ?? "");
-  const [kelurahan, setKelurahan] = useState(initialData?.kelurahan ?? "");
+  const [kelurahanId, setKelurahanId] = useState(initialData?.kelurahanId ?? "");
   const [alamat, setAlamat] = useState(initialData?.alamat ?? "");
   const [latitude, setLatitude] = useState(
     initialData?.latitude != null ? String(initialData.latitude) : "",
@@ -54,20 +62,50 @@ export function BankSampahForm({
   const [longitude, setLongitude] = useState(
     initialData?.longitude != null ? String(initialData.longitude) : "",
   );
-  const [status, setStatus] = useState(
-    initialData?.status ?? statusOptions[0]?.value ?? "",
+  const [isActive, setIsActive] = useState(
+    initialData?.isActive ?? statusOptions[0]?.value === "Active",
   );
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit?.({
+    const values: BankSampahPayload = {
       nama: nama.trim(),
-      kelurahan,
+      kelurahanId,
       alamat: alamat.trim(),
-      latitude: Number(latitude) || 0,
-      longitude: Number(longitude) || 0,
-      status,
-    });
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      isActive,
+    };
+    if (!values.nama || !values.kelurahanId || !values.alamat) {
+      setError("Nama, kelurahan, dan alamat wajib diisi");
+      return;
+    }
+    if (Number.isNaN(values.latitude) || Number.isNaN(values.longitude)) {
+      setError("Latitude dan longitude harus berupa angka");
+      return;
+    }
+
+    if (onSubmit) {
+      onSubmit(values);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (mode === "edit" && id) {
+        await api.put(`/bank-sampah/${id}`, values);
+      } else {
+        await api.post("/bank-sampah", values);
+      }
+      router.push(cancelHref ?? "/admin/bank-sampah");
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -80,7 +118,6 @@ export function BankSampahForm({
 
   const form = (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Lokasi Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Nama Bank Sampah" required htmlFor="nama">
           <input
@@ -94,13 +131,13 @@ export function BankSampahForm({
           />
         </Field>
         <SelectField
-          id="kelurahan"
+          id="kelurahanId"
           label="Kelurahan"
           required
-          value={kelurahan}
-          onChange={setKelurahan}
+          value={kelurahanId}
+          onChange={setKelurahanId}
           options={kelurahanOptions}
-          placeholder={kelurahan === "" ? "Pilih Kelurahan" : undefined}
+          placeholder={kelurahanId === "" ? "Pilih Kelurahan" : undefined}
         />
         <Field label="Latitude" required htmlFor="latitude">
           <input
@@ -132,7 +169,15 @@ export function BankSampahForm({
         </Field>
       </div>
 
-      {/* Alamat */}
+      <LocationPicker
+        latitude={latitude ? Number(latitude) : undefined}
+        longitude={longitude ? Number(longitude) : undefined}
+        onChange={(lat, lng) => {
+          setLatitude(String(lat));
+          setLongitude(String(lng));
+        }}
+      />
+
       <Field label="Alamat Lengkap" htmlFor="alamat">
         <textarea
           id="alamat"
@@ -140,7 +185,7 @@ export function BankSampahForm({
           value={alamat}
           onChange={(e) => setAlamat(e.target.value)}
           placeholder="Masukkan alamat lengkap bank sampah..."
-          className={cn(inputClasses, "resize-none")}
+          className={inputClasses}
         />
       </Field>
 
@@ -149,13 +194,18 @@ export function BankSampahForm({
           id="status"
           label="Status"
           required
-          value={status}
-          onChange={setStatus}
+          value={isActive ? "Active" : "Non-aktif"}
+          onChange={(v) => setIsActive(v === "Active")}
           options={statusOptions}
         />
       </div>
 
-      {/* Action Buttons */}
+      {error && (
+        <p className="rounded-md bg-error-container px-3 py-2 font-label-md text-label-md text-error">
+          {error}
+        </p>
+      )}
+
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
         <button
           type="button"
@@ -166,10 +216,11 @@ export function BankSampahForm({
         </button>
         <button
           type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
+          disabled={saving}
+          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60"
         >
           <Save className="size-[18px]" />
-          {submitLabel}
+          {saving ? "Menyimpan..." : submitLabel}
         </button>
       </div>
     </form>

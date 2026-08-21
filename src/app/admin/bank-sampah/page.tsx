@@ -2,13 +2,38 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { BankSampahTable } from "@/components/admin/bank-sampah-table";
-import { BANK_SAMPAH } from "@/lib/bank-sampah-data";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Manajemen Bank Sampah",
 };
 
-export default function BankSampahPage() {
+export const dynamic = "force-dynamic";
+
+export default async function BankSampahPage() {
+  const [bankSampah, kelurahans] = await Promise.all([
+    prisma.bankSampah.findMany({
+      where: { deletedAt: null },
+      orderBy: { nama: "asc" },
+      select: {
+        id: true,
+        nama: true,
+        kelurahanId: true,
+        alamat: true,
+        latitude: true,
+        longitude: true,
+        isActive: true,
+      },
+    }),
+    prisma.kelurahan.findMany({
+      where: { deletedAt: null },
+      orderBy: { nama: "asc" },
+      select: { id: true, nama: true },
+    }),
+  ]);
+
+  const kelurahanOptions = kelurahans.map((k) => ({ value: k.id, label: k.nama }));
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -34,7 +59,18 @@ export default function BankSampahPage() {
         </p>
       </div>
 
-      <BankSampahTable bankSampah={BANK_SAMPAH} />
+      <BankSampahTable
+        bankSampah={bankSampah.map((b) => ({
+          id: b.id,
+          nama: b.nama,
+          kelurahanId: b.kelurahanId,
+          alamat: b.alamat,
+          latitude: b.latitude.toNumber(),
+          longitude: b.longitude.toNumber(),
+          isActive: b.isActive,
+        }))}
+        kelurahanOptions={kelurahanOptions}
+      />
     </>
   );
 }

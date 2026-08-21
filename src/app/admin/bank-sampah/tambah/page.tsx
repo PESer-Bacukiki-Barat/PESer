@@ -2,12 +2,22 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { BankSampahForm } from "@/components/admin/bank-sampah-form";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Tambah Bank Sampah",
 };
 
-export default function TambahBankSampahPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TambahBankSampahPage() {
+  const kelurahans = await prisma.kelurahan.findMany({
+    where: { deletedAt: null },
+    orderBy: { nama: "asc" },
+    select: { id: true, nama: true },
+  });
+  const kelurahanOptions = kelurahans.map((k) => ({ value: k.id, label: k.nama }));
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -36,7 +46,7 @@ export default function TambahBankSampahPage() {
         </p>
       </div>
 
-      <BankSampahForm cancelHref="/admin/bank-sampah" />
+      <BankSampahForm cancelHref="/admin/bank-sampah" kelurahanOptions={kelurahanOptions} />
     </>
   );
 }
