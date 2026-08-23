@@ -205,7 +205,8 @@ export function DataTable<T>({
                 {selectable && (
                   <th className={cn(headerClass, "w-12 text-center")}>
                     <Checkbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      checked={allSelected}
+                      indeterminate={someSelected && !allSelected}
                       onCheckedChange={toggleAll}
                       aria-label="Pilih semua"
                     />

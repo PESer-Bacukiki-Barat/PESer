@@ -23,7 +23,7 @@ function Checkbox({
       {...props}
     >
       <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-        {props.checked === "indeterminate" ? (
+        {props.indeterminate ? (
           <Minus className="size-4" />
         ) : (
           <Check className="size-4" />
