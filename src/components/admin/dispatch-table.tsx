@@ -6,7 +6,11 @@ import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EditDispatchModal } from "@/components/admin/dispatch-edit-modal";
-import type { Dispatch, DispatchStatus } from "@/lib/dispatch-data";
+import type {
+  Dispatch,
+  DispatchStatus,
+  DispatchFormOptions,
+} from "@/lib/dispatch-data";
 import {
   DISPATCH_STATUS_LABEL,
 } from "@/lib/dispatch-data";
@@ -47,6 +51,7 @@ function formatCurrency(value: number | null | undefined): string {
 
 export function DispatchTable({
   dispatches,
+  options,
   onEdit,
   onDelete,
   onView,
@@ -54,6 +59,7 @@ export function DispatchTable({
   onSelectedChange,
 }: {
   dispatches: Dispatch[];
+  options: DispatchFormOptions;
   onEdit?: (d: Dispatch) => void;
   onDelete?: (d: Dispatch) => void;
   onView?: (d: Dispatch) => void;
@@ -217,6 +223,7 @@ export function DispatchTable({
       {editing && (
         <EditDispatchModal
           dispatch={editing}
+          options={options}
           open
           onOpenChange={(open) => {
             if (!open) setEditing(null);

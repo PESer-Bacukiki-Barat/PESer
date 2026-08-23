@@ -2,14 +2,16 @@
 
 import { Modal } from "@/components/ui/modal";
 import { DispatchForm } from "@/components/admin/dispatch-form";
-import type { Dispatch } from "@/lib/dispatch-data";
+import type { Dispatch, DispatchFormOptions } from "@/lib/dispatch-data";
 
 export function EditDispatchModal({
   dispatch,
+  options,
   open,
   onOpenChange,
 }: {
   dispatch: Dispatch;
+  options: DispatchFormOptions;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -23,6 +25,9 @@ export function EditDispatchModal({
     >
       <DispatchForm
         bare
+        bankSampahOptions={options.bankSampah}
+        pembeliOptions={options.pembeli}
+        jenisSampahOptions={options.jenisSampah}
         initialData={{
           bankSampahId: dispatch.bankSampahId,
           pembeliId: dispatch.pembeliId,
@@ -30,7 +35,7 @@ export function EditDispatchModal({
             ? new Date(dispatch.tanggalJemput).toISOString().slice(0, 16)
             : "",
           items: dispatch.items.map((i) => ({
-            jenisSampahId: i.jenisSampah,
+            jenisSampahId: i.jenisSampahId,
             beratTarget: String(i.beratTarget),
             hargaJualPerKg: String(i.hargaJualPerKg),
           })),

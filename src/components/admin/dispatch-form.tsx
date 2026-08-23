@@ -6,18 +6,13 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
-import {
-  BANK_SAMPAH_OPTIONS,
-  PEMBELI_OPTIONS,
-  JENIS_SAMPAH_OPTIONS,
-  type DispatchFormValues,
-} from "@/lib/dispatch-data";
+import { type DispatchFormValues } from "@/lib/dispatch-data";
 
 export function DispatchForm({
   initialData,
-  bankSampahOptions = BANK_SAMPAH_OPTIONS,
-  pembeliOptions = PEMBELI_OPTIONS,
-  jenisSampahOptions = JENIS_SAMPAH_OPTIONS,
+  bankSampahOptions,
+  pembeliOptions,
+  jenisSampahOptions,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
@@ -26,9 +21,9 @@ export function DispatchForm({
   bare = false,
 }: {
   initialData?: Partial<DispatchFormValues>;
-  bankSampahOptions?: SelectOption[];
-  pembeliOptions?: SelectOption[];
-  jenisSampahOptions?: SelectOption[];
+  bankSampahOptions: SelectOption[];
+  pembeliOptions: SelectOption[];
+  jenisSampahOptions: SelectOption[];
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;

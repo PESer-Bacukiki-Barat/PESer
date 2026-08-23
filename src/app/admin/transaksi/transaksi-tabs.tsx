@@ -5,18 +5,26 @@ import { Inbox, Truck } from "lucide-react";
 
 import { DispatchTable } from "@/components/admin/dispatch-table";
 import { SetoranTable } from "@/components/admin/setoran-table";
-import { DISPATCH } from "@/lib/dispatch-data";
-import { SETORAN } from "@/lib/setoran-data";
+import type { Dispatch, DispatchFormOptions } from "@/lib/dispatch-data";
+import type { Setoran } from "@/lib/setoran-data";
 import { exportToCsv } from "@/lib/export";
 import { cn } from "@/lib/utils";
 
 type Tab = "dispatch" | "setoran";
 
-export default function TransaksiTabs() {
+export default function TransaksiTabs({
+  dispatches,
+  setorans,
+  options,
+}: {
+  dispatches: Dispatch[];
+  setorans: Setoran[];
+  options: DispatchFormOptions;
+}) {
   const [activeTab, setActiveTab] = useState<Tab>("setoran");
 
   function exportSetoran() {
-    const rows = SETORAN.map((s, i) => ({
+    const rows = setorans.map((s, i) => ({
       no: i + 1,
       kodeTransaksi: s.kodeTransaksi,
       tanggal: s.tanggal,
@@ -43,7 +51,7 @@ export default function TransaksiTabs() {
   }
 
   function exportDispatch() {
-    const rows = DISPATCH.map((d, i) => ({
+    const rows = dispatches.map((d, i) => ({
       no: i + 1,
       kodeDispatch: d.kodeDispatch,
       bankSampah: d.bankSampah,
@@ -140,7 +148,7 @@ export default function TransaksiTabs() {
             </span>
           </div>
           <SetoranTable
-            setorans={SETORAN}
+            setorans={setorans}
             onExport={exportSetoran}
             onView={() => {}}
           />
@@ -162,7 +170,11 @@ export default function TransaksiTabs() {
               Terkelola
             </span>
           </div>
-          <DispatchTable dispatches={DISPATCH} onExport={exportDispatch} />
+          <DispatchTable
+            dispatches={dispatches}
+            options={options}
+            onExport={exportDispatch}
+          />
         </section>
       )}
     </>

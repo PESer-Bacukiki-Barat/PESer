@@ -1,4 +1,32 @@
-import { formatNumber, stockTotalBerat, stockTotalTersedia, type BankSampah } from "@/lib/bank-sampah-data";
+// Ringkasan stock se-kecamatan. Sumber data: model Stock di Prisma,
+// di-query oleh Server Component halaman Bank Sampah lalu diteruskan
+// sebagai props (Decimal sudah dikonversi ke number).
+
+export type StockItem = {
+  jenisSampahId: string;
+  jenisSampah: string;
+  berat: number;
+  beratReservasi: number;
+};
+
+export type BankSampahStock = {
+  id: string;
+  isActive: boolean;
+  stock: StockItem[];
+};
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(value);
+}
+
+function stockTotalBerat(stock: StockItem[]): number {
+  return stock.reduce((sum, s) => sum + s.berat, 0);
+}
+
+// Tersedia = berat - beratReservasi (yang sudah ditahan oleh dispatch berjalan).
+function stockTotalTersedia(stock: StockItem[]): number {
+  return stock.reduce((sum, s) => sum + s.berat - s.beratReservasi, 0);
+}
 
 type SummaryCardProps = {
   label: string;
@@ -20,12 +48,16 @@ function SummaryCard({ label, value, sub }: SummaryCardProps) {
   );
 }
 
-export function BankSampahStockSummary({ bankSampah }: { bankSampah: BankSampah[] }) {
+export function BankSampahStockSummary({
+  bankSampah,
+}: {
+  bankSampah: BankSampahStock[];
+}) {
   const total = bankSampah.reduce((sum, b) => sum + stockTotalBerat(b.stock), 0);
   const tersedia = bankSampah.reduce((sum, b) => sum + stockTotalTersedia(b.stock), 0);
   const reservasi = total - tersedia;
   const banksWithStock = bankSampah.filter(
-    (b) => b.status === "Active" && stockTotalBerat(b.stock) > 0,
+    (b) => b.isActive && stockTotalBerat(b.stock) > 0,
   ).length;
 
   const perJenis = new Map<string, { nama: string; berat: number }>();

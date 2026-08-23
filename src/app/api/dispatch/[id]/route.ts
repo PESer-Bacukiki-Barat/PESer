@@ -89,7 +89,8 @@ export async function PUT(
            entitas: "Dispatch",
            entitasId: id,
            payloadBefore: JSON.parse(JSON.stringify(existing)),
-           payloadAfter: null,
+           // payloadAfter sengaja tidak di-set: field Json? menolak null literal
+           // (butuh Prisma.DbNull), dan dispatch terhapus tak punya state sesudah.
          },
        })
      })

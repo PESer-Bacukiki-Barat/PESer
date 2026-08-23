@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { BankSampahTable } from "@/components/admin/bank-sampah-table";
+import {
+  BankSampahStockSummary,
+  type StockItem,
+} from "@/components/admin/bank-sampah-stock-summary";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -11,7 +15,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function BankSampahPage() {
-  const [bankSampah, kelurahans] = await Promise.all([
+  const [bankSampah, kelurahans, stockRows] = await Promise.all([
     prisma.bankSampah.findMany({
       where: { deletedAt: null },
       orderBy: { nama: "asc" },
@@ -31,9 +35,37 @@ export default async function BankSampahPage() {
       orderBy: { nama: "asc" },
       select: { id: true, nama: true },
     }),
+    prisma.stock.findMany({
+      select: {
+        bankSampahId: true,
+        jenisSampahId: true,
+        berat: true,
+        beratReservasi: true,
+        jenisSampah: { select: { nama: true } },
+      },
+    }),
   ]);
 
   const kelurahanOptions = kelurahans.map((k) => ({ value: k.id, label: k.nama }));
+
+  // Kelompokkan stock per bank sampah untuk ringkasan (Decimal -> number).
+  const stockPerBank = new Map<string, StockItem[]>();
+  for (const row of stockRows) {
+    const list = stockPerBank.get(row.bankSampahId) ?? [];
+    list.push({
+      jenisSampahId: row.jenisSampahId,
+      jenisSampah: row.jenisSampah.nama,
+      berat: Number(row.berat),
+      beratReservasi: Number(row.beratReservasi),
+    });
+    stockPerBank.set(row.bankSampahId, list);
+  }
+
+  const stockSummaryData = bankSampah.map((b) => ({
+    id: b.id,
+    isActive: b.isActive,
+    stock: stockPerBank.get(b.id) ?? [],
+  }));
 
   return (
     <>
@@ -73,6 +105,8 @@ export default async function BankSampahPage() {
         }))}
         kelurahanOptions={kelurahanOptions}
       />
+
+      <BankSampahStockSummary bankSampah={stockSummaryData} />
     </>
   );
 }
