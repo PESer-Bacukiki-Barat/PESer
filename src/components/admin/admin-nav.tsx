@@ -26,6 +26,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { logout } from "@/app/actions/auth";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -185,10 +186,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Shield className="size-5 shrink-0" />
             <span>Privacy Policy</span>
           </a>
-          <Button type="button" variant="destructive" className="w-full mt-4">
-            <LogOut className="size-5" />
-            Logout
-          </Button>
+          <form action={logout}>
+            <Button type="submit" variant="destructive" className="w-full mt-4">
+              <LogOut className="size-5" />
+              Logout
+            </Button>
+          </form>
         </div>
       </aside>
 
