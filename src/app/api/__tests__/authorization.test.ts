@@ -22,6 +22,8 @@ import * as usersId from "@/app/api/users/[id]/route"
 import * as dispatch from "@/app/api/dispatch/route"
 import * as dispatchId from "@/app/api/dispatch/[id]/route"
 import * as koreksiStock from "@/app/api/koreksi-stock/route"
+import * as setoran from "@/app/api/setoran/route"
+import * as stock from "@/app/api/stock/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("@/lib/prisma", () => ({ prisma: {} }))
@@ -66,9 +68,10 @@ const ADMIN_ONLY: [string, Handler][] = [
   ["DELETE /api/dispatch/[id]", dispatchId.DELETE as Handler],
 ]
 
-/** Handler yang WAJIB meminta role PETUGAS (FR-C7). */
+/** Handler yang WAJIB meminta role PETUGAS (FR-C1, FR-C7). */
 const PETUGAS_ONLY: [string, Handler][] = [
   ["POST   /api/koreksi-stock", koreksiStock.POST as Handler],
+  ["POST   /api/setoran", setoran.POST as Handler],
 ]
 
 /**
@@ -86,6 +89,10 @@ const ANY_LOGGED_IN: [string, Handler][] = [
   ["GET    /api/jenis-sampah/[id]", jenisSampahId.GET as Handler],
   ["GET    /api/pembeli", pembeli.GET as unknown as Handler],
   ["GET    /api/pembeli/[id]", pembeliId.GET as Handler],
+  // Riwayat transaksi & stock dibaca kedua role, dibatasi scope bukan role
+  // (FR-C5/C6/C9) — scope-nya sendiri diuji di setoran.test.ts & stock.test.ts.
+  ["GET    /api/setoran", setoran.GET as Handler],
+  ["GET    /api/stock", stock.GET as unknown as Handler],
 ]
 
 beforeEach(() => {

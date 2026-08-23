@@ -44,6 +44,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   `failValidation(parsed.error.issues)` → **422** (PRD §2.5, not 400).
 - Client side, `src/lib/api.ts` unwraps the envelope in an axios interceptor, so
   components still receive the payload directly.
+- **Petugas scope never comes from the request body** (PRD §2.5 rule 4). Derive it
+  with `scopeToBankSampah(auth.user)` from `src/lib/scope.ts` (returns
+  `{ ok: false, response }` like `requireAuth`). Admins have no single scope.
+- Every write handler must write `AuditLog` inside the same transaction (§2.5
+  rule 2), and `Stock` must never change outside a transaction that also writes
+  `StockMutation` (§8.7). `POST /api/setoran` is the reference implementation.
+- Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
 
 ## Conventions
 - Theme tokens + DESIGN.md palette live in `src/app/globals.css` (`@theme` / CSS vars); brand emerald `#006c49`; Hanken Grotesk + JetBrains Mono via `next/font` in `src/app/layout.tsx`. UI copy is Indonesian.
