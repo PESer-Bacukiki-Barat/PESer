@@ -29,7 +29,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { password, ...rest } = parsed.data
   const credentialData: { email?: string; passwordHash?: string } = {}
-  if (rest.email) credentialData.email = rest.email
+  if (rest.email && rest.email !== existing.email) credentialData.email = rest.email
   if (password) credentialData.passwordHash = await bcrypt.hash(password, 10)
 
   try {

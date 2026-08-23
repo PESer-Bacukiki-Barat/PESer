@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { Field, inputClasses } from "@/components/admin/form-fields";
+import { Field } from "@/components/admin/form-fields";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { api, apiError } from "@/lib/api";
 import type { KelurahanPayload } from "@/lib/kelurahan-data";
 
@@ -77,25 +79,23 @@ export function KelurahanForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Nama Kelurahan" required htmlFor="nama">
-          <input
+          <Input
             id="nama"
             type="text"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder="Masukkan nama kelurahan"
             required
-            className={inputClasses}
           />
         </Field>
         <Field label="Kode Wilayah" required htmlFor="kodeWilayah">
-          <input
+          <Input
             id="kodeWilayah"
             type="text"
             value={kodeWilayah}
             onChange={(e) => setKodeWilayah(e.target.value)}
             placeholder="cth. 32.01.01"
             required
-            className={inputClasses}
           />
         </Field>
       </div>
@@ -107,21 +107,13 @@ export function KelurahanForm({
       )}
 
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-        >
+        <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60"
-        >
+        </Button>
+        <Button type="submit" disabled={saving}>
           <Save className="size-[18px]" />
           {saving ? "Menyimpan..." : submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

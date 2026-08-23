@@ -1,12 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditKelurahanModal } from "@/components/admin/kelurahan-edit-modal";
+import { AddKelurahanModal } from "@/components/admin/kelurahan-add-modal";
+import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
 import type { Kelurahan } from "@/lib/kelurahan-data";
 
@@ -37,7 +40,9 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
   const router = useRouter();
   const [items, setItems] = useState<Kelurahan[]>(kelurahans);
   const [editing, setEditing] = useState<Kelurahan | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<Kelurahan | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
 
   function refresh() {
     router.refresh();
@@ -57,17 +62,29 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
     }
   }
 
-  async function handleDelete(k: Kelurahan) {
-    if (!confirm(`Hapus kelurahan "${k.nama}"?`)) return;
-    setDeletingId(k.id);
+  async function handleCreate(values: { nama: string; kodeWilayah: string }) {
     try {
-      await api.delete(`/kelurahan/${k.id}`);
-      setItems((prev) => prev.filter((x) => x.id !== k.id));
+      const { data } = await api.post<Kelurahan>("/kelurahan", values);
+      setItems((prev) => [...prev, data]);
+      setAdding(false);
+      refresh();
+    } catch (err) {
+      alert(apiError(err));
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    setDeletingLoading(true);
+    try {
+      await api.delete(`/kelurahan/${deleting.id}`);
+      setItems((prev) => prev.filter((x) => x.id !== deleting.id));
+      setDeleting(null);
       refresh();
     } catch (err) {
       alert(apiError(err));
     } finally {
-      setDeletingId(null);
+      setDeletingLoading(false);
     }
   }
 
@@ -81,27 +98,14 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
         searchPlaceholder="Cari nama atau kode wilayah..."
         pageSize={10}
         toolbarActions={
-          <Link
-            href="/admin/kelurahan/tambah"
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-white hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
-          >
+          <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
             <Plus className="size-[18px]" />
             <span className="hidden sm:inline">Tambah Kelurahan</span>
-          </Link>
+          </Button>
         }
         actions={(k) => [
-          {
-            label: "Edit",
-            icon: Pencil,
-            className: "hover:text-primary",
-            onClick: () => setEditing(k),
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            className: "hover:text-error hover:bg-error-container",
-            onClick: () => handleDelete(k),
-          },
+          editAction(() => setEditing(k)),
+          deleteAction(() => setDeleting(k)),
         ]}
         emptyState={
           <p className="text-center text-on-surface-variant">
@@ -120,6 +124,27 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
           onSubmit={handleEdit}
         />
       )}
+
+      <AddKelurahanModal
+        open={adding}
+        onOpenChange={setAdding}
+        onSubmit={handleCreate}
+      />
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Hapus Kelurahan"
+        description={
+          deleting
+            ? `Apakah Anda yakin ingin menghapus kelurahan "${deleting.nama}" (${deleting.kodeWilayah})?`
+            : undefined
+        }
+        loading={deletingLoading}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }

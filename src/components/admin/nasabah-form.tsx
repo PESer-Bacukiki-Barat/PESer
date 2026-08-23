@@ -4,8 +4,10 @@ import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
-import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
+import { Field, SelectField, type SelectOption } from "@/components/admin/form-fields";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { NASABAH_BANK_SAMPAH_OPTIONS } from "@/lib/nasabah-data";
 
 export type NasabahFormValues = {
@@ -82,14 +84,13 @@ export function NasabahForm({
           placeholder={bankSampahId === "" ? "Pilih Bank Sampah" : undefined}
         />
         <Field label="Nama Lengkap" required htmlFor="nama">
-          <input
+          <Input
             id="nama"
             type="text"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder="Masukkan nama lengkap nasabah"
             required
-            className={inputClasses}
           />
         </Field>
         <Field label="Nomor HP" required htmlFor="phone">
@@ -97,30 +98,30 @@ export function NasabahForm({
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md pointer-events-none">
               +62
             </span>
-            <input
+            <Input
               id="phone"
               type="tel"
               value={noHp}
               onChange={(e) => setNoHp(e.target.value)}
               placeholder="8123456789"
               required
-              className={cn(inputClasses, "pl-12")}
+              className="pl-12"
             />
           </div>
         </Field>
         <Field label="ID Setoran" required htmlFor="setoranId">
-          <input
+          <Input
             id="setoranId"
             type="text"
             value={setoranId}
             onChange={(e) => setSetoranId(e.target.value)}
             placeholder="mis. STN-2026-001"
             required
-            className={cn(inputClasses, "font-mono")}
+            className="font-mono"
           />
         </Field>
         <Field label="RT" required htmlFor="rt">
-          <input
+          <Input
             id="rt"
             type="text"
             value={rt}
@@ -128,11 +129,10 @@ export function NasabahForm({
             placeholder="mis. 01"
             maxLength={3}
             required
-            className={inputClasses}
           />
         </Field>
         <Field label="RW" required htmlFor="rw">
-          <input
+          <Input
             id="rw"
             type="text"
             value={rw}
@@ -140,39 +140,30 @@ export function NasabahForm({
             placeholder="mis. 05"
             maxLength={3}
             required
-            className={inputClasses}
           />
         </Field>
       </div>
 
       {/* Alamat */}
       <Field label="Alamat Lengkap" htmlFor="alamat">
-        <textarea
+        <Textarea
           id="alamat"
           rows={3}
           value={alamat}
           onChange={(e) => setAlamat(e.target.value)}
           placeholder="Masukkan alamat lengkap tempat tinggal nasabah..."
-          className={cn(inputClasses, "resize-none")}
         />
       </Field>
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-        >
+        <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
-        >
+        </Button>
+        <Button type="submit">
           <Save className="size-[18px]" />
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

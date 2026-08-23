@@ -4,8 +4,10 @@ import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
-import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
+import { Field, SelectField, type SelectOption } from "@/components/admin/form-fields";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { KATEGORI } from "@/lib/jenis-sampah-data";
 
 export type JenisSampahFormValues = {
@@ -81,25 +83,23 @@ export function JenisSampahForm({
       {/* Sampah Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Kode Sampah" required htmlFor="kode">
-          <input
+          <Input
             id="kode"
             type="text"
             value={kode}
             onChange={(e) => setKode(e.target.value)}
             placeholder="Masukkan kode sampah (mis. PLS-001)"
             required
-            className={inputClasses}
           />
         </Field>
         <Field label="Nama Sampah" required htmlFor="nama">
-          <input
+          <Input
             id="nama"
             type="text"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder="Masukkan nama sampah"
             required
-            className={inputClasses}
           />
         </Field>
         <SelectField
@@ -112,7 +112,7 @@ export function JenisSampahForm({
           placeholder={kategori === "" ? "Pilih Kategori" : undefined}
         />
         <Field label="Berat (kg)" required htmlFor="berat">
-          <input
+          <Input
             id="berat"
             type="number"
             min={0}
@@ -121,20 +121,18 @@ export function JenisSampahForm({
             onChange={(e) => setBerat(e.target.value)}
             placeholder="0.0"
             required
-            className={inputClasses}
           />
         </Field>
       </div>
 
       {/* Deskripsi */}
       <Field label="Deskripsi" htmlFor="deskripsi">
-        <textarea
+        <Textarea
           id="deskripsi"
           rows={3}
           value={deskripsi}
           onChange={(e) => setDeskripsi(e.target.value)}
           placeholder="Deskripsi singkat tentang jenis sampah..."
-          className={cn(inputClasses, "resize-none")}
         />
       </Field>
 
@@ -151,20 +149,13 @@ export function JenisSampahForm({
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-        >
+        <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
-        >
+        </Button>
+        <Button type="submit">
           <Save className="size-[18px]" />
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

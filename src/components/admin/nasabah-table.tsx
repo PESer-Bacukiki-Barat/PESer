@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditNasabahModal } from "@/components/admin/nasabah-edit-modal";
+import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
 import {
   NASABAH_BANK_SAMPAH_OPTIONS,
   getBankSampahName,
@@ -30,6 +33,7 @@ export function NasabahTable({
   onSelectedChange?: (ids: string[]) => void;
 }) {
   const [editing, setEditing] = useState<Nasabah | null>(null);
+  const [deleting, setDeleting] = useState<Nasabah | null>(null);
 
   const indexById = useMemo(() => {
     const map = new Map<string, number>();
@@ -114,45 +118,23 @@ export function NasabahTable({
         onSelectedChange={onSelectedChange}
         toolbarActions={
           <>
-            <button
-              type="button"
-              onClick={onExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md font-medium"
-            >
+            <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
               <Download className="size-[18px]" />
               <span className="hidden sm:inline">Export Data</span>
-            </button>
-            <Link
-              href="/admin/nasabah/tambah"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-white hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
-            >
+            </Button>
+            <Button render={<Link href="/admin/nasabah/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
               <Plus className="size-[18px]" />
               <span className="hidden sm:inline">Tambah Nasabah</span>
-            </Link>
+            </Button>
           </>
         }
-        actions={() => [
-          {
-            label: "Lihat Detail",
-            icon: Eye,
-            className: "hover:text-primary",
-            onClick: (n) => onView?.(n),
-          },
-          {
-            label: "Edit",
-            icon: Pencil,
-            className: "hover:text-primary",
-            onClick: (n) => {
-              onEdit?.(n);
-              setEditing(n);
-            },
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            className: "hover:text-error hover:bg-error-container",
-            onClick: (n) => onDelete?.(n),
-          },
+        actions={(n) => [
+          viewAction(() => onView?.(n)),
+          editAction(() => {
+            onEdit?.(n);
+            setEditing(n);
+          }),
+          deleteAction(() => setDeleting(n)),
         ]}
         emptyState={
           <p className="text-center text-on-surface-variant">
@@ -170,6 +152,23 @@ export function NasabahTable({
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Hapus Nasabah"
+        description={
+          deleting
+            ? `Apakah Anda yakin ingin menghapus nasabah "${deleting.nama}"?`
+            : undefined
+        }
+        onConfirm={() => {
+          if (deleting) onDelete?.(deleting);
+          setDeleting(null);
+        }}
+      />
     </>
   );
 }

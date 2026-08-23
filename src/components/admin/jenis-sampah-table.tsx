@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditJenisSampahModal } from "@/components/admin/jenis-sampah-edit-modal";
+import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
 import { KATEGORI, type JenisSampah, type JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
 export type { JenisSampah, JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
-const STATUS_STYLES: Record<JenisSampahStatus, string> = {
-  Aktif: "bg-secondary-container text-on-secondary-container border border-secondary/20",
-  "Non-aktif": "bg-surface-variant text-on-surface-variant border border-outline-variant",
+const STATUS_VARIANT: Record<JenisSampahStatus, "secondary" | "outline"> = {
+  Aktif: "secondary",
+  "Non-aktif": "outline",
 };
 
 const columns: Column<JenisSampah>[] = [
@@ -50,11 +54,7 @@ const columns: Column<JenisSampah>[] = [
     header: "Status",
     align: "center",
     cell: (j) => (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-medium ${STATUS_STYLES[j.status]}`}
-      >
-        {j.status}
-      </span>
+      <Badge variant={STATUS_VARIANT[j.status]}>{j.status}</Badge>
     ),
   },
 ];
@@ -75,6 +75,7 @@ export function JenisSampahTable({
   onSelectedChange?: (ids: string[]) => void;
 }) {
   const [editing, setEditing] = useState<JenisSampah | null>(null);
+  const [deleting, setDeleting] = useState<JenisSampah | null>(null);
 
   return (
     <>
@@ -106,45 +107,23 @@ export function JenisSampahTable({
       onSelectedChange={onSelectedChange}
       toolbarActions={
         <>
-          <button
-            type="button"
-            onClick={onExport}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md font-medium"
-          >
+          <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
             <Download className="size-[18px]" />
             <span className="hidden sm:inline">Export Data</span>
-          </button>
-          <Link
-            href="/admin/jenis-sampah/tambah"
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-white hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
-          >
+          </Button>
+          <Button render={<Link href="/admin/jenis-sampah/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
             <Plus className="size-[18px]" />
             <span className="hidden sm:inline">Tambah Jenis Sampah</span>
-          </Link>
+          </Button>
         </>
       }
-      actions={() => [
-        {
-          label: "Lihat Detail",
-          icon: Eye,
-          className: "hover:text-primary",
-          onClick: (j) => onView?.(j),
-        },
-        {
-          label: "Edit",
-          icon: Pencil,
-          className: "hover:text-primary",
-          onClick: (j) => {
-            onEdit?.(j);
-            setEditing(j);
-          },
-        },
-        {
-          label: "Hapus",
-          icon: Trash2,
-          className: "hover:text-error hover:bg-error-container",
-          onClick: (j) => onDelete?.(j),
-        },
+      actions={(j) => [
+        viewAction(() => onView?.(j)),
+        editAction(() => {
+          onEdit?.(j);
+          setEditing(j);
+        }),
+          deleteAction(() => setDeleting(j)),
       ]}
       emptyState={
         <p className="text-center text-on-surface-variant">
@@ -162,6 +141,23 @@ export function JenisSampahTable({
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Hapus Jenis Sampah"
+        description={
+          deleting
+            ? `Apakah Anda yakin ingin menghapus jenis sampah "${deleting.nama}" (${deleting.kode})?`
+            : undefined
+        }
+        onConfirm={() => {
+          if (deleting) onDelete?.(deleting);
+          setDeleting(null);
+        }}
+      />
     </>
   );
 }

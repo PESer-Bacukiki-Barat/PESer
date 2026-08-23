@@ -4,8 +4,10 @@ import { useState, type FormEvent } from "react";
 import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { cn } from "@/lib/utils";
-import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
+import { Field, SelectField, type SelectOption } from "@/components/admin/form-fields";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PERUSAHAAN } from "@/lib/pembeli-data";
 
 export type PembeliFormValues = {
@@ -79,14 +81,13 @@ export function PembeliForm({
       {/* Perusahaan & Identitas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Nama Lengkap" required htmlFor="nama">
-          <input
+          <Input
             id="nama"
             type="text"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder="Masukkan nama lengkap pembeli"
             required
-            className={inputClasses}
           />
         </Field>
         <SelectField
@@ -103,14 +104,14 @@ export function PembeliForm({
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md pointer-events-none">
               +62
             </span>
-            <input
+            <Input
               id="phone"
               type="tel"
               value={noHp}
               onChange={(e) => setNoHp(e.target.value)}
               placeholder="8123456789"
               required
-              className={cn(inputClasses, "pl-12")}
+              className="pl-12"
             />
           </div>
         </Field>
@@ -126,42 +127,33 @@ export function PembeliForm({
 
       {/* Additional Details */}
       <Field label="Alamat Lengkap" htmlFor="alamat">
-        <textarea
+        <Textarea
           id="alamat"
           rows={3}
           value={alamat}
           onChange={(e) => setAlamat(e.target.value)}
           placeholder="Masukkan alamat lengkap perusahaan / pembeli..."
-          className={cn(inputClasses, "resize-none")}
         />
       </Field>
       <Field label="Catatan" htmlFor="catatan">
-        <textarea
+        <Textarea
           id="catatan"
           rows={3}
           value={catatan}
           onChange={(e) => setCatatan(e.target.value)}
           placeholder="Catatan tambahan tentang pembeli (opsional)..."
-          className={cn(inputClasses, "resize-none")}
         />
       </Field>
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-        >
+        <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
-        >
+        </Button>
+        <Button type="submit">
           <Save className="size-[18px]" />
           {submitLabel}
-        </button>
+        </Button>
       </div>
     </form>
   );

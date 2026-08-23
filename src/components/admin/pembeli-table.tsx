@@ -2,17 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditPembeliModal } from "@/components/admin/pembeli-edit-modal";
+import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
 import { PERUSAHAAN, type Pembeli, type PembeliStatus } from "@/lib/pembeli-data";
 
 export type { Pembeli, PembeliStatus } from "@/lib/pembeli-data";
 
-const STATUS_STYLES: Record<PembeliStatus, string> = {
-  Aktif: "bg-primary-container text-on-primary-container border border-primary/20",
-  "Non-aktif": "bg-surface-dim text-on-surface-variant border border-outline-variant",
+const STATUS_VARIANT: Record<PembeliStatus, "default" | "outline"> = {
+  Aktif: "default",
+  "Non-aktif": "outline",
 };
 
 const columns: Column<Pembeli>[] = [
@@ -54,11 +58,7 @@ const columns: Column<Pembeli>[] = [
     header: "Status",
     align: "center",
     cell: (p) => (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[p.status]}`}
-      >
-        {p.status}
-      </span>
+      <Badge variant={STATUS_VARIANT[p.status]}>{p.status}</Badge>
     ),
   },
 ];
@@ -79,6 +79,7 @@ export function PembeliTable({
   onSelectedChange?: (ids: string[]) => void;
 }) {
   const [editing, setEditing] = useState<Pembeli | null>(null);
+  const [deleting, setDeleting] = useState<Pembeli | null>(null);
 
   return (
     <>
@@ -110,45 +111,23 @@ export function PembeliTable({
         onSelectedChange={onSelectedChange}
         toolbarActions={
           <>
-            <button
-              type="button"
-              onClick={onExport}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md font-medium"
-            >
+            <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
               <Download className="size-[18px]" />
               <span className="hidden sm:inline">Export Data</span>
-            </button>
-            <Link
-              href="/admin/pembeli/tambah"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-white hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
-            >
+            </Button>
+            <Button render={<Link href="/admin/pembeli/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
               <Plus className="size-[18px]" />
               <span className="hidden sm:inline">Tambah Pembeli</span>
-            </Link>
+            </Button>
           </>
         }
-        actions={() => [
-          {
-            label: "Lihat Detail",
-            icon: Eye,
-            className: "hover:text-primary",
-            onClick: (p) => onView?.(p),
-          },
-          {
-            label: "Edit",
-            icon: Pencil,
-            className: "hover:text-primary",
-            onClick: (p) => {
-              onEdit?.(p);
-              setEditing(p);
-            },
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            className: "hover:text-error hover:bg-error-container",
-            onClick: (p) => onDelete?.(p),
-          },
+        actions={(p) => [
+          viewAction(() => onView?.(p)),
+          editAction(() => {
+            onEdit?.(p);
+            setEditing(p);
+          }),
+          deleteAction(() => setDeleting(p)),
         ]}
         emptyState={
           <p className="text-center text-on-surface-variant">
@@ -166,6 +145,23 @@ export function PembeliTable({
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => {
+          if (!open) setDeleting(null);
+        }}
+        title="Hapus Pembeli"
+        description={
+          deleting
+            ? `Apakah Anda yakin ingin menghapus pembeli "${deleting.nama}"?`
+            : undefined
+        }
+        onConfirm={() => {
+          if (deleting) onDelete?.(deleting);
+          setDeleting(null);
+        }}
+      />
     </>
   );
 }

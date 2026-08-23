@@ -11,15 +11,30 @@ export type SelectOption = {
 export const inputClasses =
   "w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary transition-shadow outline-none";
 
+export function inputClass(error?: boolean) {
+  return error
+    ? cn(inputClasses, "border-error focus:border-error focus:ring-error")
+    : inputClasses;
+}
+
+export function FieldError({ error }: { error?: string }) {
+  if (!error) return null;
+  return (
+    <p className="font-label-sm text-label-sm text-error">{error}</p>
+  );
+}
+
 export function Field({
   label,
   required,
   htmlFor,
+  error,
   children,
 }: {
   label: string;
   required?: boolean;
   htmlFor: string;
+  error?: string;
   children: ReactNode;
 }) {
   return (
@@ -28,6 +43,7 @@ export function Field({
         {label} {required && <span className="text-error">*</span>}
       </label>
       {children}
+      <FieldError error={error} />
     </div>
   );
 }
@@ -40,6 +56,7 @@ export function SelectField({
   onChange,
   options,
   placeholder,
+  error,
 }: {
   id: string;
   label: string;
@@ -48,15 +65,16 @@ export function SelectField({
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
+  error?: string;
 }) {
   return (
-    <Field label={label} required={required} htmlFor={id}>
+    <Field label={label} required={required} htmlFor={id} error={error}>
       <div className="relative">
         <select
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={cn(inputClasses, "appearance-none pr-10")}
+          className={cn(inputClass(!!error), "appearance-none pr-10")}
         >
           {placeholder && (
             <option value="" disabled>

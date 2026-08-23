@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
-import { KelurahanForm } from "@/components/admin/kelurahan-form";
+import { UsersTable } from "@/components/admin/users-table";
 
 export const metadata: Metadata = {
-  title: "Tambah Kelurahan",
+  title: "Manajemen Users",
 };
 
-export default function TambahKelurahanPage() {
+export default function UsersPage() {
   return (
     <>
       {/* Breadcrumbs */}
@@ -19,24 +19,21 @@ export default function TambahKelurahanPage() {
           Dashboard
         </a>
         <ChevronRight className="size-4" />
-        <a className="hover:text-primary transition-colors" href="/admin/kelurahan">
-          Manajemen Kelurahan
-        </a>
-        <ChevronRight className="size-4" />
-        <span className="text-on-surface font-semibold">Tambah Kelurahan</span>
+        <span className="text-on-surface font-semibold">Manajemen Users</span>
       </nav>
 
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">
-          Tambah Kelurahan
+          Manajemen Users
         </h1>
         <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-          Masukkan informasi detail untuk mendaftarkan kelurahan baru ke dalam sistem.
+          Kelola seluruh akun user sistem (admin dan petugas), hak akses, serta bank sampah
+          yang ditangani masing-masing.
         </p>
       </div>
 
-      <KelurahanForm cancelHref="/admin/kelurahan" />
+      <UsersTable />
     </>
   );
 }

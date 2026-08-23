@@ -25,12 +25,13 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/kelurahan", label: "Kelurahan", icon: Building2 },
   { href: "/admin/bank-sampah", label: "Bank Sampah", icon: Landmark },
-  { href: "/admin/petugas", label: "Petugas", icon: ShieldUser },
+  { href: "/admin/users", label: "Users", icon: ShieldUser },
   { href: "/admin/pembeli", label: "Pembeli", icon: Users },
   { href: "/admin/nasabah", label: "Nasabah", icon: Contact },
   { href: "/admin/jenis-sampah", label: "Jenis Sampah", icon: Tags },
@@ -103,15 +104,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* TopNavBar */}
       <nav className="fixed top-0 w-full z-50 bg-surface border-b border-outline-variant flex items-center justify-between px-4 md:px-6 h-16">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
+            className="md:hidden -ml-2"
             onClick={() => setIsOpen(true)}
             aria-label="Buka menu"
             aria-expanded={isOpen}
-            className="md:hidden p-2 -ml-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80"
           >
             <Menu className="size-5" />
-          </button>
+          </Button>
           <span className="font-headline-md text-headline-md font-bold text-primary">PESer</span>
           <div className="relative w-full max-w-sm hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant size-4" />
@@ -123,20 +126,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 w-1/3">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80"
-          >
+          <Button type="button" variant="ghost" size="icon" aria-label="Notifications">
             <Bell className="size-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Settings"
-            className="p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80"
-          >
+          </Button>
+          <Button type="button" variant="ghost" size="icon" aria-label="Settings">
             <Settings className="size-5" />
-          </button>
+          </Button>
           <div className="w-8 h-8 rounded-full overflow-hidden ml-2 cursor-pointer border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-primary-container text-primary font-label-md text-label-md">
             AP
           </div>
@@ -190,13 +185,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <Shield className="size-5 shrink-0" />
             <span>Privacy Policy</span>
           </a>
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 mt-4 text-error hover:bg-error-container hover:text-on-error-container rounded-lg font-label-md text-label-md transition-colors"
-          >
+          <Button type="button" variant="destructive" className="w-full mt-4">
             <LogOut className="size-5" />
             Logout
-          </button>
+          </Button>
         </div>
       </aside>
 

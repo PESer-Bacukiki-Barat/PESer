@@ -4,6 +4,13 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  RowActionButton,
+  type RowActionIntent,
+} from "@/components/ui/row-action-button";
 
 export type Column<T> = {
   id: string;
@@ -17,6 +24,7 @@ export type DataTableAction<T> = {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   className?: string;
+  intent?: RowActionIntent;
   onClick: (row: T) => void;
 };
 
@@ -45,6 +53,7 @@ type DataTableProps<T> = {
   onSelectedChange?: (ids: string[]) => void;
   toolbarActions?: React.ReactNode;
   emptyState?: React.ReactNode;
+  loading?: boolean;
 };
 
 const headerClass = "p-4 font-label-md text-label-md text-on-surface-variant";
@@ -56,6 +65,9 @@ const alignDesktopClass = {
 } as const;
 const cellLabelClass = "md:hidden shrink-0 font-label-sm text-label-sm text-on-surface-variant";
 const cellValueClass = "flex-1 min-w-0 text-right font-label-md text-label-md text-on-surface md:block";
+
+const selectClass =
+  "h-11 w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 font-body-md text-body-md text-on-surface-variant outline-none transition-[color,box-shadow] focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/50";
 
 export function DataTable<T>({
   data,
@@ -70,6 +82,7 @@ export function DataTable<T>({
   onSelectedChange,
   toolbarActions,
   emptyState,
+  loading = false,
 }: DataTableProps<T>) {
   const [query, setQuery] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
@@ -145,35 +158,36 @@ export function DataTable<T>({
               {searchKeys.length > 0 && (
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant size-4" />
-                  <input
-                    type="text"
+                  <Input
+                    className="pl-10"
                     value={query}
                     onChange={(e) => {
                       setQuery(e.target.value);
                       setPage(1);
                     }}
                     placeholder={searchPlaceholder}
-                    className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:border-primary transition-shadow font-label-md text-label-md text-on-surface"
                   />
                 </div>
               )}
               {filters.map((filter) => (
-                <select
-                  key={filter.id}
-                  value={filterValues[filter.id] ?? ""}
-                  onChange={(e) => {
-                    setFilterValues((prev) => ({ ...prev, [filter.id]: e.target.value }));
-                    setPage(1);
-                  }}
-                  className="border border-outline-variant rounded-lg bg-surface-container-lowest py-2 px-3 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow font-label-md text-label-md text-on-surface-variant"
-                >
-                  <option value="">{filter.placeholder}</option>
-                  {filter.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                <div key={filter.id} className="relative">
+                  <select
+                    value={filterValues[filter.id] ?? ""}
+                    onChange={(e) => {
+                      setFilterValues((prev) => ({ ...prev, [filter.id]: e.target.value }));
+                      setPage(1);
+                    }}
+                    className={cn(selectClass, "appearance-none pr-10")}
+                  >
+                    <option value="">{filter.placeholder}</option>
+                    {filter.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-on-surface-variant pointer-events-none size-4" />
+                </div>
               ))}
             </div>
           )}
@@ -190,14 +204,9 @@ export function DataTable<T>({
               <tr className="bg-surface-container-low border-b border-outline-variant">
                 {selectable && (
                   <th className={cn(headerClass, "w-12 text-center")}>
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = someSelected && !allSelected;
-                      }}
-                      onChange={toggleAll}
-                      className="rounded border-outline-variant accent-primary focus:ring-primary"
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
                       aria-label="Pilih semua"
                     />
                   </th>
@@ -224,7 +233,7 @@ export function DataTable<T>({
                     colSpan={columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}
                     className="block md:table-cell p-6 md:p-8 text-center text-on-surface-variant font-label-md text-label-md"
                   >
-                    {emptyState ?? "Tidak ada data."}
+                    {loading ? "Memuat..." : (emptyState ?? "Tidak ada data.")}
                   </td>
                 </tr>
               )}
@@ -238,11 +247,9 @@ export function DataTable<T>({
                     {selectable && (
                       <td className="flex items-center justify-between gap-4 py-1.5 px-4 md:table-cell md:p-4 md:text-center">
                         <span className={cellLabelClass}>Pilih</span>
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selected.has(id)}
-                          onChange={() => toggleRow(id)}
-                          className="rounded border-outline-variant accent-primary focus:ring-primary"
+                          onCheckedChange={() => toggleRow(id)}
                           aria-label="Pilih baris"
                         />
                       </td>
@@ -272,18 +279,16 @@ export function DataTable<T>({
                           {actions(row).map((action) => {
                             const Icon = action.icon;
                             return (
-                              <button
+                              <RowActionButton
                                 key={action.label}
-                                type="button"
+                                intent={action.intent}
+                                aria-label={action.label}
                                 title={action.label}
+                                className={action.className}
                                 onClick={() => action.onClick(row)}
-                                className={cn(
-                                  "p-2 text-on-surface-variant hover:bg-surface-container rounded-md transition-colors",
-                                  action.className,
-                                )}
                               >
                                 {Icon ? <Icon className="size-5" /> : action.label}
-                              </button>
+                              </RowActionButton>
                             );
                           })}
                         </div>
@@ -310,41 +315,40 @@ export function DataTable<T>({
           </p>
           {pageCount > 1 && (
             <div className="flex items-center space-x-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 disabled={safePage <= 1}
                 onClick={() => handlePage(safePage - 1)}
-                className="flex items-center gap-1 px-3 py-1 border border-outline-variant rounded-md text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50 font-label-md text-label-md"
               >
                 <ChevronLeft className="size-4" />
                 Previous
-              </button>
+              </Button>
               <div className="flex items-center space-x-1">
                 {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
-                  <button
+                  <Button
                     key={p}
                     type="button"
+                    variant={p === safePage ? "default" : "ghost"}
+                    size="sm"
+                    className="size-8 px-0"
                     onClick={() => handlePage(p)}
-                    className={cn(
-                      "w-8 h-8 flex items-center justify-center rounded-md font-label-md text-label-md transition-colors",
-                      p === safePage
-                        ? "bg-primary text-on-primary"
-                        : "hover:bg-surface-container-low text-on-surface",
-                    )}
                   >
                     {p}
-                  </button>
+                  </Button>
                 ))}
               </div>
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 disabled={safePage >= pageCount}
                 onClick={() => handlePage(safePage + 1)}
-                className="flex items-center gap-1 px-3 py-1 border border-outline-variant rounded-md text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50 font-label-md text-label-md"
               >
                 Next
                 <ChevronRight className="size-4" />
-              </button>
+              </Button>
             </div>
           )}
         </div>

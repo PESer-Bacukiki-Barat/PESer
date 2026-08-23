@@ -2,6 +2,7 @@ export type BankSampah = {
   id: string
   nama: string
   kelurahanId: string
+  kelurahanNama?: string | null
   alamat: string
   latitude: number
   longitude: number
