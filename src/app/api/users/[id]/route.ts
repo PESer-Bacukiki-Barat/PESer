@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { userUpdateSchema } from "../schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, noContent, fail, failValidation } from "@/lib/response"
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAuth("ADMIN")
@@ -11,8 +12,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: { id, deletedAt: null },
     include: { bankSampah: { select: { id: true, nama: true } } },
   })
-  if (!data) return Response.json({ error: "tidak ditemukan" }, { status: 404 })
-  return Response.json(data)
+  if (!data) return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
+  return ok(data)
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -20,11 +21,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   if (!auth.ok) return auth.response
   const { id } = await params
   const existing = await prisma.user.findFirst({ where: { id, deletedAt: null } })
-  if (!existing) return Response.json({ error: "tidak ditemukan" }, { status: 404 })
+  if (!existing) return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
 
   const parsed = userUpdateSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
 
   const { password, ...rest } = parsed.data
@@ -42,9 +43,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           : {}),
       },
     })
-    return Response.json(data)
+    return ok(data)
   } catch {
-    return Response.json({ error: "email sudah dipakai user lain" }, { status: 409 })
+    return fail("DUPLIKAT", "email sudah dipakai user lain", { field: "email" })
   }
 }
 
@@ -53,11 +54,11 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!auth.ok) return auth.response
   const { id } = await params
   const existing = await prisma.user.findFirst({ where: { id, deletedAt: null } })
-  if (!existing) return Response.json({ error: "tidak ditemukan" }, { status: 404 })
+  if (!existing) return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
 
   await prisma.user.update({
     where: { id },
     data: { deletedAt: new Date(), credential: { update: { deletedAt: new Date() } } },
   })
-  return new Response(null, { status: 204 })
+  return noContent()
 }

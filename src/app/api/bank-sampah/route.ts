@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
 import { bankSampahSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, created, fail, failValidation } from "@/lib/response"
 
 const notDeleted = { deletedAt: null }
 
@@ -9,7 +10,7 @@ export async function GET() {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   const data = await prisma.bankSampah.findMany({ where: notDeleted })
-  return Response.json(data)
+  return ok(data)
 }
 
 export async function POST(request: Request) {
@@ -17,20 +18,20 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response
   const parsed = bankSampahSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
   try {
     const data = await prisma.bankSampah.create({ data: parsed.data })
-    return Response.json(data, { status: 201 })
+    return created(data)
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        return Response.json({ error: "kelurahanId sudah punya bank sampah" }, { status: 409 })
+        return fail("DUPLIKAT", "kelurahanId sudah punya bank sampah", { field: "kelurahanId" })
       }
       if (e.code === "P2003") {
-        return Response.json({ error: "kelurahanId tidak ditemukan" }, { status: 400 })
+        return fail("VALIDASI_GAGAL", "kelurahanId tidak ditemukan", { field: "kelurahanId" })
       }
     }
-    return Response.json({ error: "gagal membuat bank sampah" }, { status: 400 })
+    return fail("PERMINTAAN_GAGAL", "gagal membuat bank sampah")
   }
 }

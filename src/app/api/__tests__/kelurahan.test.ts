@@ -25,7 +25,9 @@ const unauthorized = { ok: false, response: Response.json({ error: "unauthorized
 const prismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError("boom", { code, clientVersion: "7.0.0" })
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
-const json = (res: Response) => res.json()
+// PRD §2.5: respons dibungkus { success, data } untuk sukses dan
+// { success, error: { code, message, field? } } untuk gagal.
+const payload = async (res: Response) => (await res.json()).data
 
 const validBody = { nama: "Sukamaju", kodeWilayah: "32.01.01" }
 
@@ -35,7 +37,7 @@ describe("GET /api/kelurahan", () => {
     m.findMany.mockResolvedValue([{ ...validBody, id: "c1" }])
     const res = await GET()
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual([{ ...validBody, id: "c1" }])
+    expect(await payload(res)).toEqual([{ ...validBody, id: "c1" }])
     expect(m.findMany).toHaveBeenCalledWith({ where: { deletedAt: null } })
   })
 
@@ -53,21 +55,21 @@ describe("POST /api/kelurahan", () => {
     m.create.mockResolvedValue({ ...validBody, id: "c1" })
     const res = await POST(new Request("http://x", { method: "POST", body: JSON.stringify(validBody) }))
     expect(res.status).toBe(201)
-    expect(await json(res)).toEqual({ ...validBody, id: "c1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "c1" })
     expect(m.create).toHaveBeenCalledWith({ data: validBody })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
     const res = await POST(new Request("http://x", { method: "POST", body: JSON.stringify({ nama: "" }) }))
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(422)
     expect(m.create).not.toHaveBeenCalled()
   })
 
-  it("400 untuk body bukan JSON", async () => {
+  it("422 untuk body bukan JSON", async () => {
     mAuth.mockResolvedValue(authOk)
     const res = await POST(new Request("http://x", { method: "POST", body: "bukan json" }))
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(422)
   })
 
   it("409 jika kodeWilayah sudah dipakai", async () => {
@@ -84,7 +86,7 @@ describe("GET /api/kelurahan/[id]", () => {
     m.findFirst.mockResolvedValue({ ...validBody, id: "c1" })
     const res = await GET_ID(new Request("http://x"), params("c1"))
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual({ ...validBody, id: "c1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "c1" })
   })
 
   it("404 jika tidak ditemukan", async () => {
@@ -101,14 +103,14 @@ describe("PUT /api/kelurahan/[id]", () => {
     m.update.mockResolvedValue({ ...validBody, id: "c1" })
     const res = await PUT(new Request("http://x", { method: "PUT", body: JSON.stringify(validBody) }), params("c1"))
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual({ ...validBody, id: "c1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "c1" })
     expect(m.update).toHaveBeenCalledWith({ where: { id: "c1" }, data: validBody })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
     const res = await PUT(new Request("http://x", { method: "PUT", body: JSON.stringify({}) }), params("c1"))
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(422)
   })
 
   it("404 jika tidak ditemukan", async () => {

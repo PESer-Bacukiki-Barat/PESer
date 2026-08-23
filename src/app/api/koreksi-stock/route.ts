@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { koreksiStockSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, created, fail, failValidation } from "@/lib/response"
 
 export async function GET() {
   const auth = await requireAuth()
@@ -13,7 +14,7 @@ export async function GET() {
     where,
     orderBy: { createdAt: "desc" },
   })
-  return Response.json(data)
+  return ok(data)
 }
 
 export async function POST(request: Request) {
@@ -21,16 +22,16 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response
   const parsed = koreksiStockSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
   const { stockId, beratBaru, alasan } = parsed.data
   const bankSampahId = auth.user.bankSampah?.id
   if (!bankSampahId) {
-    return Response.json({ error: "petugas belum ditugaskan ke bank sampah" }, { status: 403 })
+    return fail("AKSES_DITOLAK", "Petugas belum ditugaskan ke bank sampah")
   }
 
   const stock = await prisma.stock.findFirst({ where: { id: stockId, bankSampahId } })
-  if (!stock) return Response.json({ error: "stock tidak ditemukan" }, { status: 404 })
+  if (!stock) return fail("TIDAK_DITEMUKAN", "Stock tidak ditemukan")
 
   const beratLama = stock.berat.toNumber()
   const selisih = beratBaru - beratLama
@@ -72,8 +73,8 @@ export async function POST(request: Request) {
       })
       return created
     })
-    return Response.json(koreksi, { status: 201 })
+    return created(koreksi)
   } catch {
-    return Response.json({ error: "gagal menyimpan koreksi stock" }, { status: 400 })
+    return fail("PERMINTAAN_GAGAL", "gagal menyimpan koreksi stock")
   }
 }

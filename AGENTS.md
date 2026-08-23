@@ -34,8 +34,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## API routes (`src/app/api/**/route.ts`)
 - Web `Request` / `Response`; `params` is a `Promise` (await it).
-- Guard with `requireAuth()` from `src/lib/auth.ts` (returns `{ ok: false, response }` → early-return `auth.response`); `getServerUser()` for Server Components.
-- zod schemas live next to the route; validate with `schema.safeParse`, return `400` on failure.
+- **Never return `Response.json` directly.** PRD §2.5 mandates the envelope
+  `{ success, data }` / `{ success, error: { code, message, field? } }` and the
+  UI depends on it. Use `ok()` / `created()` / `noContent()` / `fail()` /
+  `failValidation()` from `src/lib/response.ts`; HTTP status is derived from the
+  error code, never written by hand. Guarded by `src/lib/__tests__/response.test.ts`.
+- Guard with `requireAuth()` from `src/lib/auth.ts` (returns `{ ok: false, response }` → early-return `auth.response`); pass `"ADMIN"` / `"PETUGAS"` when the PRD access matrix (§2.4) restricts the action. `getServerUser()` for Server Components. The role each handler demands is asserted in `src/app/api/__tests__/authorization.test.ts` — mocking `requireAuth` alone cannot catch a missing role argument.
+- zod schemas live next to the route; validate with `schema.safeParse`, then
+  `failValidation(parsed.error.issues)` → **422** (PRD §2.5, not 400).
+- Client side, `src/lib/api.ts` unwraps the envelope in an axios interceptor, so
+  components still receive the payload directly.
 
 ## Conventions
 - Theme tokens + DESIGN.md palette live in `src/app/globals.css` (`@theme` / CSS vars); brand emerald `#006c49`; Hanken Grotesk + JetBrains Mono via `next/font` in `src/app/layout.tsx`. UI copy is Indonesian.

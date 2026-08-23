@@ -25,7 +25,10 @@ const unauthorized = { ok: false, response: Response.json({ error: "unauthorized
 const prismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError("boom", { code, clientVersion: "7.0.0" })
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
-const json = (res: Response) => res.json()
+// PRD §2.5: respons dibungkus { success, data } untuk sukses dan
+// { success, error: { code, message, field? } } untuk gagal.
+const payload = async (res: Response) => (await res.json()).data
+const apiErr = async (res: Response) => (await res.json()).error
 
 const validBody = {
   nama: "Bank Hijau",
@@ -43,7 +46,7 @@ describe("GET /api/bank-sampah", () => {
     m.findMany.mockResolvedValue([{ ...validBody, id: "b1" }])
     const res = await GET()
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual([{ ...validBody, id: "b1" }])
+    expect(await payload(res)).toEqual([{ ...validBody, id: "b1" }])
     expect(m.findMany).toHaveBeenCalledWith({ where: { deletedAt: null } })
   })
 
@@ -60,18 +63,18 @@ describe("POST /api/bank-sampah", () => {
     m.create.mockResolvedValue({ ...validBody, id: "b1" })
     const res = await POST(body())
     expect(res.status).toBe(201)
-    expect(await json(res)).toEqual({ ...validBody, id: "b1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "b1" })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(body({ nama: "" }))).status).toBe(400)
+    expect((await POST(body({ nama: "" }))).status).toBe(422)
     expect(m.create).not.toHaveBeenCalled()
   })
 
-  it("400 untuk body bukan JSON", async () => {
+  it("422 untuk body bukan JSON", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(new Request("http://x", { method: "POST", body: "x" }))).status).toBe(400)
+    expect((await POST(new Request("http://x", { method: "POST", body: "x" }))).status).toBe(422)
   })
 
   it("409 jika kelurahanId sudah punya bank sampah (P2002)", async () => {
@@ -79,15 +82,15 @@ describe("POST /api/bank-sampah", () => {
     m.create.mockRejectedValue(prismaError("P2002"))
     const res = await POST(body())
     expect(res.status).toBe(409)
-    expect(await json(res)).toEqual({ error: "kelurahanId sudah punya bank sampah" })
+    expect(await apiErr(res)).toMatchObject({ message: "kelurahanId sudah punya bank sampah" })
   })
 
-  it("400 jika kelurahanId tidak ditemukan (P2003)", async () => {
+  it("422 jika kelurahanId tidak ditemukan (P2003)", async () => {
     mAuth.mockResolvedValue(authOk)
     m.create.mockRejectedValue(prismaError("P2003"))
     const res = await POST(body())
-    expect(res.status).toBe(400)
-    expect(await json(res)).toEqual({ error: "kelurahanId tidak ditemukan" })
+    expect(res.status).toBe(422)
+    expect(await apiErr(res)).toMatchObject({ message: "kelurahanId tidak ditemukan" })
   })
 
   it("400 untuk error prisma lain", async () => {
@@ -95,7 +98,7 @@ describe("POST /api/bank-sampah", () => {
     m.create.mockRejectedValue(new Error("apa pun"))
     const res = await POST(body())
     expect(res.status).toBe(400)
-    expect(await json(res)).toEqual({ error: "gagal membuat bank sampah" })
+    expect(await apiErr(res)).toMatchObject({ message: "gagal membuat bank sampah" })
   })
 })
 
@@ -105,7 +108,7 @@ describe("GET /api/bank-sampah/[id]", () => {
     m.findFirst.mockResolvedValue({ ...validBody, id: "b1" })
     const res = await GET_ID(new Request("http://x"), params("b1"))
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual({ ...validBody, id: "b1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "b1" })
   })
 
   it("404 jika tidak ditemukan", async () => {
@@ -121,7 +124,7 @@ describe("PUT /api/bank-sampah/[id]", () => {
     m.update.mockResolvedValue({ ...validBody, id: "b1" })
     const res = await PUT(body(), params("b1"))
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual({ ...validBody, id: "b1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "b1" })
     expect(m.update).toHaveBeenCalledWith({ where: { id: "b1" }, data: { ...validBody, isActive: true } })
   })
 
@@ -137,10 +140,10 @@ describe("PUT /api/bank-sampah/[id]", () => {
     expect((await PUT(body(), params("b1"))).status).toBe(409)
   })
 
-  it("400 jika kelurahanId tidak ditemukan (P2003)", async () => {
+  it("422 jika kelurahanId tidak ditemukan (P2003)", async () => {
     mAuth.mockResolvedValue(authOk)
     m.update.mockRejectedValue(prismaError("P2003"))
-    expect((await PUT(body(), params("b1"))).status).toBe(400)
+    expect((await PUT(body(), params("b1"))).status).toBe(422)
   })
 
   it("400 untuk error lain", async () => {

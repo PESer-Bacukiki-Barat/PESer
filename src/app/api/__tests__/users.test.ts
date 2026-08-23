@@ -33,7 +33,10 @@ const authOk = { ok: true, user: { id: "u1", role: "ADMIN" } }
 const unauthorized = { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
 const forbidden = { ok: false, response: Response.json({ error: "forbidden" }, { status: 403 }) }
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
-const json = (res: Response) => res.json()
+// PRD §2.5: respons dibungkus { success, data } untuk sukses dan
+// { success, error: { code, message, field? } } untuk gagal.
+const payload = async (res: Response) => (await res.json()).data
+const apiErr = async (res: Response) => (await res.json()).error
 
 const validCreate = {
   email: "andi@mail.com",
@@ -55,7 +58,7 @@ describe("GET /api/users", () => {
     m.findMany.mockResolvedValue([{ ...userRow, bankSampah: null }])
     const res = await GET()
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual([{ ...userRow, bankSampah: null }])
+    expect(await payload(res)).toEqual([{ ...userRow, bankSampah: null }])
     expect(mAuth).toHaveBeenCalledWith("ADMIN")
   })
 
@@ -76,7 +79,7 @@ describe("POST /api/users", () => {
     m.create.mockResolvedValue({ ...userRow, bankSampah: null })
     const res = await POST(body())
     expect(res.status).toBe(201)
-    expect(await json(res)).toEqual({ ...userRow, bankSampah: null })
+    expect(await payload(res)).toEqual({ ...userRow, bankSampah: null })
     expect(mHash).toHaveBeenCalledWith(validCreate.password, 10)
     expect(m.create).toHaveBeenCalledWith({
       data: {
@@ -91,16 +94,16 @@ describe("POST /api/users", () => {
     })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(body({ email: "bukan-email" }))).status).toBe(400)
+    expect((await POST(body({ email: "bukan-email" }))).status).toBe(422)
     expect(m.create).not.toHaveBeenCalled()
   })
 
-  it("400 jika PETUGAS tanpa bankSampahId", async () => {
+  it("422 jika PETUGAS tanpa bankSampahId", async () => {
     mAuth.mockResolvedValue(authOk)
     const res = await POST(body({ role: "PETUGAS", bankSampahId: null }))
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(422)
   })
 
   it("409 jika email sudah dipakai", async () => {
@@ -108,7 +111,7 @@ describe("POST /api/users", () => {
     m.create.mockRejectedValue(new Error("duplicate"))
     const res = await POST(body())
     expect(res.status).toBe(409)
-    expect(await json(res)).toEqual({ error: "email sudah dipakai" })
+    expect(await apiErr(res)).toMatchObject({ message: "email sudah dipakai" })
   })
 })
 
@@ -159,10 +162,10 @@ describe("PUT /api/users/[id]", () => {
     expect((await PUT(putBody(), params("u1"))).status).toBe(404)
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
     m.findFirst.mockResolvedValue({ ...userRow })
-    expect((await PUT(putBody({ email: "x" }), params("u1"))).status).toBe(400)
+    expect((await PUT(putBody({ email: "x" }), params("u1"))).status).toBe(422)
   })
 
   it("409 jika update gagal (email dipakai)", async () => {
@@ -171,7 +174,7 @@ describe("PUT /api/users/[id]", () => {
     m.update.mockRejectedValue(new Error("duplicate"))
     const res = await PUT(putBody({ email: "baru@mail.com" }), params("u1"))
     expect(res.status).toBe(409)
-    expect(await json(res)).toEqual({ error: "email sudah dipakai user lain" })
+    expect(await apiErr(res)).toMatchObject({ message: "email sudah dipakai user lain" })
   })
 })
 

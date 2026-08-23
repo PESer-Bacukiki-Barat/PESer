@@ -22,7 +22,9 @@ const m = prisma.pembeli as unknown as ModelMock
 const authOk = { ok: true, user: { id: "u1" } }
 const unauthorized = { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
-const json = (res: Response) => res.json()
+// PRD §2.5: respons dibungkus { success, data } untuk sukses dan
+// { success, error: { code, message, field? } } untuk gagal.
+const payload = async (res: Response) => (await res.json()).data
 
 const validBody = { nama: "PT Maju", noHp: "0812345", alamat: "Jl. Merdeka" }
 
@@ -34,7 +36,7 @@ describe("GET /api/pembeli", () => {
     m.findMany.mockResolvedValue([{ ...validBody, id: "p1" }])
     const res = await GET()
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual([{ ...validBody, id: "p1" }])
+    expect(await payload(res)).toEqual([{ ...validBody, id: "p1" }])
   })
 
   it("401 jika tidak login", async () => {
@@ -49,18 +51,18 @@ describe("POST /api/pembeli", () => {
     m.create.mockResolvedValue({ ...validBody, id: "p1" })
     const res = await POST(body())
     expect(res.status).toBe(201)
-    expect(await json(res)).toEqual({ ...validBody, id: "p1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "p1" })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(body({ nama: "" }))).status).toBe(400)
+    expect((await POST(body({ nama: "" }))).status).toBe(422)
     expect(m.create).not.toHaveBeenCalled()
   })
 
-  it("400 untuk body bukan JSON", async () => {
+  it("422 untuk body bukan JSON", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(new Request("http://x", { method: "POST", body: "x" }))).status).toBe(400)
+    expect((await POST(new Request("http://x", { method: "POST", body: "x" }))).status).toBe(422)
   })
 })
 

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { dispatchSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, created, fail, failValidation } from "@/lib/response"
 
 export async function GET() {
   const auth = await requireAuth()
@@ -13,7 +14,7 @@ export async function GET() {
     },
     orderBy: { createdAt: "desc" },
   })
-  return Response.json(data)
+  return ok(data)
 }
 
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
 
   const parsed = dispatchSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
 
   try {
@@ -46,8 +47,8 @@ export async function POST(request: Request) {
         },
       },
     })
-    return Response.json(data, { status: 201 })
+    return created(data)
   } catch {
-    return Response.json({ error: "gagal membuat dispatch" }, { status: 400 })
+    return fail("PERMINTAAN_GAGAL", "gagal membuat dispatch")
   }
 }

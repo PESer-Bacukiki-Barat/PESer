@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { userCreateSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, created, fail, failValidation } from "@/lib/response"
 
 const notDeleted = { deletedAt: null }
 
@@ -12,7 +13,7 @@ export async function GET() {
     where: notDeleted,
     include: { bankSampah: { select: { id: true, nama: true } } },
   })
-  return Response.json(data)
+  return ok(data)
 }
 
 export async function POST(request: Request) {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response
   const parsed = userCreateSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
   const { password, ...rest } = parsed.data
   const passwordHash = await bcrypt.hash(password, 10)
@@ -33,8 +34,8 @@ export async function POST(request: Request) {
       },
       include: { bankSampah: { select: { id: true, nama: true } } },
     })
-    return Response.json(data, { status: 201 })
+    return created(data)
   } catch {
-    return Response.json({ error: "email sudah dipakai" }, { status: 409 })
+    return fail("DUPLIKAT", "email sudah dipakai", { field: "email" })
   }
 }

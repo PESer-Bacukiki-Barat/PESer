@@ -1,6 +1,7 @@
 import { cache } from "react"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { fail } from "@/lib/response"
 
 export const getServerUser = cache(async () => {
   const session = await auth()
@@ -23,7 +24,7 @@ export type AuthResult =
 export async function requireAuth(role?: "ADMIN" | "PETUGAS"): Promise<AuthResult> {
   const session = await auth()
   if (!session?.user?.id) {
-    return { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
+    return { ok: false, response: fail("TIDAK_TERAUTENTIKASI", "Sesi tidak valid") }
   }
 
   const profile = await prisma.user.findUnique({
@@ -31,10 +32,13 @@ export async function requireAuth(role?: "ADMIN" | "PETUGAS"): Promise<AuthResul
     include: { bankSampah: { select: { id: true, nama: true } } },
   })
   if (!profile) {
-    return { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
+    return { ok: false, response: fail("TIDAK_TERAUTENTIKASI", "Sesi tidak valid") }
   }
   if (role && profile.role !== role) {
-    return { ok: false, response: Response.json({ error: "forbidden" }, { status: 403 }) }
+    return {
+      ok: false,
+      response: fail("AKSES_DITOLAK", `Aksi ini hanya untuk role ${role}`),
+    }
   }
 
   return { ok: true, user: profile }

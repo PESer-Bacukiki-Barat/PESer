@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { dispatchSchema } from "../schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, fail, failValidation } from "@/lib/response"
 
 export async function GET(
   _req: Request,
@@ -17,8 +18,8 @@ export async function GET(
       items: { include: { jenisSampah: true } },
     },
   })
-  if (!data) return Response.json({ error: "tidak ditemukan" }, { status: 404 })
-  return Response.json(data)
+  if (!data) return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
+  return ok(data)
 }
 
 export async function PUT(
@@ -30,7 +31,7 @@ export async function PUT(
   const { id } = await params
   const parsed = dispatchSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
   try {
     const data = await prisma.dispatch.update({
@@ -54,9 +55,9 @@ export async function PUT(
         },
       },
     })
-    return Response.json(data)
+    return ok(data)
    } catch {
-     return Response.json({ error: "tidak ditemukan" }, { status: 404 })
+     return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
    }
  }
  
@@ -74,7 +75,7 @@ export async function PUT(
        include: { items: true },
      })
      if (!existing || existing.deletedAt) {
-       return Response.json({ error: "tidak ditemukan" }, { status: 404 })
+       return fail("TIDAK_DITEMUKAN", "Data tidak ditemukan")
      }
  
      await prisma.$transaction(async (tx) => {
@@ -95,8 +96,8 @@ export async function PUT(
        })
      })
  
-     return Response.json({ success: true, data: { id } }, { status: 200 })
+     return ok({ id })
    } catch {
-     return Response.json({ error: "gagal menghapus dispatch" }, { status: 400 })
+     return fail("PERMINTAAN_GAGAL", "gagal menghapus dispatch")
    }
  }

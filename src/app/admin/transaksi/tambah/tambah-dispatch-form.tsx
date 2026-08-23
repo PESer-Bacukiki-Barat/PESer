@@ -17,7 +17,7 @@ export function TambahDispatchForm({ options }: { options: DispatchFormOptions }
     setError(null);
     try {
       const now = new Date();
-      await api.post("/api/dispatch", {
+      await api.post("/dispatch", {
         kodeDispatch: `DSP-${now.getFullYear()}${String(
           now.getMonth() + 1,
         ).padStart(2, "0")}-${Math.floor(Math.random() * 1000)

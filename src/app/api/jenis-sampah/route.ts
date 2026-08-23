@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
 import { jenisSampahSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
+import { ok, created, fail, failValidation } from "@/lib/response"
 
 const notDeleted = { deletedAt: null }
 
@@ -9,7 +10,7 @@ export async function GET() {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
   const data = await prisma.jenisSampah.findMany({ where: notDeleted })
-  return Response.json(data)
+  return ok(data)
 }
 
 export async function POST(request: Request) {
@@ -17,15 +18,15 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.response
   const parsed = jenisSampahSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return Response.json({ error: parsed.error.issues }, { status: 400 })
+    return failValidation(parsed.error.issues)
   }
   try {
     const data = await prisma.jenisSampah.create({ data: parsed.data })
-    return Response.json(data, { status: 201 })
+    return created(data)
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      return Response.json({ error: "kode sudah dipakai" }, { status: 409 })
+      return fail("DUPLIKAT", "kode sudah dipakai", { field: "kode" })
     }
-    return Response.json({ error: "gagal membuat jenis sampah" }, { status: 400 })
+    return fail("PERMINTAAN_GAGAL", "gagal membuat jenis sampah")
   }
 }

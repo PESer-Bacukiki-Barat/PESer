@@ -25,7 +25,10 @@ const unauthorized = { ok: false, response: Response.json({ error: "unauthorized
 const prismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError("boom", { code, clientVersion: "7.0.0" })
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
-const json = (res: Response) => res.json()
+// PRD §2.5: respons dibungkus { success, data } untuk sukses dan
+// { success, error: { code, message, field? } } untuk gagal.
+const payload = async (res: Response) => (await res.json()).data
+const apiErr = async (res: Response) => (await res.json()).error
 
 const validBody = { kode: 1, nama: "Plastik", kategori: "PLASTIK", satuan: "KG", harga: 0 }
 
@@ -37,7 +40,7 @@ describe("GET /api/jenis-sampah", () => {
     m.findMany.mockResolvedValue([{ ...validBody, id: "j1" }])
     const res = await GET()
     expect(res.status).toBe(200)
-    expect(await json(res)).toEqual([{ ...validBody, id: "j1" }])
+    expect(await payload(res)).toEqual([{ ...validBody, id: "j1" }])
   })
 
   it("401 jika tidak login", async () => {
@@ -52,12 +55,12 @@ describe("POST /api/jenis-sampah", () => {
     m.create.mockResolvedValue({ ...validBody, id: "j1" })
     const res = await POST(body())
     expect(res.status).toBe(201)
-    expect(await json(res)).toEqual({ ...validBody, id: "j1" })
+    expect(await payload(res)).toEqual({ ...validBody, id: "j1" })
   })
 
-  it("400 untuk body tidak valid", async () => {
+  it("422 untuk body tidak valid", async () => {
     mAuth.mockResolvedValue(authOk)
-    expect((await POST(body({ kode: -1 }))).status).toBe(400)
+    expect((await POST(body({ kode: -1 }))).status).toBe(422)
     expect(m.create).not.toHaveBeenCalled()
   })
 
@@ -66,7 +69,7 @@ describe("POST /api/jenis-sampah", () => {
     m.create.mockRejectedValue(prismaError("P2002"))
     const res = await POST(body())
     expect(res.status).toBe(409)
-    expect(await json(res)).toEqual({ error: "kode sudah dipakai" })
+    expect(await apiErr(res)).toMatchObject({ message: "kode sudah dipakai" })
   })
 
   it("400 untuk error lain", async () => {
