@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAuth()
+  const auth = await requireAuth("ADMIN")
   if (!auth.ok) return auth.response
   const parsed = bankSampahSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {

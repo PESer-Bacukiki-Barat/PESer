@@ -28,13 +28,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(password, credential.passwordHash)
         if (!ok) return null
 
-        return { id: credential.user.id, name: credential.user.nama, email: credential.user.email }
+        return {
+          id: credential.user.id,
+          name: credential.user.nama,
+          email: credential.user.email,
+          role: credential.user.role,
+        }
       },
     }),
   ],
   callbacks: {
+    // role dititipkan ke JWT saat login supaya middleware bisa memeriksa
+    // otorisasi tanpa query database di setiap request.
+    jwt({ token, user }) {
+      if (user) token.role = user.role
+      return token
+    },
     session({ session, token }) {
       if (token.sub) session.user.id = token.sub
+      if (token.role) session.user.role = token.role
       return session
     },
   },

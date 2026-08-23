@@ -12,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth()
+  const auth = await requireAuth("ADMIN")
   if (!auth.ok) return auth.response
   const { id } = await params
   const parsed = pembeliSchema.safeParse(await request.json().catch(() => null))
@@ -28,7 +28,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth()
+  const auth = await requireAuth("ADMIN")
   if (!auth.ok) return auth.response
   const { id } = await params
   try {
