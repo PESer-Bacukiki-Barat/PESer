@@ -6,7 +6,14 @@ import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EditBankSampahModal } from "@/components/admin/bank-sampah-edit-modal";
-import { KELURAHAN, type BankSampah, type BankSampahStatus } from "@/lib/bank-sampah-data";
+import {
+  KELURAHAN,
+  formatNumber,
+  stockTotalBerat,
+  stockTotalTersedia,
+  type BankSampah,
+  type BankSampahStatus,
+} from "@/lib/bank-sampah-data";
 
 export type { BankSampah, BankSampahStatus } from "@/lib/bank-sampah-data";
 
@@ -88,6 +95,28 @@ export function BankSampahTable({
             {b.longitude.toFixed(4)}
           </p>
         ),
+      },
+      {
+        id: "stock",
+        header: "Total Stock",
+        align: "right",
+        className: "hidden md:table-cell",
+        cell: (b) => {
+          const total = stockTotalBerat(b.stock);
+          const tersedia = stockTotalTersedia(b.stock);
+          return (
+            <div className="text-right">
+              <p className="font-label-md text-label-md font-mono text-on-surface font-semibold">
+                {formatNumber(total)} kg
+              </p>
+              {total > 0 && tersedia < total && (
+                <p className="font-label-xs text-label-xs text-on-surface-variant">
+                  tersedia {formatNumber(tersedia)} kg
+                </p>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "status",

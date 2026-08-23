@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
-import { KELURAHAN } from "@/lib/bank-sampah-data";
+import {
+  KELURAHAN,
+  formatNumber,
+  stockTotalBerat,
+  stockTotalTersedia,
+  type BankSampahStockItem,
+} from "@/lib/bank-sampah-data";
 
 export type BankSampahFormValues = {
   nama: string;
@@ -22,6 +28,35 @@ export const BANK_SAMPAH_STATUS_OPTIONS: SelectOption[] = [
   { value: "Non-aktif", label: "Non-aktif" },
 ];
 
+function StockSummary({ stock }: { stock: BankSampahStockItem[] }) {
+  const total = stockTotalBerat(stock);
+  const tersedia = stockTotalTersedia(stock);
+  return (
+    <Field label="Total Stock" htmlFor="stock-ringkasan">
+      <div
+        id="stock-ringkasan"
+        className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface"
+      >
+        <div className="flex items-baseline justify-between">
+          <span className="text-on-surface-variant">Total</span>
+          <span className="font-mono font-semibold">{formatNumber(total)} kg</span>
+        </div>
+        {tersedia < total && (
+          <div className="flex items-baseline justify-between mt-1">
+            <span className="text-on-surface-variant">Tersedia (setelah reservasi)</span>
+            <span className="font-mono">{formatNumber(tersedia)} kg</span>
+          </div>
+        )}
+        {total === 0 && (
+          <p className="font-label-xs text-label-xs text-on-surface-variant mt-1">
+            Belum ada setoran. Stock akan otomatis bertambah saat warga menyetor sampah.
+          </p>
+        )}
+      </div>
+    </Field>
+  );
+}
+
 export function BankSampahForm({
   initialData,
   kelurahanOptions = KELURAHAN,
@@ -32,6 +67,7 @@ export function BankSampahForm({
   onSubmit,
   onCancel,
   bare = false,
+  initialStock = [],
 }: {
   initialData?: Partial<BankSampahFormValues>;
   kelurahanOptions?: SelectOption[];
@@ -42,6 +78,7 @@ export function BankSampahForm({
   onSubmit?: (values: BankSampahFormValues) => void;
   onCancel?: () => void;
   bare?: boolean;
+  initialStock?: BankSampahStockItem[];
 }) {
   const router = useRouter();
 
@@ -154,6 +191,9 @@ export function BankSampahForm({
           options={statusOptions}
         />
       </div>
+
+      {/* Total Stock (read-only — dihitung dari transaksi Setoran/Dispatch/Koreksi) */}
+      <StockSummary stock={initialStock ?? []} />
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">

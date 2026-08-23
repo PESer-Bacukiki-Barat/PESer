@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { BankSampahTable } from "@/components/admin/bank-sampah-table";
+import { BankSampahStockSummary } from "@/components/admin/bank-sampah-stock-summary";
 import { BANK_SAMPAH } from "@/lib/bank-sampah-data";
 
 export const metadata: Metadata = {
@@ -35,6 +36,7 @@ export default function BankSampahPage() {
       </div>
 
       <BankSampahTable bankSampah={BANK_SAMPAH} />
+      <BankSampahStockSummary bankSampah={BANK_SAMPAH} />
     </>
   );
 }

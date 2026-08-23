@@ -24,6 +24,7 @@ export function EditBankSampahModal({
       <BankSampahForm
         bare
         initialData={bankSampah}
+        initialStock={bankSampah.stock}
         submitLabel="Simpan Perubahan"
         cancelLabel="Batal"
         onSubmit={() => onOpenChange(false)}
