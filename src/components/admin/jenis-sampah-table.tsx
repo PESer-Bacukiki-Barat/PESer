@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Download, Plus } from "lucide-react";
 
@@ -9,15 +9,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EditJenisSampahModal } from "@/components/admin/jenis-sampah-edit-modal";
-import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
+import { TambahJenisSampahModal } from "@/components/admin/jenis-sampah-tambah-modal";
+import { deleteAction, editAction } from "@/components/admin/row-actions";
+import { api, apiError } from "@/lib/api";
 import { KATEGORI, type JenisSampah, type JenisSampahStatus } from "@/lib/jenis-sampah-data";
-
-export type { JenisSampah, JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
 const STATUS_VARIANT: Record<JenisSampahStatus, "secondary" | "outline"> = {
   Aktif: "secondary",
   "Non-aktif": "outline",
 };
+
+const STATUS_LABEL: (j: JenisSampah) => JenisSampahStatus = (j) =>
+  j.isActive ? "Aktif" : "Non-aktif";
+
+const rupiah = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  maximumFractionDigits: 0,
+});
+
+export type { JenisSampah, JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
 const columns: Column<JenisSampah>[] = [
   {
@@ -36,10 +47,19 @@ const columns: Column<JenisSampah>[] = [
     cell: (j) => <p className="text-on-surface-variant">{j.kategori}</p>,
   },
   {
-    id: "berat",
-    header: "Berat (kg)",
+    id: "satuan",
+    header: "Satuan",
+    cell: (j) => <p className="text-on-surface-variant">{j.satuan}</p>,
+  },
+  {
+    id: "harga",
+    header: "Harga",
     align: "right",
-    cell: (j) => <p className="font-label-sm text-label-sm text-right text-on-surface">{j.berat.toFixed(1)}</p>,
+    cell: (j) => (
+      <p className="font-label-sm text-label-sm text-right text-on-surface">
+        {rupiah.format(j.harga)}
+      </p>
+    ),
   },
   {
     id: "deskripsi",
@@ -53,83 +73,90 @@ const columns: Column<JenisSampah>[] = [
     id: "status",
     header: "Status",
     align: "center",
-    cell: (j) => (
-      <Badge variant={STATUS_VARIANT[j.status]}>{j.status}</Badge>
-    ),
+    cell: (j) => <Badge variant={STATUS_VARIANT[STATUS_LABEL(j)]}>{STATUS_LABEL(j)}</Badge>,
   },
 ];
 
-export function JenisSampahTable({
-  jenisSampahs,
-  onEdit,
-  onDelete,
-  onView,
-  onExport,
-  onSelectedChange,
-}: {
-  jenisSampahs: JenisSampah[];
-  onEdit?: (j: JenisSampah) => void;
-  onDelete?: (j: JenisSampah) => void;
-  onView?: (j: JenisSampah) => void;
-  onExport?: () => void;
-  onSelectedChange?: (ids: string[]) => void;
-}) {
+export function JenisSampahTable({ jenisSampahs }: { jenisSampahs: JenisSampah[] }) {
+  const router = useRouter();
+  const [items, setItems] = useState<JenisSampah[]>(jenisSampahs);
+  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<JenisSampah | null>(null);
   const [deleting, setDeleting] = useState<JenisSampah | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
+
+  function handleEditSaved(values: JenisSampah) {
+    if (!editing) return;
+    setItems((prev) => prev.map((j) => (j.id === editing.id ? { ...j, ...values } : j)));
+    setEditing(null);
+  }
+
+  function handleAdded(values: JenisSampah) {
+    setItems((prev) => [...prev, values]);
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    setDeletingLoading(true);
+    try {
+      await api.delete(`/jenis-sampah/${deleting.id}`);
+      setItems((prev) => prev.filter((j) => j.id !== deleting.id));
+      setDeleting(null);
+      router.refresh();
+    } catch (err) {
+      alert(apiError(err));
+    } finally {
+      setDeletingLoading(false);
+    }
+  }
 
   return (
     <>
       <DataTable
-      data={jenisSampahs}
-      columns={columns}
-      getRowId={(j) => j.kode}
-      searchKeys={["kode", "nama"]}
-      searchPlaceholder="Cari Kode atau Nama Sampah..."
-      filters={[
-        {
-          id: "kategori",
-          placeholder: "Semua Kategori",
-          options: KATEGORI,
-          matches: (j, value) => j.kategori === value,
-        },
-        {
-          id: "status",
-          placeholder: "Semua Status",
-          options: [
-            { value: "Aktif", label: "Aktif" },
-            { value: "Non-aktif", label: "Non-aktif" },
-          ],
-          matches: (j, value) => j.status === value,
-        },
-      ]}
-      selectable
-      pageSize={10}
-      onSelectedChange={onSelectedChange}
-      toolbarActions={
-        <>
-          <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
-            <Download className="size-[18px]" />
-            <span className="hidden sm:inline">Export Data</span>
-          </Button>
-          <Button render={<Link href="/admin/jenis-sampah/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
-            <span className="hidden sm:inline">Tambah Jenis Sampah</span>
-          </Button>
-        </>
-      }
-      actions={(j) => [
-        viewAction(() => onView?.(j)),
-        editAction(() => {
-          onEdit?.(j);
-          setEditing(j);
-        }),
+        data={items}
+        columns={columns}
+        getRowId={(j) => j.id}
+        searchKeys={["kode", "nama"]}
+        searchPlaceholder="Cari Kode atau Nama Sampah..."
+        filters={[
+          {
+            id: "kategori",
+            placeholder: "Semua Kategori",
+            options: KATEGORI,
+            matches: (j, value) => j.kategori === value,
+          },
+          {
+            id: "status",
+            placeholder: "Semua Status",
+            options: [
+              { value: "Aktif", label: "Aktif" },
+              { value: "Non-aktif", label: "Non-aktif" },
+            ],
+            matches: (j, value) => STATUS_LABEL(j) === value,
+          },
+        ]}
+        pageSize={10}
+        toolbarActions={
+          <>
+            <Button variant="outline" onClick={() => window.print()} className="h-10 px-4 font-medium">
+              <Download className="size-[18px]" />
+              <span className="hidden sm:inline">Export Data</span>
+            </Button>
+            <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
+              <Plus className="size-[18px]" />
+              <span className="hidden sm:inline">Tambah Jenis Sampah</span>
+            </Button>
+          </>
+        }
+        actions={(j) => [
+          editAction(() => setEditing(j)),
           deleteAction(() => setDeleting(j)),
-      ]}
-      emptyState={
-        <p className="text-center text-on-surface-variant">
-          Tidak ada jenis sampah ditemukan.
-        </p>
-      }
+        ]}
+        emptyState={
+          <p className="text-center text-on-surface-variant">
+            Tidak ada jenis sampah ditemukan.
+          </p>
+        }
       />
 
       {editing && (
@@ -139,24 +166,29 @@ export function JenisSampahTable({
           onOpenChange={(open) => {
             if (!open) setEditing(null);
           }}
+          onSaved={handleEditSaved}
         />
       )}
+
+      <TambahJenisSampahModal
+        open={adding}
+        onOpenChange={setAdding}
+        onSaved={handleAdded}
+      />
 
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
         }}
+        loading={deletingLoading}
         title="Hapus Jenis Sampah"
         description={
           deleting
             ? `Apakah Anda yakin ingin menghapus jenis sampah "${deleting.nama}" (${deleting.kode})?`
             : undefined
         }
-        onConfirm={() => {
-          if (deleting) onDelete?.(deleting);
-          setDeleting(null);
-        }}
+        onConfirm={confirmDelete}
       />
     </>
   );

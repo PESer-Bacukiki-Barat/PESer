@@ -8,40 +8,36 @@ import { Field, SelectField, type SelectOption } from "@/components/admin/form-f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PERUSAHAAN } from "@/lib/pembeli-data";
-
-export type PembeliFormValues = {
-  nama: string;
-  perusahaan: string;
-  noHp: string;
-  alamat: string;
-  catatan: string;
-  status: string;
-};
+import { api, apiError } from "@/lib/api";
+import type { Pembeli } from "@/lib/pembeli-data";
 
 export const PEMBELI_STATUS_OPTIONS: SelectOption[] = [
-  { value: "Aktif", label: "Aktif" },
-  { value: "Non-aktif", label: "Non-aktif" },
+  { value: "aktif", label: "Aktif" },
+  { value: "non-aktif", label: "Non-aktif" },
 ];
 
 export function PembeliForm({
   initialData,
-  perusahaanOptions = PERUSAHAAN,
   statusOptions = PEMBELI_STATUS_OPTIONS,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
+  mode = "create",
+  id,
   onSubmit,
+  onSaved,
   onCancel,
   bare = false,
 }: {
-  initialData?: Partial<PembeliFormValues>;
-  perusahaanOptions?: SelectOption[];
+  initialData?: Partial<Pembeli>;
   statusOptions?: SelectOption[];
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
-  onSubmit?: (values: PembeliFormValues) => void;
+  mode?: "create" | "edit";
+  id?: string;
+  onSubmit?: (values: Pembeli) => void;
+  onSaved?: () => void;
   onCancel?: () => void;
   bare?: boolean;
 }) {
@@ -52,20 +48,47 @@ export function PembeliForm({
   const [noHp, setNoHp] = useState(initialData?.noHp ?? "");
   const [alamat, setAlamat] = useState(initialData?.alamat ?? "");
   const [catatan, setCatatan] = useState(initialData?.catatan ?? "");
-  const [status, setStatus] = useState(
-    initialData?.status ?? statusOptions[0]?.value ?? "",
-  );
+  const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit?.({
+    const values: Pembeli = {
+      id: initialData?.id ?? "",
       nama: nama.trim(),
-      perusahaan,
+      perusahaan: perusahaan.trim() || null,
       noHp: noHp.trim(),
       alamat: alamat.trim(),
-      catatan: catatan.trim(),
-      status,
-    });
+      catatan: catatan.trim() || null,
+      isActive,
+    };
+    if (!values.nama || !values.noHp || !values.alamat) {
+      setError("Nama, nomor HP, dan alamat wajib diisi");
+      return;
+    }
+
+    if (onSubmit) {
+      onSubmit(values);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (mode === "edit" && id) {
+        await api.put(`/pembeli/${id}`, values);
+      } else {
+        await api.post("/pembeli", values);
+      }
+      router.refresh();
+      if (cancelHref) router.push(cancelHref);
+      onSaved?.();
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -78,7 +101,7 @@ export function PembeliForm({
 
   const form = (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Perusahaan & Identitas Grid */}
+      {/* Identitas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Nama Lengkap" required htmlFor="nama">
           <Input
@@ -90,15 +113,15 @@ export function PembeliForm({
             required
           />
         </Field>
-        <SelectField
-          id="perusahaan"
-          label="Perusahaan"
-          required
-          value={perusahaan}
-          onChange={setPerusahaan}
-          options={perusahaanOptions}
-          placeholder={perusahaan === "" ? "Pilih Perusahaan" : undefined}
-        />
+        <Field label="Perusahaan" htmlFor="perusahaan">
+          <Input
+            id="perusahaan"
+            type="text"
+            value={perusahaan}
+            onChange={(e) => setPerusahaan(e.target.value)}
+            placeholder="Masukkan nama perusahaan (opsional)"
+          />
+        </Field>
         <Field label="Nomor HP" required htmlFor="phone">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md pointer-events-none">
@@ -119,20 +142,21 @@ export function PembeliForm({
           id="status"
           label="Status"
           required
-          value={status}
-          onChange={setStatus}
+          value={isActive ? "aktif" : "non-aktif"}
+          onChange={(v) => setIsActive(v === "aktif")}
           options={statusOptions}
         />
       </div>
 
       {/* Additional Details */}
-      <Field label="Alamat Lengkap" htmlFor="alamat">
+      <Field label="Alamat Lengkap" required htmlFor="alamat">
         <Textarea
           id="alamat"
           rows={3}
           value={alamat}
           onChange={(e) => setAlamat(e.target.value)}
           placeholder="Masukkan alamat lengkap perusahaan / pembeli..."
+          required
         />
       </Field>
       <Field label="Catatan" htmlFor="catatan">
@@ -145,14 +169,20 @@ export function PembeliForm({
         />
       </Field>
 
+      {error && (
+        <p className="rounded-md bg-error-container px-3 py-2 font-label-md text-label-md text-error">
+          {error}
+        </p>
+      )}
+
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
         <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={saving}>
           <Save className="size-[18px]" />
-          {submitLabel}
+          {saving ? "Menyimpan..." : submitLabel}
         </Button>
       </div>
     </form>

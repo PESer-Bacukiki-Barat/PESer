@@ -8,10 +8,12 @@ export function EditJenisSampahModal({
   jenisSampah,
   open,
   onOpenChange,
+  onSaved,
 }: {
   jenisSampah: JenisSampah;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSaved?: (values: JenisSampah) => void;
 }) {
   return (
     <Modal
@@ -23,11 +25,13 @@ export function EditJenisSampahModal({
     >
       <JenisSampahForm
         bare
+        id={jenisSampah.id}
+        mode="edit"
         initialData={jenisSampah}
         submitLabel="Simpan Perubahan"
         cancelLabel="Batal"
-        onSubmit={() => onOpenChange(false)}
         onCancel={() => onOpenChange(false)}
+        onSaved={onSaved}
       />
     </Modal>
   );

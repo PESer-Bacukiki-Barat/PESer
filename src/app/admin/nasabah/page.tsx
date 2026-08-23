@@ -2,13 +2,40 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { NasabahTable } from "@/components/admin/nasabah-table";
-import { NASABAH } from "@/lib/nasabah-data";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Manajemen Nasabah",
 };
 
-export default function NasabahPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NasabahPage() {
+  const [nasabahs, bankSampahs] = await Promise.all([
+    prisma.nasabah.findMany({
+      where: { deletedAt: null },
+      orderBy: { nama: "asc" },
+      select: {
+        id: true,
+        kodeNasabah: true,
+        bankSampahId: true,
+        nama: true,
+        noHp: true,
+        alamat: true,
+        rt: true,
+        rw: true,
+        isActive: true,
+      },
+    }),
+    prisma.bankSampah.findMany({
+      where: { deletedAt: null },
+      orderBy: { nama: "asc" },
+      select: { id: true, nama: true },
+    }),
+  ]);
+
+  const bankSampahOptions = bankSampahs.map((b) => ({ value: b.id, label: b.nama }));
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -34,7 +61,7 @@ export default function NasabahPage() {
         </p>
       </div>
 
-      <NasabahTable nasabahs={NASABAH} />
+      <NasabahTable nasabahs={nasabahs} bankSampahOptions={bankSampahOptions} />
     </>
   );
 }

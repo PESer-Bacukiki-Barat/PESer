@@ -8,58 +8,93 @@ import { Field, SelectField, type SelectOption } from "@/components/admin/form-f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { NASABAH_BANK_SAMPAH_OPTIONS } from "@/lib/nasabah-data";
+import { api, apiError } from "@/lib/api";
+import type { Nasabah } from "@/lib/nasabah-data";
 
-export type NasabahFormValues = {
-  bankSampahId: string;
-  nama: string;
-  noHp: string;
-  alamat: string;
-  rt: string;
-  rw: string;
-  setoranId: string;
-};
+export const NASABAH_STATUS_OPTIONS: SelectOption[] = [
+  { value: "aktif", label: "Aktif" },
+  { value: "non-aktif", label: "Non-aktif" },
+];
 
 export function NasabahForm({
   initialData,
-  bankSampahOptions = NASABAH_BANK_SAMPAH_OPTIONS,
+  bankSampahOptions = [],
+  statusOptions = NASABAH_STATUS_OPTIONS,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
+  mode = "create",
+  id,
   onSubmit,
+  onSaved,
   onCancel,
   bare = false,
 }: {
-  initialData?: Partial<NasabahFormValues>;
+  initialData?: Partial<Nasabah>;
   bankSampahOptions?: SelectOption[];
+  statusOptions?: SelectOption[];
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
-  onSubmit?: (values: NasabahFormValues) => void;
+  mode?: "create" | "edit";
+  id?: string;
+  onSubmit?: (values: Nasabah) => void;
+  onSaved?: () => void;
   onCancel?: () => void;
   bare?: boolean;
 }) {
   const router = useRouter();
 
+  const [kodeNasabah, setKodeNasabah] = useState(initialData?.kodeNasabah ?? "");
   const [bankSampahId, setBankSampahId] = useState(initialData?.bankSampahId ?? "");
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [noHp, setNoHp] = useState(initialData?.noHp ?? "");
   const [alamat, setAlamat] = useState(initialData?.alamat ?? "");
   const [rt, setRt] = useState(initialData?.rt ?? "");
   const [rw, setRw] = useState(initialData?.rw ?? "");
-  const [setoranId, setSetoranId] = useState(initialData?.setoranId ?? "");
+  const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit?.({
+    const values: Nasabah = {
+      id: initialData?.id ?? "",
+      kodeNasabah: kodeNasabah.trim(),
       bankSampahId,
       nama: nama.trim(),
-      noHp: noHp.trim(),
+      noHp: noHp.trim() || null,
       alamat: alamat.trim(),
       rt: rt.trim(),
       rw: rw.trim(),
-      setoranId: setoranId.trim(),
-    });
+      isActive,
+    };
+    if (!values.kodeNasabah || !values.bankSampahId || !values.nama || !values.alamat || !values.rt || !values.rw) {
+      setError("Kode nasabah, bank sampah, nama, alamat, RT, dan RW wajib diisi");
+      return;
+    }
+
+    if (onSubmit) {
+      onSubmit(values);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (mode === "edit" && id) {
+        await api.put(`/nasabah/${id}`, values);
+      } else {
+        await api.post("/nasabah", values);
+      }
+      router.refresh();
+      if (cancelHref) router.push(cancelHref);
+      onSaved?.();
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -74,6 +109,17 @@ export function NasabahForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Identitas & Lokasi Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Kode Nasabah" required htmlFor="kodeNasabah">
+          <Input
+            id="kodeNasabah"
+            type="text"
+            value={kodeNasabah}
+            onChange={(e) => setKodeNasabah(e.target.value)}
+            placeholder="mis. NSB-001"
+            required
+            className="font-mono"
+          />
+        </Field>
         <SelectField
           id="bankSampahId"
           label="Nama Bank Sampah"
@@ -93,7 +139,7 @@ export function NasabahForm({
             required
           />
         </Field>
-        <Field label="Nomor HP" required htmlFor="phone">
+        <Field label="Nomor HP" htmlFor="phone">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md pointer-events-none">
               +62
@@ -104,21 +150,9 @@ export function NasabahForm({
               value={noHp}
               onChange={(e) => setNoHp(e.target.value)}
               placeholder="8123456789"
-              required
               className="pl-12"
             />
           </div>
-        </Field>
-        <Field label="ID Setoran" required htmlFor="setoranId">
-          <Input
-            id="setoranId"
-            type="text"
-            value={setoranId}
-            onChange={(e) => setSetoranId(e.target.value)}
-            placeholder="mis. STN-2026-001"
-            required
-            className="font-mono"
-          />
         </Field>
         <Field label="RT" required htmlFor="rt">
           <Input
@@ -145,24 +179,42 @@ export function NasabahForm({
       </div>
 
       {/* Alamat */}
-      <Field label="Alamat Lengkap" htmlFor="alamat">
+      <Field label="Alamat Lengkap" required htmlFor="alamat">
         <Textarea
           id="alamat"
           rows={3}
           value={alamat}
           onChange={(e) => setAlamat(e.target.value)}
           placeholder="Masukkan alamat lengkap tempat tinggal nasabah..."
+          required
         />
       </Field>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SelectField
+          id="status"
+          label="Status"
+          required
+          value={isActive ? "aktif" : "non-aktif"}
+          onChange={(v) => setIsActive(v === "aktif")}
+          options={statusOptions}
+        />
+      </div>
+
+      {error && (
+        <p className="rounded-md bg-error-container px-3 py-2 font-label-md text-label-md text-error">
+          {error}
+        </p>
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
         <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={saving}>
           <Save className="size-[18px]" />
-          {submitLabel}
+          {saving ? "Menyimpan..." : submitLabel}
         </Button>
       </div>
     </form>

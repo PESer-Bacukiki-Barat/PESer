@@ -1,101 +1,126 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Modal } from "@/components/ui/modal";
+import { NasabahForm } from "@/components/admin/nasabah-form";
 import { EditNasabahModal } from "@/components/admin/nasabah-edit-modal";
-import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
-import {
-  NASABAH_BANK_SAMPAH_OPTIONS,
-  getBankSampahName,
-  type Nasabah,
-} from "@/lib/nasabah-data";
+import { deleteAction, editAction } from "@/components/admin/row-actions";
+import { api, apiError } from "@/lib/api";
+import type { Nasabah } from "@/lib/nasabah-data";
+import type { SelectOption } from "@/components/admin/form-fields";
 
 export type { Nasabah } from "@/lib/nasabah-data";
 
+const STATUS_VARIANT = {
+  aktif: "default",
+  "non-aktif": "outline",
+} as const;
+
 export function NasabahTable({
   nasabahs,
-  onEdit,
-  onDelete,
-  onView,
-  onExport,
-  onSelectedChange,
+  bankSampahOptions,
 }: {
   nasabahs: Nasabah[];
-  onEdit?: (n: Nasabah) => void;
-  onDelete?: (n: Nasabah) => void;
-  onView?: (n: Nasabah) => void;
-  onExport?: () => void;
-  onSelectedChange?: (ids: string[]) => void;
+  bankSampahOptions: SelectOption[];
 }) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Nasabah | null>(null);
   const [deleting, setDeleting] = useState<Nasabah | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
 
-  const indexById = useMemo(() => {
-    const map = new Map<string, number>();
-    nasabahs.forEach((n, i) => map.set(n.id, i + 1));
-    return map;
-  }, [nasabahs]);
+  const bankSampahName = (id: string) =>
+    bankSampahOptions.find((o) => o.value === id)?.label ?? id;
 
-  const columns = useMemo(
-    () =>
-      [
-        {
-          id: "no",
-          header: "No",
-          cell: (n: Nasabah) => (
-            <p className="font-label-md text-label-md font-mono text-on-surface-variant">
-              {indexById.get(n.id)}
-            </p>
-          ),
-        },
-        {
-          id: "bankSampahId",
-          header: "Nama Bank Sampah",
-          cell: (n: Nasabah) => <p className="font-medium text-on-surface whitespace-nowrap">{getBankSampahName(n.bankSampahId)}</p>,
-        },
-        {
-          id: "nama",
-          header: "Nama",
-          cell: (n: Nasabah) => <p className="font-medium text-on-surface">{n.nama}</p>,
-        },
-        {
-          id: "noHp",
-          header: "No. HP",
-          cell: (n: Nasabah) => <p className="font-label-md text-label-md text-on-surface">{n.noHp}</p>,
-        },
-        {
-          id: "alamat",
-          header: "Alamat",
-          className: "hidden lg:table-cell",
-          cell: (n: Nasabah) => (
-            <p className="text-on-surface-variant truncate max-w-[150px]" title={n.alamat}>
-              {n.alamat}
-            </p>
-          ),
-        },
-        {
-          id: "rt",
-          header: "RT",
-          cell: (n: Nasabah) => <p className="font-label-md text-label-md text-on-surface">{n.rt}</p>,
-        },
-        {
-          id: "rw",
-          header: "RW",
-          cell: (n: Nasabah) => <p className="font-label-md text-label-md text-on-surface">{n.rw}</p>,
-        },
-        {
-          id: "setoranId",
-          header: "ID Setoran",
-          cell: (n: Nasabah) => <p className="font-label-md text-label-md font-mono text-primary whitespace-nowrap">{n.setoranId}</p>,
-        },
-      ] as Column<Nasabah>[],
-    [indexById],
-  );
+  async function confirmDelete() {
+    if (!deleting) return;
+    setDeletingLoading(true);
+    try {
+      await api.delete(`/nasabah/${deleting.id}`);
+      setDeleting(null);
+      router.refresh();
+    } catch (err) {
+      alert(apiError(err));
+    } finally {
+      setDeletingLoading(false);
+    }
+  }
+
+  const indexById = new Map<string, number>();
+  nasabahs.forEach((n, i) => indexById.set(n.id, i + 1));
+
+  const columns: Column<Nasabah>[] = [
+    {
+      id: "no",
+      header: "No",
+      cell: (n) => (
+        <p className="font-label-md text-label-md font-mono text-on-surface-variant">
+          {indexById.get(n.id)}
+        </p>
+      ),
+    },
+    {
+      id: "kodeNasabah",
+      header: "Kode",
+      cell: (n) => (
+        <p className="font-label-md text-label-md font-mono text-primary whitespace-nowrap">
+          {n.kodeNasabah}
+        </p>
+      ),
+    },
+    {
+      id: "bankSampahId",
+      header: "Bank Sampah",
+      cell: (n) => (
+        <p className="text-on-surface whitespace-nowrap">{bankSampahName(n.bankSampahId)}</p>
+      ),
+    },
+    {
+      id: "nama",
+      header: "Nama",
+      cell: (n) => <p className="font-medium text-on-surface">{n.nama}</p>,
+    },
+    {
+      id: "noHp",
+      header: "No. HP",
+      cell: (n) => <p className="font-label-md text-label-md text-on-surface">{n.noHp ?? "-"}</p>,
+    },
+    {
+      id: "alamat",
+      header: "Alamat",
+      className: "hidden lg:table-cell max-w-[200px]",
+      cell: (n) => (
+        <p className="text-on-surface-variant truncate" title={n.alamat}>
+          {n.alamat}
+        </p>
+      ),
+    },
+    {
+      id: "rt",
+      header: "RT/RW",
+      cell: (n) => (
+        <p className="font-label-md text-label-md text-on-surface whitespace-nowrap">
+          {n.rt} / {n.rw}
+        </p>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      align: "center",
+      cell: (n) => {
+        const status = n.isActive ? "aktif" : "non-aktif";
+        return <Badge variant={STATUS_VARIANT[status]}>{n.isActive ? "Aktif" : "Non-aktif"}</Badge>;
+      },
+    },
+  ];
 
   return (
     <>
@@ -103,37 +128,34 @@ export function NasabahTable({
         data={nasabahs}
         columns={columns}
         getRowId={(n) => n.id}
-        searchKeys={["nama", "noHp", "alamat"]}
-        searchPlaceholder="Cari Nama, No. HP, atau Alamat..."
+        searchKeys={["kodeNasabah", "nama", "noHp", "alamat"]}
+        searchPlaceholder="Cari Kode, Nama, No. HP, atau Alamat..."
         filters={[
           {
             id: "bankSampahId",
             placeholder: "Semua Bank Sampah",
-            options: NASABAH_BANK_SAMPAH_OPTIONS,
+            options: bankSampahOptions,
             matches: (n, value) => n.bankSampahId === value,
           },
+          {
+            id: "status",
+            placeholder: "Semua Status",
+            options: [
+              { value: "aktif", label: "Aktif" },
+              { value: "non-aktif", label: "Non-aktif" },
+            ],
+            matches: (n, value) => (n.isActive ? "aktif" : "non-aktif") === value,
+          },
         ]}
-        selectable
         pageSize={10}
-        onSelectedChange={onSelectedChange}
         toolbarActions={
-          <>
-            <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
-              <Download className="size-[18px]" />
-              <span className="hidden sm:inline">Export Data</span>
-            </Button>
-            <Button render={<Link href="/admin/nasabah/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
-              <Plus className="size-[18px]" />
-              <span className="hidden sm:inline">Tambah Nasabah</span>
-            </Button>
-          </>
+          <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
+            <Plus className="size-[18px]" />
+            <span className="hidden sm:inline">Tambah Nasabah</span>
+          </Button>
         }
         actions={(n) => [
-          viewAction(() => onView?.(n)),
-          editAction(() => {
-            onEdit?.(n);
-            setEditing(n);
-          }),
+          editAction(() => setEditing(n)),
           deleteAction(() => setDeleting(n)),
         ]}
         emptyState={
@@ -143,10 +165,28 @@ export function NasabahTable({
         }
       />
 
+      <Modal
+        title="Tambah Nasabah"
+        description="Daftarkan nasabah penabung sampah baru ke dalam sistem."
+        open={adding}
+        onOpenChange={setAdding}
+        size="md"
+      >
+        <NasabahForm
+          bare
+          bankSampahOptions={bankSampahOptions}
+          submitLabel="Simpan"
+          cancelLabel="Batal"
+          onSaved={() => setAdding(false)}
+          onCancel={() => setAdding(false)}
+        />
+      </Modal>
+
       {editing && (
         <EditNasabahModal
           nasabah={editing}
           open
+          bankSampahOptions={bankSampahOptions}
           onOpenChange={(open) => {
             if (!open) setEditing(null);
           }}
@@ -164,10 +204,8 @@ export function NasabahTable({
             ? `Apakah Anda yakin ingin menghapus nasabah "${deleting.nama}"?`
             : undefined
         }
-        onConfirm={() => {
-          if (deleting) onDelete?.(deleting);
-          setDeleting(null);
-        }}
+        loading={deletingLoading}
+        onConfirm={confirmDelete}
       />
     </>
   );

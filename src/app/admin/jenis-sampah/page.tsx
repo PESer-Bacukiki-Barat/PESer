@@ -2,13 +2,20 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { JenisSampahTable } from "@/components/admin/jenis-sampah-table";
-import { JENIS_SAMPAH } from "@/lib/jenis-sampah-data";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Manajemen Jenis Sampah",
 };
 
-export default function JenisSampahPage() {
+export const dynamic = "force-dynamic";
+
+export default async function JenisSampahPage() {
+  const data = await prisma.jenisSampah.findMany({
+    where: { deletedAt: null },
+    orderBy: { kode: "asc" },
+  });
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -34,7 +41,18 @@ export default function JenisSampahPage() {
         </p>
       </div>
 
-      <JenisSampahTable jenisSampahs={JENIS_SAMPAH} />
+      <JenisSampahTable
+        jenisSampahs={data.map((j) => ({
+          id: j.id,
+          kode: j.kode,
+          nama: j.nama,
+          kategori: j.kategori,
+          satuan: j.satuan,
+          harga: j.harga.toNumber(),
+          deskripsi: j.deskripsi,
+          isActive: j.isActive,
+        }))}
+      />
     </>
   );
 }

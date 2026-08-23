@@ -2,13 +2,29 @@ import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
 import { PembeliTable } from "@/components/admin/pembeli-table";
-import { PEMBELI } from "@/lib/pembeli-data";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Manajemen Pembeli",
 };
 
-export default function PembeliPage() {
+export const dynamic = "force-dynamic";
+
+export default async function PembeliPage() {
+  const pembelis = await prisma.pembeli.findMany({
+    where: { deletedAt: null },
+    orderBy: { nama: "asc" },
+    select: {
+      id: true,
+      nama: true,
+      perusahaan: true,
+      noHp: true,
+      alamat: true,
+      catatan: true,
+      isActive: true,
+    },
+  });
+
   return (
     <>
       {/* Breadcrumbs */}
@@ -33,7 +49,7 @@ export default function PembeliPage() {
         </p>
       </div>
 
-      <PembeliTable pembelis={PEMBELI} />
+      <PembeliTable pembelis={pembelis} />
     </>
   );
 }

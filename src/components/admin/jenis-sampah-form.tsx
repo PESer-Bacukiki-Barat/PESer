@@ -8,66 +8,107 @@ import { Field, SelectField, type SelectOption } from "@/components/admin/form-f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { KATEGORI } from "@/lib/jenis-sampah-data";
-
-export type JenisSampahFormValues = {
-  kode: string;
-  nama: string;
-  kategori: string;
-  berat: number;
-  deskripsi: string;
-  status: string;
-};
+import { api, apiError } from "@/lib/api";
+import { KATEGORI, SATUAN, type JenisSampah } from "@/lib/jenis-sampah-data";
 
 export const JENIS_SAMPAH_STATUS_OPTIONS: SelectOption[] = [
-  { value: "Aktif", label: "Aktif" },
-  { value: "Non-aktif", label: "Non-aktif" },
+  { value: "aktif", label: "Aktif" },
+  { value: "non-aktif", label: "Non-aktif" },
 ];
 
 export function JenisSampahForm({
   initialData,
   kategoriOptions = KATEGORI,
+  satuanOptions = SATUAN,
   statusOptions = JENIS_SAMPAH_STATUS_OPTIONS,
   submitLabel = "Simpan",
   cancelLabel = "Batal",
   cancelHref,
+  mode = "create",
+  id,
   onSubmit,
+  onSaved,
   onCancel,
   bare = false,
 }: {
-  initialData?: Partial<JenisSampahFormValues>;
+  initialData?: Partial<JenisSampah>;
   kategoriOptions?: SelectOption[];
+  satuanOptions?: SelectOption[];
   statusOptions?: SelectOption[];
   submitLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
-  onSubmit?: (values: JenisSampahFormValues) => void;
+  mode?: "create" | "edit";
+  id?: string;
+  onSubmit?: (values: JenisSampah) => void;
+  onSaved?: (values: JenisSampah) => void;
   onCancel?: () => void;
   bare?: boolean;
 }) {
   const router = useRouter();
 
-  const [kode, setKode] = useState(initialData?.kode ?? "");
+  const [kode, setKode] = useState(
+    initialData?.kode != null ? String(initialData.kode) : "",
+  );
   const [nama, setNama] = useState(initialData?.nama ?? "");
-  const [kategori, setKategori] = useState(initialData?.kategori ?? "");
-  const [berat, setBerat] = useState(
-    initialData?.berat != null ? String(initialData.berat) : "",
+  const [kategori, setKategori] = useState(initialData?.kategori ?? kategoriOptions[0]?.value ?? "");
+  const [satuan, setSatuan] = useState(initialData?.satuan ?? satuanOptions[0]?.value ?? "");
+  const [harga, setHarga] = useState(
+    initialData?.harga != null ? String(initialData.harga) : "",
   );
   const [deskripsi, setDeskripsi] = useState(initialData?.deskripsi ?? "");
-  const [status, setStatus] = useState(
-    initialData?.status ?? statusOptions[0]?.value ?? "",
-  );
+  const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    onSubmit?.({
-      kode: kode.trim(),
+    const values: JenisSampah = {
+      id: initialData?.id ?? "",
+      kode: Number(kode),
       nama: nama.trim(),
       kategori,
-      berat: Number(berat) || 0,
-      deskripsi: deskripsi.trim(),
-      status,
-    });
+      satuan,
+      harga: Number(harga) || 0,
+      deskripsi: deskripsi.trim() || null,
+      isActive,
+    };
+    if (!Number.isInteger(values.kode) || values.kode <= 0) {
+      setError("Kode harus berupa angka bulat positif");
+      return;
+    }
+    if (!values.nama) {
+      setError("Nama sampah wajib diisi");
+      return;
+    }
+    if (values.harga < 0) {
+      setError("Harga tidak boleh negatif");
+      return;
+    }
+
+    if (onSubmit) {
+      onSubmit(values);
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      let saved: JenisSampah = values;
+      if (mode === "edit" && id) {
+        await api.put(`/jenis-sampah/${id}`, values);
+      } else {
+        const res = await api.post("/jenis-sampah", values);
+        saved = res.data as JenisSampah;
+      }
+      router.refresh();
+      if (cancelHref) router.push(cancelHref);
+      onSaved?.(saved);
+    } catch (err) {
+      setError(apiError(err));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleCancel() {
@@ -85,10 +126,12 @@ export function JenisSampahForm({
         <Field label="Kode Sampah" required htmlFor="kode">
           <Input
             id="kode"
-            type="text"
+            type="number"
+            min={1}
+            step="1"
             value={kode}
             onChange={(e) => setKode(e.target.value)}
-            placeholder="Masukkan kode sampah (mis. PLS-001)"
+            placeholder="mis. 101"
             required
           />
         </Field>
@@ -109,20 +152,35 @@ export function JenisSampahForm({
           value={kategori}
           onChange={setKategori}
           options={kategoriOptions}
-          placeholder={kategori === "" ? "Pilih Kategori" : undefined}
         />
-        <Field label="Berat (kg)" required htmlFor="berat">
+        <SelectField
+          id="satuan"
+          label="Satuan"
+          required
+          value={satuan}
+          onChange={setSatuan}
+          options={satuanOptions}
+        />
+        <Field label="Harga (Rp / satuan)" required htmlFor="harga">
           <Input
-            id="berat"
+            id="harga"
             type="number"
             min={0}
-            step="0.1"
-            value={berat}
-            onChange={(e) => setBerat(e.target.value)}
-            placeholder="0.0"
+            step="0.01"
+            value={harga}
+            onChange={(e) => setHarga(e.target.value)}
+            placeholder="mis. 2500"
             required
           />
         </Field>
+        <SelectField
+          id="status"
+          label="Status"
+          required
+          value={isActive ? "aktif" : "non-aktif"}
+          onChange={(v) => setIsActive(v === "aktif")}
+          options={statusOptions}
+        />
       </div>
 
       {/* Deskripsi */}
@@ -136,25 +194,20 @@ export function JenisSampahForm({
         />
       </Field>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SelectField
-          id="status"
-          label="Status"
-          required
-          value={status}
-          onChange={setStatus}
-          options={statusOptions}
-        />
-      </div>
+      {error && (
+        <p className="rounded-md bg-error-container px-3 py-2 font-label-md text-label-md text-error">
+          {error}
+        </p>
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
         <Button type="button" variant="outline" onClick={handleCancel}>
           {cancelLabel}
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={saving}>
           <Save className="size-[18px]" />
-          {submitLabel}
+          {saving ? "Menyimpan..." : submitLabel}
         </Button>
       </div>
     </form>

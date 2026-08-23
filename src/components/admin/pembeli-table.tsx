@@ -1,23 +1,26 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Modal } from "@/components/ui/modal";
+import { PembeliForm } from "@/components/admin/pembeli-form";
 import { EditPembeliModal } from "@/components/admin/pembeli-edit-modal";
-import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
-import { PERUSAHAAN, type Pembeli, type PembeliStatus } from "@/lib/pembeli-data";
+import { deleteAction, editAction } from "@/components/admin/row-actions";
+import { api, apiError } from "@/lib/api";
+import type { Pembeli } from "@/lib/pembeli-data";
 
-export type { Pembeli, PembeliStatus } from "@/lib/pembeli-data";
+export type { Pembeli } from "@/lib/pembeli-data";
 
-const STATUS_VARIANT: Record<PembeliStatus, "default" | "outline"> = {
-  Aktif: "default",
-  "Non-aktif": "outline",
-};
+const STATUS_VARIANT = {
+  aktif: "default",
+  "non-aktif": "outline",
+} as const;
 
 const columns: Column<Pembeli>[] = [
   {
@@ -28,7 +31,9 @@ const columns: Column<Pembeli>[] = [
   {
     id: "perusahaan",
     header: "Perusahaan",
-    cell: (p) => <p className="text-on-surface">{p.perusahaan}</p>,
+    cell: (p) => (
+      <p className="text-on-surface-variant">{p.perusahaan ?? "-"}</p>
+    ),
   },
   {
     id: "noHp",
@@ -38,18 +43,20 @@ const columns: Column<Pembeli>[] = [
   {
     id: "alamat",
     header: "Alamat",
-    className: "hidden lg:table-cell",
+    className: "hidden lg:table-cell max-w-[200px]",
     cell: (p) => (
-      <p className="text-on-surface-variant truncate max-w-[150px]">{p.alamat}</p>
+      <p className="text-on-surface-variant truncate" title={p.alamat}>
+        {p.alamat}
+      </p>
     ),
   },
   {
     id: "catatan",
     header: "Catatan",
-    className: "hidden xl:table-cell",
+    className: "hidden xl:table-cell max-w-[150px]",
     cell: (p) => (
-      <p className="text-on-surface-variant truncate max-w-[150px]" title={p.catatan}>
-        {p.catatan}
+      <p className="text-on-surface-variant truncate" title={p.catatan ?? undefined}>
+        {p.catatan ?? "-"}
       </p>
     ),
   },
@@ -57,29 +64,33 @@ const columns: Column<Pembeli>[] = [
     id: "status",
     header: "Status",
     align: "center",
-    cell: (p) => (
-      <Badge variant={STATUS_VARIANT[p.status]}>{p.status}</Badge>
-    ),
+    cell: (p) => {
+      const status = p.isActive ? "aktif" : "non-aktif";
+      return <Badge variant={STATUS_VARIANT[status]}>{p.isActive ? "Aktif" : "Non-aktif"}</Badge>;
+    },
   },
 ];
 
-export function PembeliTable({
-  pembelis,
-  onEdit,
-  onDelete,
-  onView,
-  onExport,
-  onSelectedChange,
-}: {
-  pembelis: Pembeli[];
-  onEdit?: (p: Pembeli) => void;
-  onDelete?: (p: Pembeli) => void;
-  onView?: (p: Pembeli) => void;
-  onExport?: () => void;
-  onSelectedChange?: (ids: string[]) => void;
-}) {
+export function PembeliTable({ pembelis }: { pembelis: Pembeli[] }) {
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Pembeli | null>(null);
   const [deleting, setDeleting] = useState<Pembeli | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    setDeletingLoading(true);
+    try {
+      await api.delete(`/pembeli/${deleting.id}`);
+      setDeleting(null);
+      router.refresh();
+    } catch (err) {
+      alert(apiError(err));
+    } finally {
+      setDeletingLoading(false);
+    }
+  }
 
   return (
     <>
@@ -87,46 +98,28 @@ export function PembeliTable({
         data={pembelis}
         columns={columns}
         getRowId={(p) => p.id}
-        searchKeys={["nama", "perusahaan"]}
-        searchPlaceholder="Cari Nama atau Perusahaan..."
+        searchKeys={["nama", "perusahaan", "noHp", "alamat"]}
+        searchPlaceholder="Cari Nama, Perusahaan, atau No. HP..."
         filters={[
           {
             id: "status",
             placeholder: "Semua Status",
             options: [
-              { value: "Aktif", label: "Aktif" },
-              { value: "Non-aktif", label: "Non-aktif" },
+              { value: "aktif", label: "Aktif" },
+              { value: "non-aktif", label: "Non-aktif" },
             ],
-            matches: (p, value) => p.status === value,
-          },
-          {
-            id: "perusahaan",
-            placeholder: "Semua Perusahaan",
-            options: PERUSAHAAN,
-            matches: (p, value) => p.perusahaan === value,
+            matches: (p, value) => (p.isActive ? "aktif" : "non-aktif") === value,
           },
         ]}
-        selectable
         pageSize={10}
-        onSelectedChange={onSelectedChange}
         toolbarActions={
-          <>
-            <Button variant="outline" onClick={onExport} className="h-10 px-4 font-medium">
-              <Download className="size-[18px]" />
-              <span className="hidden sm:inline">Export Data</span>
-            </Button>
-            <Button render={<Link href="/admin/pembeli/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
-              <Plus className="size-[18px]" />
-              <span className="hidden sm:inline">Tambah Pembeli</span>
-            </Button>
-          </>
+          <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
+            <Plus className="size-[18px]" />
+            <span className="hidden sm:inline">Tambah Pembeli</span>
+          </Button>
         }
         actions={(p) => [
-          viewAction(() => onView?.(p)),
-          editAction(() => {
-            onEdit?.(p);
-            setEditing(p);
-          }),
+          editAction(() => setEditing(p)),
           deleteAction(() => setDeleting(p)),
         ]}
         emptyState={
@@ -135,6 +128,22 @@ export function PembeliTable({
           </p>
         }
       />
+
+      <Modal
+        title="Tambah Pembeli"
+        description="Daftarkan pembeli sampah baru ke dalam sistem."
+        open={adding}
+        onOpenChange={setAdding}
+        size="md"
+      >
+        <PembeliForm
+          bare
+          submitLabel="Simpan"
+          cancelLabel="Batal"
+          onSaved={() => setAdding(false)}
+          onCancel={() => setAdding(false)}
+        />
+      </Modal>
 
       {editing && (
         <EditPembeliModal
@@ -157,10 +166,8 @@ export function PembeliTable({
             ? `Apakah Anda yakin ingin menghapus pembeli "${deleting.nama}"?`
             : undefined
         }
-        onConfirm={() => {
-          if (deleting) onDelete?.(deleting);
-          setDeleting(null);
-        }}
+        loading={deletingLoading}
+        onConfirm={confirmDelete}
       />
     </>
   );

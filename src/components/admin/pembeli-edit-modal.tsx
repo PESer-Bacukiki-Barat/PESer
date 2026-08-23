@@ -16,17 +16,19 @@ export function EditPembeliModal({
   return (
     <Modal
       title="Edit Pembeli"
-      description={`Perbarui informasi pembeli ${pembeli.nama} (${pembeli.id}).`}
+      description={`Perbarui informasi pembeli ${pembeli.nama}.`}
       open={open}
       onOpenChange={onOpenChange}
       size="md"
     >
       <PembeliForm
         bare
+        mode="edit"
+        id={pembeli.id}
         initialData={pembeli}
         submitLabel="Simpan Perubahan"
         cancelLabel="Batal"
-        onSubmit={() => onOpenChange(false)}
+        onSaved={() => onOpenChange(false)}
         onCancel={() => onOpenChange(false)}
       />
     </Modal>
