@@ -65,5 +65,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Conventions
 - Theme tokens + DESIGN.md palette live in `src/app/globals.css` (`@theme` / CSS vars); brand emerald `#006c49`; Hanken Grotesk + JetBrains Mono via `next/font` in `src/app/layout.tsx`. UI copy is Indonesian.
+- **Two role areas, mirrored gates** (`src/middleware.ts`): `/admin/**` needs
+  ADMIN (except `/admin/nasabah`, FR-B7), `/petugas/**` needs PETUGAS. Admin has
+  no single bank-sampah scope (§5.3), so petugas pages redirect them to `/admin`.
+  The petugas area is mobile-first (`max-w-md` + fixed bottom nav) because
+  petugas work from a phone in the field; `src/app/petugas/layout.tsx` also
+  guards BR-02 (petugas must be assigned to a bank sampah).
+- Dispatch action buttons come from `aksiTersedia()` in `src/lib/dispatch-aksi.ts`
+  and render through the shared `AksiDispatchPanel`
+  (`src/components/dispatch/aksi-dispatch.tsx`) — used by BOTH the admin and
+  petugas detail pages, so neither can drift from the §8.2 table.
 - Admin shell: `src/app/admin/layout.tsx` (topbar + desktop sidebar, `md:ml-64` offset); CRUD screens are Server Components by default — add `"use client"` only where interactivity is needed. Tables use the generic `<DataTable>` (`src/components/ui/data-table.tsx`); domain wrappers `src/components/admin/*-table.tsx` receive plain serializable data. Next.js 16 forbids passing functions from a Server Component into a Client Component.
 - Reuse UI building blocks: row actions via `deleteAction` / `editAction` / `viewAction` (`@/components/admin/row-actions`) + `RowActionButton`; delete confirmation via `ConfirmDialog` (`@/components/ui/confirm-dialog`), never `window.confirm`; dialogs use `Modal` (`@/components/ui/modal`).

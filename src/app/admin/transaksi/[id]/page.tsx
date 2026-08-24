@@ -11,7 +11,10 @@ import {
   statusStyle,
   type DispatchStatus,
 } from "@/lib/dispatch-data"
-import { AksiDispatchPanel, type ItemAksi } from "./aksi-dispatch"
+import {
+  AksiDispatchPanel,
+  type ItemAksi,
+} from "@/components/dispatch/aksi-dispatch"
 
 export const metadata: Metadata = {
   title: "Detail Dispatch",

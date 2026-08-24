@@ -20,13 +20,22 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
   }
 
+  const role = req.auth?.user?.role
+
   // Panel /admin adalah Modul B — Master Data (ADMIN) di PRD, kecuali
   // /admin/nasabah yang FR-B7 tetapkan sebagai kewenangan PETUGAS.
   // role dibaca dari JWT (lihat callbacks di src/auth.ts), tanpa query DB.
   if (isLoggedIn && pathname.startsWith("/admin") && !isAdminExempt(pathname)) {
-    if (req.auth?.user?.role !== "ADMIN") {
+    if (role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
     }
+  }
+
+  // Area /petugas adalah cerminannya: Modul C (setoran & stock) dan FR-D3..D5
+  // milik PETUGAS. Admin diarahkan ke panelnya sendiri karena halaman di sini
+  // selalu di-scope ke satu bank sampah, yang admin tidak punya (§5.3).
+  if (isLoggedIn && pathname.startsWith("/petugas") && role !== "PETUGAS") {
+    return NextResponse.redirect(new URL(role === "ADMIN" ? "/admin" : "/dashboard", req.nextUrl))
   }
 
   return NextResponse.next()

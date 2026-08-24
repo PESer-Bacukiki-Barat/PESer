@@ -34,11 +34,13 @@ export default async function DashboardPage() {
           )}
         </dl>
 
+        {/* Tujuan bergantung peran: middleware menutup /admin untuk petugas
+            dan /petugas untuk admin, jadi tautan tetap harus sesuai. */}
         <a
-          href="/admin/kelurahan"
+          href={user.role === "ADMIN" ? "/admin" : "/petugas"}
           className="mt-8 flex h-11 w-full items-center justify-center rounded-md border border-black/[.08] font-medium text-zinc-900 transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-50 dark:hover:bg-[#1a1a1a]"
         >
-          Kelola Kelurahan
+          {user.role === "ADMIN" ? "Buka Panel Admin" : "Buka Aplikasi Petugas"}
         </a>
 
         <form action={logout} className="mt-3">
