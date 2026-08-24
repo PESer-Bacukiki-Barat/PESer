@@ -22,17 +22,41 @@ export async function GET(
   return ok(data)
 }
 
+/**
+ * PUT /api/dispatch/[id] — revisi isi dispatch (bukan transisi status).
+ *
+ * Perubahan status HANYA lewat endpoint aksi /terbitkan, /terima, /tolak,
+ * /serah-terima, /tutup, /batalkan yang memakai transisiDispatch() (§8.2
+ * mewajibkan satu state machine). Karena itu skema di sini tidak punya field
+ * status, dan revisi hanya diizinkan selama dispatch masih DRAFT atau DITOLAK
+ * (§8.2 "DITOLAK -> DRAFT: revisi target"). BR-13: SELESAI final.
+ */
+const BOLEH_REVISI = ["DRAFT", "DITOLAK"] as const
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireAuth()
+  const auth = await requireAuth("ADMIN")
   if (!auth.ok) return auth.response
   const { id } = await params
   const parsed = dispatchSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return failValidation(parsed.error.issues)
   }
+
+  const sekarang = await prisma.dispatch.findFirst({
+    where: { id, deletedAt: null },
+    select: { status: true },
+  })
+  if (!sekarang) return fail("TIDAK_DITEMUKAN", "Dispatch tidak ditemukan")
+  if (!BOLEH_REVISI.includes(sekarang.status as (typeof BOLEH_REVISI)[number])) {
+    return fail(
+      "TRANSISI_TIDAK_VALID",
+      `Dispatch berstatus ${sekarang.status} tidak bisa direvisi`,
+    )
+  }
+
   try {
     const data = await prisma.dispatch.update({
       where: { id },

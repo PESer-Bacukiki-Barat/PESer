@@ -51,6 +51,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   rule 2), and `Stock` must never change outside a transaction that also writes
   `StockMutation` (§8.7). `POST /api/setoran` is the reference implementation.
 - Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
+- **Dispatch status changes only through `transisiDispatch()`** in
+  `src/lib/dispatch-transisi.ts` (§8.2 mandates a single state machine). The six
+  action routes under `api/dispatch/[id]/{terbitkan,terima,tolak,serah-terima,tutup,batalkan}`
+  are thin wrappers; the actor rule ("ADMIN" vs "PETUGAS pemilik") is per
+  transition, so routes only require login and the state machine decides. `PUT`
+  revises content only, and only while `DRAFT`/`DITOLAK`. Stock reservation
+  (BR-12) and deduction (BR-11) live in that one file.
 
 ## Conventions
 - Theme tokens + DESIGN.md palette live in `src/app/globals.css` (`@theme` / CSS vars); brand emerald `#006c49`; Hanken Grotesk + JetBrains Mono via `next/font` in `src/app/layout.tsx`. UI copy is Indonesian.

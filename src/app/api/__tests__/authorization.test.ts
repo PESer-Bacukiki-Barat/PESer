@@ -24,6 +24,12 @@ import * as dispatchId from "@/app/api/dispatch/[id]/route"
 import * as koreksiStock from "@/app/api/koreksi-stock/route"
 import * as setoran from "@/app/api/setoran/route"
 import * as stock from "@/app/api/stock/route"
+import * as terbitkan from "@/app/api/dispatch/[id]/terbitkan/route"
+import * as terima from "@/app/api/dispatch/[id]/terima/route"
+import * as tolak from "@/app/api/dispatch/[id]/tolak/route"
+import * as serahTerima from "@/app/api/dispatch/[id]/serah-terima/route"
+import * as tutup from "@/app/api/dispatch/[id]/tutup/route"
+import * as batalkan from "@/app/api/dispatch/[id]/batalkan/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("@/lib/prisma", () => ({ prisma: {} }))
@@ -65,6 +71,7 @@ const ADMIN_ONLY: [string, Handler][] = [
   ["DELETE /api/users/[id]", usersId.DELETE as Handler],
   // Modul D — dispatch dibuat & dibatalkan admin (FR-D1, FR-D7)
   ["POST   /api/dispatch", dispatch.POST as Handler],
+  ["PUT    /api/dispatch/[id]", dispatchId.PUT as Handler],
   ["DELETE /api/dispatch/[id]", dispatchId.DELETE as Handler],
 ]
 
@@ -95,6 +102,21 @@ const ANY_LOGGED_IN: [string, Handler][] = [
   ["GET    /api/stock", stock.GET as unknown as Handler],
 ]
 
+/**
+ * Endpoint aksi dispatch: pelakunya ditentukan PER TRANSISI oleh tabel §8.2
+ * ("ADMIN" atau "PETUGAS pemilik"), bukan per endpoint. Karena itu handler
+ * hanya menuntut login, dan pengecekan peran ada di transisiDispatch() supaya
+ * tetap satu sumber kebenaran — diuji di lib/__tests__/dispatch-transisi.test.ts.
+ */
+const AKSI_DISPATCH: [string, Handler][] = [
+  ["POST   /api/dispatch/[id]/terbitkan", terbitkan.POST as Handler],
+  ["POST   /api/dispatch/[id]/terima", terima.POST as Handler],
+  ["POST   /api/dispatch/[id]/tolak", tolak.POST as Handler],
+  ["POST   /api/dispatch/[id]/serah-terima", serahTerima.POST as Handler],
+  ["POST   /api/dispatch/[id]/tutup", tutup.POST as Handler],
+  ["POST   /api/dispatch/[id]/batalkan", batalkan.POST as Handler],
+]
+
 beforeEach(() => {
   mAuth.mockReset()
   mAuth.mockResolvedValue(forbidden)
@@ -116,6 +138,15 @@ describe("koreksi stock wajib PETUGAS", () => {
   })
 })
 
+describe("endpoint aksi dispatch menuntut login, peran dicek per transisi", () => {
+  it.each(AKSI_DISPATCH)("%s tidak menuntut peran di handler", async (_name, handler) => {
+    const res = await handler(req(), ctx)
+    expect(mAuth).toHaveBeenCalledWith()
+    // requireAuth ditolak -> handler pulang tanpa menyentuh state machine
+    expect(res.status).toBe(403)
+  })
+})
+
 describe("GET master data terbuka untuk semua yang sudah login", () => {
   it.each(ANY_LOGGED_IN)("%s tidak menuntut role tertentu", async (_name, handler) => {
     await handler(req(), ctx)
@@ -127,10 +158,6 @@ describe("GET master data terbuka untuk semua yang sudah login", () => {
  * Sengaja TIDAK diuji karena kewenangannya belum diputuskan, dan menuliskan
  * perilaku sekarang sebagai "benar" akan mengunci keputusan yang keliru:
  *
- * - PUT /api/dispatch/[id]: satu endpoint melayani transisi milik ADMIN
- *   (FR-D2 terbitkan, FR-D6 tutup) DAN milik PETUGAS (FR-D3 terima/tolak,
- *   FR-D4 berat aktual, FR-D5 serah terima). Role-nya bergantung transisi
- *   status, jadi baru bisa dijaga setelah logika transisi itu ada.
  * - /api/nasabah (POST/PUT/DELETE): FR-B7 memberikannya ke PETUGAS "scoped
  *   ke 1 bank sampah", tapi UI yang sudah jadi menempatkannya di panel admin
  *   dan tidak ada pembatasan per bank sampah. Dua hal itu bertentangan.

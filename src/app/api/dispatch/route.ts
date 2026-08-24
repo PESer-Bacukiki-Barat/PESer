@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@/generated/prisma/client"
 import { dispatchSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
@@ -24,6 +25,36 @@ export async function POST(request: Request) {
   const parsed = dispatchSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return failValidation(parsed.error.issues)
+  }
+
+  // FR-D1 + §8.2 baris "(baru) -> DRAFT": target tidak boleh melebihi stock
+  // tersedia (berat - beratReservasi). Tanpa ini dispatch bisa menjanjikan
+  // barang yang tidak ada.
+  const stockList = await prisma.stock.findMany({
+    where: {
+      bankSampahId: parsed.data.bankSampahId,
+      jenisSampahId: { in: parsed.data.items.map((i) => i.jenisSampahId) },
+    },
+    select: {
+      jenisSampahId: true,
+      berat: true,
+      beratReservasi: true,
+      jenisSampah: { select: { nama: true } },
+    },
+  })
+  const stockByJenis = new Map(stockList.map((s) => [s.jenisSampahId, s]))
+
+  for (const item of parsed.data.items) {
+    const stock = stockByJenis.get(item.jenisSampahId)
+    const tersedia = stock ? stock.berat.sub(stock.beratReservasi) : new Prisma.Decimal(0)
+    if (tersedia.lt(item.beratTarget)) {
+      const nama = stock?.jenisSampah.nama ?? item.jenisSampahId
+      return fail(
+        "STOCK_TIDAK_CUKUP",
+        `Stock ${nama} tersedia ${tersedia.toFixed(2)} kg, diminta ${Number(item.beratTarget).toFixed(2)} kg`,
+        { field: "items" },
+      )
+    }
   }
 
   try {
