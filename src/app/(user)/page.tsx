@@ -174,6 +174,7 @@ export default function HomePage() {
         <Button
           className="mt-auto h-12 w-full rounded-full text-lg font-semibold"
           render={<Link href="/setor" />}
+          nativeButton={false}
         >
           Mulai Setor Sampah
         </Button>

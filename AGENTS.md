@@ -22,6 +22,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Stack
 - Next.js 16.3 (custom build, see block above) + React 19, Tailwind v4 (CSS-first, no config file).
 - UI: `@base-ui/react` (NOT Radix) + shadcn `base-nova` (`components.json`), `lucide-react` icons. Auth: next-auth v5 beta, Credentials + JWT (`src/auth.ts`); route guard `requireAuth` in `src/lib/auth.ts`. Validation: zod.
+- Base UI footgun: when a `Button` renders as something else (`render={<Link .../>}`), also pass `nativeButton={false}`. It defaults to true and warns that native button semantics are lost — the anchor needs non-button ARIA/keyboard handling instead.
 
 ## Prisma
 - Prisma 7 + `@prisma/adapter-pg`. Client is generated (gitignored) at `src/generated/prisma`; import `@/generated/prisma/client`. Reuse the singleton in `src/lib/prisma.ts` — don't instantiate `PrismaClient` elsewhere.

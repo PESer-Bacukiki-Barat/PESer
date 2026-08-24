@@ -54,6 +54,7 @@ export default function SetorSampahPage() {
           size="icon-lg"
           className="rounded-full"
           render={<Link href="/" />}
+          nativeButton={false}
         >
           <ArrowLeft />
           <span className="sr-only">Kembali</span>
