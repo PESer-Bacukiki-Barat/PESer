@@ -1,3 +1,4 @@
+import Link from "next/link"
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
@@ -42,13 +43,13 @@ export default async function TambahDispatchPage() {
         aria-label="Breadcrumb"
         className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm mb-6"
       >
-        <a className="hover:text-primary transition-colors" href="/admin">
+        <Link className="hover:text-primary transition-colors" href="/admin">
           Dashboard
-        </a>
+        </Link>
         <ChevronRight className="size-4" />
-        <a className="hover:text-primary transition-colors" href="/admin/transaksi">
+        <Link className="hover:text-primary transition-colors" href="/admin/transaksi">
           Manajemen Transaksi
-        </a>
+        </Link>
         <ChevronRight className="size-4" />
         <span className="text-on-surface font-semibold">Tambah Dispatch</span>
       </nav>

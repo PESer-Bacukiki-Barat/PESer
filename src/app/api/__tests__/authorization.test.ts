@@ -30,6 +30,7 @@ import * as tolak from "@/app/api/dispatch/[id]/tolak/route"
 import * as serahTerima from "@/app/api/dispatch/[id]/serah-terima/route"
 import * as tutup from "@/app/api/dispatch/[id]/tutup/route"
 import * as batalkan from "@/app/api/dispatch/[id]/batalkan/route"
+import * as revisi from "@/app/api/dispatch/[id]/revisi/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("@/lib/prisma", () => ({ prisma: {} }))
@@ -115,6 +116,7 @@ const AKSI_DISPATCH: [string, Handler][] = [
   ["POST   /api/dispatch/[id]/serah-terima", serahTerima.POST as Handler],
   ["POST   /api/dispatch/[id]/tutup", tutup.POST as Handler],
   ["POST   /api/dispatch/[id]/batalkan", batalkan.POST as Handler],
+  ["POST   /api/dispatch/[id]/revisi", revisi.POST as Handler],
 ]
 
 beforeEach(() => {

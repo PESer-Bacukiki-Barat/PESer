@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { dispatchSchema } from "../schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, fail, failValidation } from "@/lib/response"
+import { BOLEH_REVISI } from "@/lib/dispatch-aksi"
 
 export async function GET(
   _req: Request,
@@ -31,8 +32,6 @@ export async function GET(
  * status, dan revisi hanya diizinkan selama dispatch masih DRAFT atau DITOLAK
  * (§8.2 "DITOLAK -> DRAFT: revisi target"). BR-13: SELESAI final.
  */
-const BOLEH_REVISI = ["DRAFT", "DITOLAK"] as const
-
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -50,7 +49,7 @@ export async function PUT(
     select: { status: true },
   })
   if (!sekarang) return fail("TIDAK_DITEMUKAN", "Dispatch tidak ditemukan")
-  if (!BOLEH_REVISI.includes(sekarang.status as (typeof BOLEH_REVISI)[number])) {
+  if (!BOLEH_REVISI.includes(sekarang.status)) {
     return fail(
       "TRANSISI_TIDAK_VALID",
       `Dispatch berstatus ${sekarang.status} tidak bisa direvisi`,

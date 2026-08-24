@@ -29,12 +29,15 @@ export function Field({
   required,
   htmlFor,
   error,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
   htmlFor: string;
   error?: string;
+  /** Penjelasan singkat di bawah input; disembunyikan saat ada error. */
+  hint?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -43,6 +46,9 @@ export function Field({
         {label} {required && <span className="text-error">*</span>}
       </label>
       {children}
+      {hint && !error && (
+        <p className="font-label-sm text-label-sm text-on-surface-variant">{hint}</p>
+      )}
       <FieldError error={error} />
     </div>
   );

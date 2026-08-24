@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Download, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, Pencil, Plus } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { EditDispatchModal } from "@/components/admin/dispatch-edit-modal";
@@ -11,6 +11,7 @@ import type {
   DispatchStatus,
   DispatchFormOptions,
 } from "@/lib/dispatch-data";
+import { BOLEH_REVISI } from "@/lib/dispatch-aksi";
 import {
   DISPATCH_STATUS_LABEL,
 } from "@/lib/dispatch-data";
@@ -53,7 +54,6 @@ export function DispatchTable({
   dispatches,
   options,
   onEdit,
-  onDelete,
   onView,
   onExport,
   onSelectedChange,
@@ -61,7 +61,6 @@ export function DispatchTable({
   dispatches: Dispatch[];
   options: DispatchFormOptions;
   onEdit?: (d: Dispatch) => void;
-  onDelete?: (d: Dispatch) => void;
   onView?: (d: Dispatch) => void;
   onExport?: () => void;
   onSelectedChange?: (ids: string[]) => void;
@@ -186,32 +185,32 @@ export function DispatchTable({
             </Link>
           </>
         }
-        actions={() => [
+        actions={(row) => [
           {
             label: "Lihat Detail",
             icon: Eye,
             className: "hover:text-primary",
             onClick: (d) => onView?.(d),
           },
-          {
-            label: "Edit",
-            icon: Pencil,
-            className: "hover:text-primary",
-            onClick: (d) => {
-              onEdit?.(d);
-              setEditing(d);
-            },
-          },
-          ...(onDelete
+          // Isi dispatch hanya bisa disunting selama DRAFT/DITOLAK — sama
+          // dengan yang ditegakkan PUT /api/dispatch/:id. Di luar itu tombolnya
+          // tidak ditampilkan supaya UI tidak menawarkan aksi yang akan ditolak.
+          ...(BOLEH_REVISI.includes(row.status)
             ? [
                 {
-                  label: "Hapus",
-                  icon: Trash2,
-                  className: "hover:text-error hover:bg-error-container",
-                  onClick: (d: Dispatch) => onDelete(d),
+                  label: "Edit",
+                  icon: Pencil,
+                  className: "hover:text-primary",
+                  onClick: (d: Dispatch) => {
+                    onEdit?.(d);
+                    setEditing(d);
+                  },
                 },
               ]
             : []),
+          // Tidak ada aksi "Hapus": PRD §2.5 aturan 1 melarang DELETE untuk
+          // Dispatch. Pembatalan yang sah lewat transisi DIBATALKAN di halaman
+          // detail, yang juga melepas reservasi stock.
         ]}
         emptyState={
           <p className="text-center text-on-surface-variant">

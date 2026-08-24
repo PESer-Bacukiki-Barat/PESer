@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Inbox, Truck } from "lucide-react";
 
 import { DispatchTable } from "@/components/admin/dispatch-table";
@@ -21,6 +22,7 @@ export default function TransaksiTabs({
   setorans: Setoran[];
   options: DispatchFormOptions;
 }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("setoran");
 
   function exportSetoran() {
@@ -174,6 +176,7 @@ export default function TransaksiTabs({
             dispatches={dispatches}
             options={options}
             onExport={exportDispatch}
+            onView={(d) => router.push(`/admin/transaksi/${d.id}`)}
           />
         </section>
       )}

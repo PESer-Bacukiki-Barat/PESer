@@ -3,6 +3,11 @@ import { Prisma, type StatusDispatch } from "@/generated/prisma/client"
 import type { AppUser } from "@/lib/auth"
 import { fail } from "@/lib/response"
 import { TOLERANSI_SELISIH } from "@/lib/constants"
+import {
+  TRANSISI,
+  MENAHAN_RESERVASI,
+  pelakuBoleh,
+} from "@/lib/dispatch-aksi"
 
 /**
  * State machine dispatch — PRD §8.2 [WAJIB].
@@ -12,31 +17,6 @@ import { TOLERANSI_SELISIH } from "@/lib/constants"
  * (reservasi BR-12, pengurangan BR-11) dan AuditLog (BR-14) terjadi di sini,
  * dalam satu transaksi.
  */
-
-type Pelaku = "ADMIN" | "PETUGAS_PEMILIK"
-
-type Transisi = { dari: StatusDispatch; ke: StatusDispatch; pelaku: Pelaku }
-
-/** Tabel resmi §8.2. Urutan mengikuti PRD supaya mudah dibandingkan. */
-const TRANSISI: readonly Transisi[] = [
-  { dari: "DRAFT", ke: "DISPATCHED", pelaku: "ADMIN" },
-  { dari: "DRAFT", ke: "DIBATALKAN", pelaku: "ADMIN" },
-  { dari: "DISPATCHED", ke: "DITERIMA", pelaku: "PETUGAS_PEMILIK" },
-  { dari: "DISPATCHED", ke: "DITOLAK", pelaku: "PETUGAS_PEMILIK" },
-  { dari: "DISPATCHED", ke: "DIBATALKAN", pelaku: "ADMIN" },
-  { dari: "DITOLAK", ke: "DRAFT", pelaku: "ADMIN" },
-  { dari: "DITOLAK", ke: "DIBATALKAN", pelaku: "ADMIN" },
-  { dari: "DITERIMA", ke: "SERAH_TERIMA", pelaku: "PETUGAS_PEMILIK" },
-  { dari: "DITERIMA", ke: "DIBATALKAN", pelaku: "ADMIN" },
-  { dari: "SERAH_TERIMA", ke: "SELESAI", pelaku: "ADMIN" },
-]
-
-/**
- * Status yang menahan reservasi stock (BR-12). Meninggalkan status ini ke
- * DITOLAK/DIBATALKAN wajib melepas reservasi; ke SERAH_TERIMA reservasi
- * dipakai lalu dilepas bersamaan dengan pengurangan berat.
- */
-const MENAHAN_RESERVASI: readonly StatusDispatch[] = ["DISPATCHED", "DITERIMA"]
 
 export type BeratAktualInput = { dispatchItemId: string; beratAktual: number }
 
@@ -69,12 +49,6 @@ function ambilDispatch(id: string) {
     where: { id, deletedAt: null },
     include: dispatchInclude,
   })
-}
-
-function pelakuBoleh(pelaku: Pelaku, user: AppUser, bankSampahId: string): boolean {
-  if (pelaku === "ADMIN") return user.role === "ADMIN"
-  // "PETUGAS pemilik" = user.bankSampahId === dispatch.bankSampahId (§8.2)
-  return user.role === "PETUGAS" && user.bankSampahId === bankSampahId
 }
 
 export async function transisiDispatch(input: TransisiInput): Promise<TransisiHasil> {
