@@ -37,7 +37,6 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/nasabah", label: "Nasabah", icon: Contact },
   { href: "/admin/jenis-sampah", label: "Jenis Sampah", icon: Tags },
   { href: "/admin/transaksi", label: "Transaksi", icon: ReceiptText },
-  { href: "/admin/koreksi-stock", label: "Koreksi Stock", icon: Tags },
   { href: "/admin/profil", label: "Profil", icon: Settings },
   { href: "/admin/laporan", label: "Laporan", icon: BarChart3 },
   { href: "/admin/bantuan", label: "Bantuan", icon: HelpCircle },

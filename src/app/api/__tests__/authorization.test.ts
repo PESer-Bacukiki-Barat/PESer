@@ -21,7 +21,6 @@ import * as users from "@/app/api/users/route"
 import * as usersId from "@/app/api/users/[id]/route"
 import * as dispatch from "@/app/api/dispatch/route"
 import * as dispatchId from "@/app/api/dispatch/[id]/route"
-import * as koreksiStock from "@/app/api/koreksi-stock/route"
 import * as profil from "@/app/api/profil/route"
 import * as laporanPenjualan from "@/app/api/laporan/penjualan/route"
 import * as laporanVolume from "@/app/api/laporan/volume/route"
@@ -82,9 +81,8 @@ const ADMIN_ONLY: [string, Handler][] = [
   ["DELETE /api/dispatch/[id]", dispatchId.DELETE as Handler],
 ]
 
-/** Handler yang WAJIB meminta role PETUGAS (FR-C1, FR-C7). */
+/** Handler yang WAJIB meminta role PETUGAS (FR-C1). */
 const PETUGAS_ONLY: [string, Handler][] = [
-  ["POST   /api/koreksi-stock", koreksiStock.POST as Handler],
   ["POST   /api/setoran", setoran.POST as Handler],
 ]
 

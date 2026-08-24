@@ -2,7 +2,7 @@
  * GET /api/stock — FR-C5 (petugas: bank sampahnya) dan FR-C6 (admin: semua).
  * Tidak ada handler tulis di sini: stock hanya berubah lewat transaksi yang
  * juga menulis StockMutation (larangan PRD §8.7), dan itu dijaga di test
- * setoran/koreksi-stock.
+ * setoran dan dispatch.
  */
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth"

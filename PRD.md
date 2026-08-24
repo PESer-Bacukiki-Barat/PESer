@@ -105,8 +105,6 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | FR-C4 | Halaman bukti setor | PETUGAS |
 | FR-C5 | Lihat stock bank sampah sendiri | PETUGAS, ADMIN |
 | FR-C6 | Lihat stock semua bank sampah | ADMIN |
-| FR-C7 | Koreksi stock (ubah langsung, tanpa approval) | PETUGAS |
-| FR-C8 | Lihat riwayat koreksi stock | PETUGAS, ADMIN |
 | FR-C9 | Riwayat transaksi + filter tanggal | PETUGAS (sendiri), ADMIN (semua) |
 
 ### Modul D — Dispatch & Penjualan
@@ -212,8 +210,6 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | Input setoran | ❌ | ✅ (bank sampah sendiri) |
 | Lihat stock semua bank sampah | ✅ | ❌ |
 | Lihat stock bank sampah sendiri | ✅ | ✅ |
-| Koreksi stock (ubah langsung) | ❌ | ✅ |
-| Lihat riwayat koreksi stock | ✅ | ✅ |
 | Buat dispatch | ✅ | ❌ |
 | Terbitkan dispatch | ✅ | ❌ |
 | Terima / tolak dispatch | ❌ | ✅ (yang ditujukan padanya) |
@@ -263,8 +259,6 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | POST | `/api/setoran` | PETUGAS | Wajib header `Idempotency-Key` |
 | GET | `/api/setoran` | PETUGAS, ADMIN | Filter tanggal, scoped |
 | GET | `/api/stock` | PETUGAS, ADMIN | Scoped otomatis |
-| POST | `/api/koreksi-stock` | PETUGAS | Koreksi langsung (ubah stock) |
-| GET | `/api/koreksi-stock` | PETUGAS, ADMIN | Riwayat koreksi |
 | POST | `/api/dispatch` | ADMIN | Buat DRAFT |
 | POST | `/api/dispatch/:id/terbitkan` | ADMIN | DRAFT → DISPATCHED |
 | POST | `/api/dispatch/:id/terima` | PETUGAS | DISPATCHED → DITERIMA |
@@ -904,6 +898,10 @@ model StockMutation {
   @@map("stock_mutation")
 }
 
+// DIPERTAHANKAN untuk data historis saja — fitur koreksi stock dihapus di v1.5.
+// Tidak ada endpoint maupun UI yang menulis ke tabel ini lagi. Tabelnya tidak
+// dijatuhkan karena StockMutation lama merujuknya lewat refType/refId, dan
+// menjatuhkannya akan meninggalkan rujukan menggantung di jejak stock.
 model KoreksiStock {
   id              String      @id @default(cuid())
   stockId         String
@@ -1040,7 +1038,7 @@ Hanya transisi di tabel ini diizinkan; lainnya → HTTP 409.
 
 **E2 — Master Data:** T2.1 CRUD Kelurahan; T2.2 CRUD Bank Sampah+map (Logic+UI); T2.3 CRUD Petugas+assign (Logic); T2.4 CRUD Jenis Sampah+seed 1–7 (Logic+DB); T2.5 Harga dikelola di Jenis Sampah (Logic); T2.6 CRUD Pembeli.
 
-**E3 — Setoran & Stock:** T3.1 CRUD Nasabah scoped; T3.2 Form setoran multi-item (Logic+UI); T3.3 `POST /api/setoran` `$transaction`; T3.4 Update Stock+Mutation MASUK; T3.5 Gerbang kualitas+alasan; T3.6 Bukti setor (UI); T3.7 Halaman stock sendiri (UI); T3.8 Koreksi stock langsung; T3.9 Riwayat koreksi; T3.10 Riwayat+filter.
+**E3 — Setoran & Stock:** T3.1 CRUD Nasabah scoped; T3.2 Form setoran multi-item (Logic+UI); T3.3 `POST /api/setoran` `$transaction`; T3.4 Update Stock+Mutation MASUK; T3.5 Gerbang kualitas+alasan; T3.6 Bukti setor (UI); T3.7 Halaman stock sendiri (UI); T3.8 Riwayat+filter.
 
 **E4 — Dispatch & Penjualan:** T4.1 Form dispatch+validasi; T4.2 Tombol Terbitkan; T4.3 `transisiDispatch()`+guard; T4.4 Reservasi stock; T4.5 Terima/tolak (UI); T4.6 Berat aktual+selisih; T4.7 Serah terima+foto; T4.8 Verifikasi & tutup.
 
@@ -1114,6 +1112,7 @@ export const TARGET_SENTUH_MIN_PX = 44
 | 1.1 | 15 Agu 2026 | Restrukturisasi ke format 8-bagian (Overview, Requirements, Core Features, User Flow, Architecture, Sequence, DB Schema, Tech Stack) tanpa menghilangkan aturan terkunci, matriks akses, kontrak API, skema, dan keputusan terbuka. |
 | 1.2 | 17 Agu 2026 | Tambah soft delete (`deletedAt DateTime?`) pada 7 model master data; aturan BR-17 + query filter `deletedAt IS NULL`. |
 | 1.3 | 19 Agu 2026 | Ganti Supabase Auth → NextAuth (Auth.js) Credentials: tabel `credential` baru (hash bcrypt), `User.authUserId` dihapus, guard 2 lapis (menghapus RLS), update §5, §7, §8. |
+| 1.5 | 24 Agu 2026 | **Hapus fitur koreksi stock** (FR-C7, FR-C8) beserta endpoint `POST/GET /api/koreksi-stock` dan halamannya. Konsekuensi: stock hanya berubah lewat Setoran (MASUK) dan serah terima Dispatch (KELUAR) — tidak ada lagi jalur koreksi manual. Model `KoreksiStock` **dipertahankan** untuk data historis karena `StockMutation` lama merujuknya. Update §2.1, §2.4, §2.5, §7.2, §8.4. |
 | 1.4 | 19 Agu 2026 | Hapus model `HargaSampah`; harga dipindah ke kolom `harga` di `JenisSampah` (flat, tidak ada lagi riwayat). `KoreksiStock` diubah jadi koreksi langsung oleh PETUGAS tanpa approval: `beratSebelum`/`beratSesudah`/`dilakukanOlehId`, hapus enum `StatusKoreksi`. Update §2, §5.2, §7, §8.4. |
 
 **Catatan akhir:** Dokumen ini akan usang kalau tidak diperbarui. Setiap keputusan di rapat wajib masuk ke sini di hari yang sama, dengan menaikkan nomor versi.
