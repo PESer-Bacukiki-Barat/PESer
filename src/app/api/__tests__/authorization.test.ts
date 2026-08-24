@@ -23,6 +23,8 @@ import * as dispatch from "@/app/api/dispatch/route"
 import * as dispatchId from "@/app/api/dispatch/[id]/route"
 import * as koreksiStock from "@/app/api/koreksi-stock/route"
 import * as profil from "@/app/api/profil/route"
+import * as laporanPenjualan from "@/app/api/laporan/penjualan/route"
+import * as laporanVolume from "@/app/api/laporan/volume/route"
 import * as setoran from "@/app/api/setoran/route"
 import * as stock from "@/app/api/stock/route"
 import * as terbitkan from "@/app/api/dispatch/[id]/terbitkan/route"
@@ -71,6 +73,9 @@ const ADMIN_ONLY: [string, Handler][] = [
   ["GET    /api/users/[id]", usersId.GET as Handler],
   ["PUT    /api/users/[id]", usersId.PUT as Handler],
   ["DELETE /api/users/[id]", usersId.DELETE as Handler],
+  // Modul E — laporan: PRD baris 225 menandai PETUGAS eksplisit TIDAK boleh
+  ["GET    /api/laporan/penjualan", laporanPenjualan.GET as Handler],
+  ["GET    /api/laporan/volume", laporanVolume.GET as Handler],
   // Modul D — dispatch dibuat & dibatalkan admin (FR-D1, FR-D7)
   ["POST   /api/dispatch", dispatch.POST as Handler],
   ["PUT    /api/dispatch/[id]", dispatchId.PUT as Handler],

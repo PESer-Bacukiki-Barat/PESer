@@ -56,6 +56,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   its own P2002/P2025 handling. Payloads are scrubbed of `passwordHash` /
   `password` / `idempotencyKey` (§5.3). Guarded by `src/lib/__tests__/audit.test.ts`.
 - Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
+- Reports live in `src/lib/laporan.ts` — query AND aggregation in one module used
+  by both `/api/laporan/*` and `/admin/laporan`, so the numbers on screen can
+  never disagree with the CSV. Penjualan counts **only** `SELESAI` dispatches:
+  BR-13 makes that status final, which is what satisfies G6 "tanpa selisih
+  retroaktif" structurally rather than by discipline. §4.3 forbids caching report
+  pages, so both the page and the endpoints send `no-store`.
+- CSV responses skip the §2.5 envelope on purpose — it governs JSON, and these are
+  file downloads (same kind of exception as a bodyless 204). `buildCsv` in
+  `src/lib/export.ts` is shared by the server route and the browser download.
 - Self-service profile is `PATCH /api/profil` (FR-A2) — it re-verifies the old
   password with bcrypt even though the session is valid, and its zod schema
   deliberately omits `role`/`bankSampahId`/`isActive`/`email` so nobody can
