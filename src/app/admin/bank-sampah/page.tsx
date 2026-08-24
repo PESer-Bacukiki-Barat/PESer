@@ -60,7 +60,6 @@ export default async function BankSampahPage() {
         </p>
       </div>
 
-<<<<<<< HEAD
       <BankSampahTable
         bankSampah={bankSampah.map((b) => ({
           id: b.id,
@@ -74,10 +73,6 @@ export default async function BankSampahPage() {
         }))}
         kelurahanOptions={kelurahanOptions}
       />
-=======
-      <BankSampahTable bankSampah={BANK_SAMPAH} />
-      <BankSampahStockSummary bankSampah={BANK_SAMPAH} />
->>>>>>> feature/frontend/admin
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { dispatchSchema } from "../schema"
 import { requireAuth } from "@/lib/auth"
@@ -89,7 +90,7 @@ export async function PUT(
            entitas: "Dispatch",
            entitasId: id,
            payloadBefore: JSON.parse(JSON.stringify(existing)),
-           payloadAfter: null,
+            payloadAfter: Prisma.JsonNull,
          },
        })
      })

@@ -1,6 +1,4 @@
 import { BANK_SAMPAH } from "@/lib/bank-sampah-data";
-import { JENIS_SAMPAH } from "@/lib/jenis-sampah-data";
-import { PEMBELI } from "@/lib/pembeli-data";
 
 export type DispatchStatus =
   | "DRAFT"
@@ -87,18 +85,13 @@ export type DispatchFormValues = {
   alasan: string;
 };
 
-export const BANK_SAMPAH_OPTIONS = BANK_SAMPAH.filter((b) => b.status === "Active").map(
+export const BANK_SAMPAH_OPTIONS = BANK_SAMPAH.filter((b) => b.isActive).map(
   (b) => ({ value: b.id, label: b.nama }),
 );
 
-export const PEMBELI_OPTIONS = PEMBELI.filter((p) => p.status === "Aktif").map((p) => ({
-  value: p.id,
-  label: p.nama,
-}));
+export const PEMBELI_OPTIONS: { value: string; label: string }[] = [];
 
-export const JENIS_SAMPAH_OPTIONS = JENIS_SAMPAH.filter((j) => j.status === "Aktif").map(
-  (j) => ({ value: j.kode, label: j.nama }),
-);
+export const JENIS_SAMPAH_OPTIONS: { value: string; label: string }[] = [];
 
 export const DISPATCH: Dispatch[] = [
   {

@@ -1,7 +1,4 @@
 import { BANK_SAMPAH } from "@/lib/bank-sampah-data";
-import { JENIS_SAMPAH } from "@/lib/jenis-sampah-data";
-import { NASABAH } from "@/lib/nasabah-data";
-import { PETUGAS } from "@/lib/petugas-data";
 
 export type KondisiSampah = "BERSIH" | "KOTOR" | "CAMPUR";
 
@@ -55,15 +52,15 @@ export function kondisiStyle(kondisi: KondisiSampah): string {
 }
 
 export function getNasabahName(nasabahId: string): string {
-  return NASABAH.find((n) => n.id === nasabahId)?.nama ?? nasabahId;
+  return nasabahId;
 }
 
 export function getPetugasName(petugasId: string): string {
-  return PETUGAS.find((p) => p.email === petugasId)?.nama ?? petugasId;
+  return petugasId;
 }
 
 export function getJenisSampahName(jenisSampahId: string): string {
-  return JENIS_SAMPAH.find((j) => j.kode === jenisSampahId)?.nama ?? jenisSampahId;
+  return jenisSampahId;
 }
 
 function formatDate(dateStr: string): string {
