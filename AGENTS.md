@@ -56,6 +56,21 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   its own P2002/P2025 handling. Payloads are scrubbed of `passwordHash` /
   `password` / `idempotencyKey` (§5.3). Guarded by `src/lib/__tests__/audit.test.ts`.
 - Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
+- **Offline setoran (Modul F).** The queue lives in `src/lib/antrean-setoran.ts`
+  (IndexedDB, keyed by the client's `idempotencyKey`) and the send loop in
+  `src/lib/sinkron-setoran.ts`. Both are pure w.r.t. their dependencies so the
+  whole thing is unit-tested without a browser. A draft is deleted only AFTER the
+  server confirms; 4xx marks it `GAGAL` (retrying can't help), anything else keeps
+  it queued. Never handle the queue inside the service worker — the badge and the
+  logout warning (§4.3 rules 5–6) need it visible to the app.
+- `public/sw.js` checks its `JANGAN_CACHE` list first: §4.3 forbids caching
+  dispatch/laporan/admin because stale stock can double-sell the same goods.
+- Browser state (online/offline) is read with `useSyncExternalStore`
+  (`src/lib/use-online.ts`), not `useState` + effect — that avoids both the extra
+  render and the hydration mismatch when a page loads while already offline.
+- `/sw.js` and `/manifest.webmanifest` **must stay out of the middleware matcher**.
+  Browsers fetch them without following redirects, so sending them to `/login`
+  silently breaks service-worker registration and installability.
 - Reports live in `src/lib/laporan.ts` — query AND aggregation in one module used
   by both `/api/laporan/*` and `/admin/laporan`, so the numbers on screen can
   never disagree with the CSV. Penjualan counts **only** `SELESAI` dispatches:

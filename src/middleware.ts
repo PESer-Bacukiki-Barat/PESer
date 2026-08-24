@@ -10,7 +10,10 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   if (pathname.startsWith("/api")) return NextResponse.next()
 
-  const isPublic = pathname === "/" || pathname === "/login"
+  // /offline harus publik: ia justru ditampilkan ketika jaringan mati, dan
+  // pada saat itu memeriksa sesi ke server tidak mungkin berhasil.
+  const isPublic =
+    pathname === "/" || pathname === "/login" || pathname === "/offline"
   const isLoggedIn = !!req.auth
 
   if (!isLoggedIn && !isPublic) {
@@ -45,6 +48,10 @@ export const runtime = "nodejs"
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // sw.js dan manifest.webmanifest HARUS lolos tanpa middleware: browser
+    // memintanya tanpa mengikuti redirect, jadi mengarahkannya ke /login
+    // membuat service worker gagal terdaftar dan PWA tidak bisa dipasang —
+    // tanpa pesan error apa pun.
+    "/((?!_next/static|_next/image|favicon.ico|sw\.js|manifest\.webmanifest|icons/|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

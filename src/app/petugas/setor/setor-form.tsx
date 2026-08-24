@@ -2,11 +2,12 @@
 
 import { useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2 } from "lucide-react"
+import { CloudOff, Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Field, inputClass } from "@/components/admin/form-fields"
-import { api, apiError, apiFieldErrors } from "@/lib/api"
+import { api, apiError, apiFieldErrors, apiStatus } from "@/lib/api"
+import { useAntrean } from "@/components/petugas/antrean-provider"
 import { KONDISI_SAMPAH_OPTIONS, type KondisiSampah } from "@/lib/setoran-data"
 
 export type NasabahOpsi = { id: string; kodeNasabah: string; nama: string }
@@ -46,6 +47,7 @@ export function SetorForm({
   jenis: JenisOpsi[]
 }) {
   const router = useRouter()
+  const { antrekan, online } = useAntrean()
 
   const [nasabahId, setNasabahId] = useState("")
   const [cari, setCari] = useState("")
@@ -54,6 +56,7 @@ export function SetorForm({
   const [mengirim, setMengirim] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<Record<string, string>>({})
+  const [diantrekan, setDiantrekan] = useState(false)
 
   /**
    * Kunci idempotensi disimpan di ref, bukan state: ia tidak memengaruhi
@@ -102,28 +105,56 @@ export function SetorForm({
 
   async function kirim() {
     idempotencyKey.current ??= crypto.randomUUID()
+    const kunci = idempotencyKey.current
     setMengirim(true)
     setError(null)
     setFieldError({})
+
+    const payload = {
+      nasabahId,
+      cashDibayar,
+      items: baris.map((b) => ({
+        jenisSampahId: b.jenisSampahId,
+        berat: Number(b.berat),
+        kondisi: b.kondisi,
+      })),
+    }
+    const ringkasan = {
+      nasabah: nasabah.find((n) => n.id === nasabahId)?.nama ?? "Nasabah",
+      totalBerat,
+      totalNilai,
+    }
+
+    // Sudah tahu offline sebelum mencoba: langsung antrekan, tanpa membuat
+    // petugas menunggu permintaan yang pasti gagal (§4.3 "Input setoran wajib
+    // offline").
+    if (!online) {
+      await antrekan(kunci, payload, ringkasan)
+      setDiantrekan(true)
+      setMengirim(false)
+      return
+    }
+
     try {
-      const { data } = await api.post<{ id: string }>(
-        "/setoran",
-        {
-          nasabahId,
-          cashDibayar,
-          items: baris.map((b) => ({
-            jenisSampahId: b.jenisSampahId,
-            berat: Number(b.berat),
-            kondisi: b.kondisi,
-          })),
-        },
-        { headers: { "Idempotency-Key": idempotencyKey.current } },
-      )
+      const { data } = await api.post<{ id: string }>("/setoran", payload, {
+        headers: { "Idempotency-Key": kunci },
+      })
       router.push(`/petugas/setoran/${data.id}`)
     } catch (e) {
-      const fe = apiFieldErrors(e)
-      if (fe) setFieldError(fe)
-      setError(apiError(e))
+      const status = apiStatus(e)
+      // 4xx berarti isinya yang salah — mengantrekannya hanya menunda
+      // kegagalan yang sama, jadi tampilkan supaya bisa diperbaiki sekarang.
+      if (status && status >= 400 && status < 500) {
+        const fe = apiFieldErrors(e)
+        if (fe) setFieldError(fe)
+        setError(apiError(e))
+        setMengirim(false)
+        return
+      }
+      // Jaringan mati atau server bermasalah: simpan, jangan buang hasil
+      // timbangan yang sudah dicatat di depan warga.
+      await antrekan(kunci, payload, ringkasan)
+      setDiantrekan(true)
       setMengirim(false)
     }
   }
@@ -134,6 +165,66 @@ export function SetorForm({
         Belum ada nasabah aktif di bank sampah ini. Nasabah didaftarkan lebih dulu
         sebelum setoran bisa dicatat.
       </p>
+    )
+  }
+
+  /** Mulai pengisian baru: kunci idempotensi harus baru juga. */
+  function mulaiBaru() {
+    idempotencyKey.current = null
+    setNasabahId("")
+    setCari("")
+    setBaris([barisBaru()])
+    setCashDibayar(true)
+    setDiantrekan(false)
+    setError(null)
+    setFieldError({})
+  }
+
+  if (diantrekan) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-start gap-3 rounded-xl border border-tertiary bg-tertiary-container/40 p-4">
+          <CloudOff className="size-5 shrink-0 text-on-tertiary-container" aria-hidden />
+          <div className="min-w-0">
+            <p className="font-headline-md text-[16px] font-semibold text-on-tertiary-container">
+              Tersimpan di antrean
+            </p>
+            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
+              {online
+                ? "Server belum bisa dihubungi. Setoran ini akan terkirim otomatis begitu koneksi stabil."
+                : "Anda sedang offline. Setoran ini akan terkirim otomatis begitu koneksi pulih."}
+            </p>
+          </div>
+        </div>
+
+        <dl className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-1">
+          <div className="flex items-baseline justify-between">
+            <dt className="font-label-md text-label-md text-on-surface-variant">
+              Total berat
+            </dt>
+            <dd className="font-label-md text-label-md font-mono text-on-surface">
+              {fmtBerat(totalBerat)} kg
+            </dd>
+          </div>
+          <div className="flex items-baseline justify-between">
+            <dt className="font-label-md text-label-md text-on-surface-variant">
+              Total nilai
+            </dt>
+            <dd className="font-headline-sm text-headline-sm font-mono font-semibold text-primary">
+              {fmtRupiah(totalNilai)}
+            </dd>
+          </div>
+        </dl>
+
+        <p className="font-label-sm text-label-sm text-on-surface-variant">
+          Jumlah antrean terlihat di badge pada header. Jangan keluar dari aplikasi
+          di perangkat lain — antrean tersimpan di perangkat ini.
+        </p>
+
+        <Button type="button" className="w-full h-12" onClick={mulaiBaru}>
+          Catat Setoran Berikutnya
+        </Button>
+      </div>
     )
   }
 
