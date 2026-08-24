@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { getServerUser } from "@/lib/auth"
@@ -47,14 +48,20 @@ export default async function PetugasLayout({
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
       <header className="sticky top-0 z-40 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
+          {/* Header sekaligus jalan masuk ke profil: bottom nav sudah penuh
+              lima item, dan menambah item keenam akan menyempitkan target
+              sentuh di bawah TARGET_SENTUH_MIN_PX. */}
+          <Link
+            href="/petugas/profil"
+            className="min-w-0 rounded-lg px-1 -mx-1 transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          >
             <p className="font-label-sm text-label-sm text-on-surface-variant">
               {user.nama}
             </p>
             <p className="font-headline-md text-[16px] font-semibold text-on-surface truncate">
               {user.bankSampah.nama}
             </p>
-          </div>
+          </Link>
           <form action={logout}>
             <button
               type="submit"

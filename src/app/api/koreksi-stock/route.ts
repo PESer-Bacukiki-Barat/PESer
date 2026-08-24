@@ -13,6 +13,18 @@ export async function GET() {
   const data = await prisma.koreksiStock.findMany({
     where,
     orderBy: { createdAt: "desc" },
+    take: 100,
+    // Tanpa relasi ini riwayat hanya berisi id, jadi tidak bisa dibaca
+    // manusia — padahal FR-C8 justru tentang membacanya.
+    include: {
+      dilakukanOleh: { select: { nama: true } },
+      stock: {
+        select: {
+          jenisSampah: { select: { nama: true } },
+          bankSampah: { select: { nama: true } },
+        },
+      },
+    },
   })
   return ok(data)
 }
@@ -32,6 +44,18 @@ export async function POST(request: Request) {
 
   const stock = await prisma.stock.findFirst({ where: { id: stockId, bankSampahId } })
   if (!stock) return fail("TIDAK_DITEMUKAN", "Stock tidak ditemukan")
+
+  // Koreksi tidak boleh turun di bawah berat yang sudah direservasi dispatch
+  // berjalan (BR-12). Tanpa penjagaan ini stock tersedia jadi negatif dan
+  // dispatch memegang klaim atas barang yang tidak ada lagi.
+  const reservasi = stock.beratReservasi.toNumber()
+  if (beratBaru < reservasi) {
+    return fail(
+      "STOCK_TIDAK_CUKUP",
+      `${reservasi.toFixed(2)} kg sedang direservasi dispatch, koreksi tidak boleh di bawah itu`,
+      { field: "beratBaru" },
+    )
+  }
 
   const beratLama = stock.berat.toNumber()
   const selisih = beratBaru - beratLama

@@ -56,6 +56,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   its own P2002/P2025 handling. Payloads are scrubbed of `passwordHash` /
   `password` / `idempotencyKey` (§5.3). Guarded by `src/lib/__tests__/audit.test.ts`.
 - Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
+- Self-service profile is `PATCH /api/profil` (FR-A2) — it re-verifies the old
+  password with bcrypt even though the session is valid, and its zod schema
+  deliberately omits `role`/`bankSampahId`/`isActive`/`email` so nobody can
+  escalate their own account through the body. Admin-managed user edits stay in
+  `/api/users/[id]`.
+- Stock corrections (`POST /api/koreksi-stock`, FR-C7) may not drop `berat` below
+  `beratReservasi` — a running dispatch already holds a claim on that weight
+  (BR-12). The UI shows the floor before the server has to reject it.
 - **Dispatch status changes only through `transisiDispatch()`** in
   `src/lib/dispatch-transisi.ts` (§8.2 mandates a single state machine). The six
   action routes under `api/dispatch/[id]/{terbitkan,terima,tolak,serah-terima,tutup,batalkan}`

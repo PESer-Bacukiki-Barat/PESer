@@ -22,6 +22,7 @@ import * as usersId from "@/app/api/users/[id]/route"
 import * as dispatch from "@/app/api/dispatch/route"
 import * as dispatchId from "@/app/api/dispatch/[id]/route"
 import * as koreksiStock from "@/app/api/koreksi-stock/route"
+import * as profil from "@/app/api/profil/route"
 import * as setoran from "@/app/api/setoran/route"
 import * as stock from "@/app/api/stock/route"
 import * as terbitkan from "@/app/api/dispatch/[id]/terbitkan/route"
@@ -99,6 +100,10 @@ const ANY_LOGGED_IN: [string, Handler][] = [
   ["GET    /api/pembeli/[id]", pembeliId.GET as Handler],
   // Riwayat transaksi & stock dibaca kedua role, dibatasi scope bukan role
   // (FR-C5/C6/C9) — scope-nya sendiri diuji di setoran.test.ts & stock.test.ts.
+  // Profil sendiri (FR-A2) juga terbuka untuk kedua role: yang membatasi bukan
+  // peran, tapi id dari sesi — diuji di profil.test.ts.
+  ["GET    /api/profil", profil.GET as unknown as Handler],
+  ["PATCH  /api/profil", profil.PATCH as unknown as Handler],
   ["GET    /api/setoran", setoran.GET as Handler],
   ["GET    /api/stock", stock.GET as unknown as Handler],
 ]
