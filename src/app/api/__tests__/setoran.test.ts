@@ -13,14 +13,20 @@ import { requireAuth } from "@/lib/auth"
 import { GET, POST } from "@/app/api/setoran/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
+jest.mock("@/lib/prisma", () => {
+  // Handler tulis kini menjalankan operasi + AuditLog dalam satu
+  // $transaction (PRD §2.5 aturan 2). tx diarahkan ke objek mock yang
+  // sama supaya assertion pada model tetap berlaku apa adanya.
+  const m = {
     setoran: { findUnique: jest.fn(), findMany: jest.fn() },
     nasabah: { findFirst: jest.fn() },
     jenisSampah: { findMany: jest.fn() },
+    auditLog: { create: jest.fn() },
     $transaction: jest.fn(),
-  },
-}))
+  }
+  m.$transaction.mockImplementation((cb: (t: typeof m) => unknown) => cb(m))
+  return { prisma: m }
+})
 
 const mAuth = requireAuth as jest.Mock
 const mPrisma = prisma as unknown as {

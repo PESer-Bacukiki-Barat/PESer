@@ -5,16 +5,23 @@ import { GET, POST } from "@/app/api/kelurahan/route"
 import { GET as GET_ID, PUT, DELETE } from "@/app/api/kelurahan/[id]/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
+jest.mock("@/lib/prisma", () => {
+  // Handler tulis kini menjalankan operasi + AuditLog dalam satu
+  // $transaction (PRD §2.5 aturan 2). tx diarahkan ke objek mock yang
+  // sama supaya assertion pada model tetap berlaku apa adanya.
+  const m = {
     kelurahan: {
       findMany: jest.fn(),
       create: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
     },
-  },
-}))
+    auditLog: { create: jest.fn() },
+    $transaction: jest.fn(),
+  }
+  m.$transaction.mockImplementation((cb: (t: typeof m) => unknown) => cb(m))
+  return { prisma: m }
+})
 
 const mAuth = requireAuth as jest.Mock
 type ModelMock = { findMany: jest.Mock; create: jest.Mock; findFirst: jest.Mock; update: jest.Mock }
@@ -30,6 +37,14 @@ const params = (id: string) => ({ params: Promise.resolve({ id }) })
 const payload = async (res: Response) => (await res.json()).data
 
 const validBody = { nama: "Sukamaju", kodeWilayah: "32.01.01" }
+
+// jest.config.mjs memakai resetMocks: true, yang menghapus implementasi mock
+// sebelum setiap test — termasuk $transaction. Jadi dipasang ulang di sini,
+// bukan di factory jest.mock.
+const mTx = prisma as unknown as { $transaction: jest.Mock }
+beforeEach(() => {
+  mTx.$transaction.mockImplementation((cb: (t: typeof prisma) => unknown) => cb(prisma))
+})
 
 describe("GET /api/kelurahan", () => {
   it("mengembalikan daftar kelurahan", async () => {

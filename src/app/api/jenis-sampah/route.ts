@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { jenisSampahSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { denganAudit } from "@/lib/audit"
 
 const notDeleted = { deletedAt: null }
 
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
     return failValidation(parsed.error.issues)
   }
   try {
-    const data = await prisma.jenisSampah.create({ data: parsed.data })
+    const data = await denganAudit(
+      { operasi: "BUAT", entitas: "JenisSampah", userId: auth.user.id },
+      (tx) => tx.jenisSampah.create({ data: parsed.data }),
+    )
     return created(data)
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {

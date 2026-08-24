@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { nasabahSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { denganAudit } from "@/lib/audit"
 
 const notDeleted = { deletedAt: null }
 
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
     return failValidation(parsed.error.issues)
   }
   try {
-    const data = await prisma.nasabah.create({ data: parsed.data })
+    const data = await denganAudit(
+      { operasi: "BUAT", entitas: "Nasabah", userId: auth.user.id },
+      (tx) => tx.nasabah.create({ data: parsed.data }),
+    )
     return created(data)
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

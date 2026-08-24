@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { kelurahanSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { denganAudit } from "@/lib/audit"
 
 const notDeleted = { deletedAt: null }
 
@@ -20,7 +21,10 @@ export async function POST(request: Request) {
     return failValidation(parsed.error.issues)
   }
   try {
-    const data = await prisma.kelurahan.create({ data: parsed.data })
+    const data = await denganAudit(
+      { operasi: "BUAT", entitas: "Kelurahan", userId: auth.user.id },
+      (tx) => tx.kelurahan.create({ data: parsed.data }),
+    )
     return created(data)
   } catch {
     return fail("DUPLIKAT", "kodeWilayah sudah dipakai", { field: "kodeWilayah" })

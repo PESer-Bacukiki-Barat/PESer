@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { userCreateSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { denganAudit } from "@/lib/audit"
 
 const notDeleted = { deletedAt: null }
 
@@ -27,13 +28,17 @@ export async function POST(request: Request) {
   const passwordHash = await bcrypt.hash(password, 10)
 
   try {
-    const data = await prisma.user.create({
-      data: {
-        ...rest,
-        credential: { create: { email: rest.email, passwordHash } },
-      },
-      include: { bankSampah: { select: { id: true, nama: true } } },
-    })
+    const data = await denganAudit(
+      { operasi: "BUAT", entitas: "User", userId: auth.user.id },
+      (tx) =>
+        tx.user.create({
+          data: {
+            ...rest,
+            credential: { create: { email: rest.email, passwordHash } },
+          },
+          include: { bankSampah: { select: { id: true, nama: true } } },
+        }),
+    )
     return created(data)
   } catch {
     return fail("DUPLIKAT", "email sudah dipakai", { field: "email" })

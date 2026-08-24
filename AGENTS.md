@@ -50,6 +50,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Every write handler must write `AuditLog` inside the same transaction (§2.5
   rule 2), and `Stock` must never change outside a transaction that also writes
   `StockMutation` (§8.7). `POST /api/setoran` is the reference implementation.
+- For plain CRUD, wrap the write in `denganAudit()` from `src/lib/audit.ts` — it
+  opens the transaction, writes the audit row, and re-throws so each route keeps
+  its own P2002/P2025 handling. Payloads are scrubbed of `passwordHash` /
+  `password` / `idempotencyKey` (§5.3). Guarded by `src/lib/__tests__/audit.test.ts`.
 - Magic numbers belong in `src/lib/constants.ts` (§8.7 mandates the file).
 - **Dispatch status changes only through `transisiDispatch()`** in
   `src/lib/dispatch-transisi.ts` (§8.2 mandates a single state machine). The six

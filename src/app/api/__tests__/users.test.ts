@@ -6,16 +6,23 @@ import { GET as GET_ID, PUT, DELETE } from "@/app/api/users/[id]/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("bcryptjs", () => ({ hash: jest.fn().mockResolvedValue("hashed") }))
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
+jest.mock("@/lib/prisma", () => {
+  // Handler tulis kini menjalankan operasi + AuditLog dalam satu
+  // $transaction (PRD §2.5 aturan 2). tx diarahkan ke objek mock yang
+  // sama supaya assertion pada model tetap berlaku apa adanya.
+  const m = {
     user: {
       findMany: jest.fn(),
       create: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
     },
-  },
-}))
+    auditLog: { create: jest.fn() },
+    $transaction: jest.fn(),
+  }
+  m.$transaction.mockImplementation((cb: (t: typeof m) => unknown) => cb(m))
+  return { prisma: m }
+})
 
 type ModelMock = { findMany: jest.Mock; create: jest.Mock; findFirst: jest.Mock; update: jest.Mock }
 
@@ -51,6 +58,14 @@ const body = (over: object = {}) => new Request("http://x", { method: "POST", bo
 const putBody = (over: object = {}) => new Request("http://x", { method: "PUT", body: JSON.stringify({ ...validUpdate, ...over }) })
 
 const userRow = { id: "u1", email: "andi@mail.com", nama: "Andi", role: "ADMIN" }
+
+// jest.config.mjs memakai resetMocks: true, yang menghapus implementasi mock
+// sebelum setiap test — termasuk $transaction. Jadi dipasang ulang di sini,
+// bukan di factory jest.mock.
+const mTx = prisma as unknown as { $transaction: jest.Mock }
+beforeEach(() => {
+  mTx.$transaction.mockImplementation((cb: (t: typeof prisma) => unknown) => cb(prisma))
+})
 
 describe("GET /api/users", () => {
   it("mengembalikan daftar user (role ADMIN)", async () => {
@@ -181,6 +196,8 @@ describe("PUT /api/users/[id]", () => {
 describe("DELETE /api/users/[id]", () => {
   it("soft delete user + credential → 204", async () => {
     mAuth.mockResolvedValue(authOk)
+    // handler memakai hasil update untuk entitasId di AuditLog
+    m.update.mockResolvedValue({ id: "u1" })
     m.findFirst.mockResolvedValue({ ...userRow })
     const res = await DELETE(new Request("http://x"), params("u1"))
     expect(res.status).toBe(204)

@@ -5,16 +5,23 @@ import { GET, POST } from "@/app/api/bank-sampah/route"
 import { GET as GET_ID, PUT, DELETE } from "@/app/api/bank-sampah/[id]/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
+jest.mock("@/lib/prisma", () => {
+  // Handler tulis kini menjalankan operasi + AuditLog dalam satu
+  // $transaction (PRD §2.5 aturan 2). tx diarahkan ke objek mock yang
+  // sama supaya assertion pada model tetap berlaku apa adanya.
+  const m = {
     bankSampah: {
       findMany: jest.fn(),
       create: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
     },
-  },
-}))
+    auditLog: { create: jest.fn() },
+    $transaction: jest.fn(),
+  }
+  m.$transaction.mockImplementation((cb: (t: typeof m) => unknown) => cb(m))
+  return { prisma: m }
+})
 
 const mAuth = requireAuth as jest.Mock
 type ModelMock = { findMany: jest.Mock; create: jest.Mock; findFirst: jest.Mock; update: jest.Mock }
@@ -39,6 +46,14 @@ const validBody = {
 }
 
 const body = (over: object = {}) => new Request("http://x", { method: "POST", body: JSON.stringify({ ...validBody, ...over }) })
+
+// jest.config.mjs memakai resetMocks: true, yang menghapus implementasi mock
+// sebelum setiap test — termasuk $transaction. Jadi dipasang ulang di sini,
+// bukan di factory jest.mock.
+const mTx = prisma as unknown as { $transaction: jest.Mock }
+beforeEach(() => {
+  mTx.$transaction.mockImplementation((cb: (t: typeof prisma) => unknown) => cb(prisma))
+})
 
 describe("GET /api/bank-sampah", () => {
   it("mengembalikan daftar", async () => {
@@ -156,6 +171,8 @@ describe("PUT /api/bank-sampah/[id]", () => {
 describe("DELETE /api/bank-sampah/[id]", () => {
   it("soft delete → 204", async () => {
     mAuth.mockResolvedValue(authOk)
+    // handler memakai hasil update untuk entitasId di AuditLog
+    m.update.mockResolvedValue({ id: "b1" })
     const res = await DELETE(new Request("http://x"), params("b1"))
     expect(res.status).toBe(204)
     expect(m.update).toHaveBeenCalledWith({ where: { id: "b1" }, data: { deletedAt: expect.any(Date) } })

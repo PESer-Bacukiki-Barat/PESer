@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { dispatchSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { denganAudit } from "@/lib/audit"
 
 export async function GET() {
   const auth = await requireAuth()
@@ -58,26 +59,30 @@ export async function POST(request: Request) {
   }
 
   try {
-    const data = await prisma.dispatch.create({
-      data: {
-        kodeDispatch: parsed.data.kodeDispatch,
-        bankSampahId: parsed.data.bankSampahId,
-        pembeliId: parsed.data.pembeliId,
-        dibuatOlehId: auth.user.id,
-        tanggalJemput: parsed.data.tanggalJemput,
-        totalNilai: parsed.data.totalNilai,
-        alasanTolak: parsed.data.alasanTolak,
-        alasanSelisih: parsed.data.alasanSelisih,
-        selisihSignifikan: parsed.data.selisihSignifikan,
-        items: {
-          create: parsed.data.items.map((i) => ({
-            jenisSampahId: i.jenisSampahId,
-            beratTarget: i.beratTarget,
-            hargaJualPerKg: i.hargaJualPerKg,
-          })),
-        },
-      },
-    })
+    const data = await denganAudit(
+      { operasi: "BUAT", entitas: "Dispatch", userId: auth.user.id },
+      (tx) =>
+        tx.dispatch.create({
+          data: {
+            kodeDispatch: parsed.data.kodeDispatch,
+            bankSampahId: parsed.data.bankSampahId,
+            pembeliId: parsed.data.pembeliId,
+            dibuatOlehId: auth.user.id,
+            tanggalJemput: parsed.data.tanggalJemput,
+            totalNilai: parsed.data.totalNilai,
+            alasanTolak: parsed.data.alasanTolak,
+            alasanSelisih: parsed.data.alasanSelisih,
+            selisihSignifikan: parsed.data.selisihSignifikan,
+            items: {
+              create: parsed.data.items.map((i) => ({
+                jenisSampahId: i.jenisSampahId,
+                beratTarget: i.beratTarget,
+                hargaJualPerKg: i.hargaJualPerKg,
+              })),
+            },
+          },
+        }),
+    )
     return created(data)
   } catch {
     return fail("PERMINTAAN_GAGAL", "gagal membuat dispatch")
