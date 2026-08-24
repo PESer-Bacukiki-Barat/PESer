@@ -90,7 +90,7 @@ export default function TransaksiTabs({
       <div className="flex items-center justify-between mb-stack-lg">
         <nav
           aria-label="Tabs"
-          className="inline-flex items-center gap-1 p-1.5 bg-surface-container-high rounded-full border border-outline-variant"
+          className="inline-flex items-center gap-1 p-1.5 text-white bg-surface-container-high rounded-full border border-outline-variant"
         >
           {tabs.map((tab) => (
             <button
@@ -102,7 +102,7 @@ export default function TransaksiTabs({
                 "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-headline-md text-[15px] font-semibold transition-all duration-200",
                 activeTab === tab.id
                   ? "bg-primary text-on-primary shadow-md"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low",
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-green-200 transition-all duration-200",
               )}
             >
               <tab.Icon className="size-5" />
@@ -110,27 +110,6 @@ export default function TransaksiTabs({
             </button>
           ))}
         </nav>
-
-        {activeTab === "setoran" && (
-          <button
-            type="button"
-            onClick={exportSetoran}
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md"
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Export Data
-          </button>
-        )}
-        {activeTab === "dispatch" && (
-          <button
-            type="button"
-            onClick={exportDispatch}
-            className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md"
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Export Data
-          </button>
-        )}
       </div>
 
       {activeTab === "setoran" && (
