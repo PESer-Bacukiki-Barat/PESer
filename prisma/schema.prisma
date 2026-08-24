@@ -78,6 +78,7 @@ model User {
   id               String          @id @default(cuid())
   email            String          @unique
   nama             String
+  noHp             String? // jangkar penautan akun warga ke Nasabah (dicocokkan per bank sampah)
   role             Role
   bankSampahId     String? // wajib kalau PETUGAS (BR-02)
   bankSampah   BankSampah? @relation(fields: [bankSampahId], references: [id])

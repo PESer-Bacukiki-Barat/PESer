@@ -1,76 +1,67 @@
-import Link from "next/link";
-import {
-  ChevronRight,
-  CircleUserRound,
-  FileText,
-  HelpCircle,
-  Settings,
-  ShieldCheck,
-} from "lucide-react";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { CircleUserRound } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { getServerUser } from "@/lib/auth";
+import { logout } from "@/app/actions/auth";
+import { ProfilForm, type Profil } from "@/components/profil/profil-form";
 
-const MENU = [
-  { label: "Riwayat Transaksi", href: "/aktivitas", icon: FileText },
-  { label: "Bantuan", href: "/", icon: HelpCircle },
-  { label: "Kebijakan Privasi", href: "/", icon: ShieldCheck },
-  { label: "Pengaturan", href: "/", icon: Settings },
-];
+export const metadata: Metadata = {
+  title: "Profil",
+};
 
-export default function ProfilPage() {
+export const dynamic = "force-dynamic";
+
+/**
+ * Profil warga — FR-A2 (ubah nama & password sendiri) memakai form yang sama
+ * dengan panel admin/petugas. Menu Bantuan/Pengaturan/Sertifikat dari mockup
+ * lama dihapus: tidak ada padanannya di PRD.
+ */
+export default async function ProfilUserPage() {
+  const user = await getServerUser();
+  if (!user) redirect("/login");
+
+  const profil: Profil = {
+    nama: user.nama,
+    email: user.email,
+    role: user.role,
+    bankSampah: user.bankSampah ? { nama: user.bankSampah.nama } : null,
+  };
+
   return (
-    <>
-      <header className="px-4 pt-6 pb-2">
-        <h1 className="font-heading text-headline-md text-primary">Profil</h1>
-      </header>
-
-      <main className="flex flex-1 flex-col gap-6 px-4 pb-24">
-        <Card className="bg-gradient-to-br from-secondary to-primary text-primary-foreground shadow-md">
-          <div className="flex items-center gap-4 px-4 py-5">
-            <div className="flex size-14 items-center justify-center rounded-full bg-primary-foreground/15">
-              <CircleUserRound className="size-8" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-heading text-base font-semibold">
-                Budi Santoso
-              </p>
-              <p className="font-mono text-xs text-primary-foreground/80">
-                Member ID · PES-2026-0184
-              </p>
-              <p className="font-mono text-xs text-primary-foreground/80">
-                0812-3456-7890
-              </p>
-            </div>
+    <div className="flex flex-col gap-5">
+      {/* Kartu identitas — Secondary sebagai deep background (DESIGN.md) */}
+      <div className="rounded-xl bg-gradient-to-br from-secondary to-primary p-4 text-on-primary shadow-md">
+        <div className="flex items-center gap-4">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-on-primary/15">
+            <CircleUserRound className="size-8" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-headline-md text-[16px] font-semibold">
+              {user.nama}
+            </p>
+            <p className="font-mono text-xs text-on-primary/80">{user.email}</p>
+            <p className="font-mono text-xs text-on-primary/80">
+              {user.noHp ?? "Nomor HP belum diisi"}
+            </p>
           </div>
-        </Card>
+        </div>
+      </div>
 
-        <Card className="divide-y divide-border">
-          {MENU.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted"
-            >
-              <div
-                className={cn(
-                  "flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary"
-                )}
-              >
-                <item.icon className="size-4" />
-              </div>
-              <span className="flex-1 text-sm font-medium text-foreground">
-                {item.label}
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </Link>
-          ))}
-        </Card>
+      <ProfilForm profil={profil} />
 
-        <p className="text-center font-mono text-xs text-muted-foreground">
-          PESer v0.1.0 · Waste is Value
-        </p>
-      </main>
-    </>
+      <form action={logout}>
+        <button
+          type="submit"
+          className="h-12 min-h-11 w-full rounded-full border border-outline-variant font-label-md text-label-md font-medium text-error transition-colors hover:bg-error-container/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+        >
+          Keluar
+        </button>
+      </form>
+
+      <p className="text-center font-mono font-label-sm text-label-sm text-on-surface-variant">
+        PESer · Waste is Value
+      </p>
+    </div>
   );
 }
