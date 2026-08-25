@@ -17,3 +17,16 @@ export const RETENSI_DRAFT_HARI = 7
 
 /** Ukuran minimum target sentuh di UI mobile, dalam piksel. */
 export const TARGET_SENTUH_MIN_PX = 44
+
+/** Jumlah notifikasi terbaru yang ditarik lonceng sekali muat (FR-E5). */
+export const BATAS_NOTIFIKASI = 20
+
+/**
+ * Jeda polling notifikasi, dalam milidetik.
+ *
+ * PRD §4.2 menetapkan notifikasi ditarik dari DB tanpa broker dan tanpa cron,
+ * jadi kesegarannya dibatasi jeda ini. 60 detik: cukup cepat untuk "stock
+ * lewat ambang" dan "dispatch masuk" yang keduanya bukan kejadian per detik,
+ * dan cukup jarang agar tidak membebani perangkat petugas di lapangan.
+ */
+export const JEDA_POLL_NOTIFIKASI_MS = 60_000

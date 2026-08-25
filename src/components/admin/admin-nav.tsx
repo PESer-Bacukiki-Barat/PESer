@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
-  Bell,
   Building2,
   Contact,
   HelpCircle,
@@ -28,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/actions/auth";
+import { LoncengNotifikasi } from "@/components/notifikasi/lonceng-notifikasi";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -130,9 +130,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 w-1/3">
-          <Button type="button" variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="size-5" />
-          </Button>
+          <LoncengNotifikasi />
           <Button type="button" variant="ghost" size="icon" aria-label="Settings">
             <Settings className="size-5" />
           </Button>

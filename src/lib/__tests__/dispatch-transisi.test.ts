@@ -66,6 +66,10 @@ function mockTx() {
     },
     stockMutation: { create: jest.fn().mockResolvedValue({}) },
     auditLog: { create: jest.fn().mockResolvedValue({}) },
+    // FR-E5: DRAFT -> DISPATCHED memberi tahu petugas pemilik di transaksi yang
+    // sama dengan reservasi stock (diagram urutan PRD §6).
+    user: { findMany: jest.fn().mockResolvedValue([{ id: "u-p1" }]) },
+    notifikasi: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
   }
   mPrisma.$transaction.mockImplementation((cb: (t: typeof tx) => unknown) => cb(tx))
   return tx
@@ -83,6 +87,41 @@ beforeEach(() => {
 async function kode(res: Response): Promise<string> {
   return (await res.json()).error.code
 }
+
+describe("notifikasi dispatch masuk (FR-E5)", () => {
+  it("DRAFT -> DISPATCHED memberi tahu petugas pemilik, di transaksi yang sama", async () => {
+    mPrisma.dispatch.findFirst.mockResolvedValue(dispatchDengan("DRAFT"))
+    const tx = mockTx()
+
+    const hasil = await transisiDispatch({ id: "d1", ke: "DISPATCHED", user: admin })
+
+    expect(hasil.ok).toBe(true)
+    // Satu transaksi saja: kalau reservasi stock gagal, notifikasinya ikut batal.
+    expect(mPrisma.$transaction).toHaveBeenCalledTimes(1)
+    expect(tx.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ role: "PETUGAS", bankSampahId: BS }),
+      }),
+    )
+    const baris = tx.notifikasi.createMany.mock.calls[0][0].data
+    expect(baris[0]).toMatchObject({
+      userId: "u-p1",
+      tipe: "DISPATCH_MASUK",
+      tautan: "/petugas/dispatch/d1",
+      bankSampahId: BS,
+    })
+  })
+
+  it("transisi lain tidak mengirim notifikasi", async () => {
+    // Kalau tidak dijaga, petugas dapat notifikasi tiap kali status bergerak.
+    mPrisma.dispatch.findFirst.mockResolvedValue(dispatchDengan("DISPATCHED"))
+    const tx = mockTx()
+
+    await transisiDispatch({ id: "d1", ke: "DITERIMA", user: pemilik })
+
+    expect(tx.notifikasi.createMany).not.toHaveBeenCalled()
+  })
+})
 
 describe("tabel transisi §8.2", () => {
   const SAH: [StatusDispatch, StatusDispatch, AppUser][] = [

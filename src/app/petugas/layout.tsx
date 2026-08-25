@@ -6,6 +6,7 @@ import { logout } from "@/app/actions/auth"
 import { PetugasNav } from "@/components/petugas/petugas-nav"
 import { AntreanProvider } from "@/components/petugas/antrean-provider"
 import { BadgeAntrean, TombolKeluar } from "@/components/petugas/bar-antrean"
+import { LoncengNotifikasi } from "@/components/notifikasi/lonceng-notifikasi"
 
 /**
  * Shell aplikasi petugas — mobile-first (PRD: petugas bekerja dari HP di
@@ -69,6 +70,7 @@ export default async function PetugasLayout({
           </Link>
           <div className="flex shrink-0 items-center gap-2">
             <BadgeAntrean />
+            <LoncengNotifikasi />
             <TombolKeluar />
           </div>
         </div>

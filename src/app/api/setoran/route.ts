@@ -3,6 +3,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { requireAuth } from "@/lib/auth"
 import { scopeToBankSampah } from "@/lib/scope"
 import { ok, created, fail, failValidation } from "@/lib/response"
+import { melewatiThreshold, notifStockThreshold } from "@/lib/notifikasi"
 import { setoranSchema, setoranQuerySchema } from "./schema"
 
 const HEADER_IDEMPOTENCY = "Idempotency-Key"
@@ -180,7 +181,7 @@ export async function POST(request: Request) {
               jenisSampahId: r.jenisSampahId,
             },
           },
-          select: { id: true, berat: true },
+          select: { id: true, berat: true, threshold: true },
         })
         const beratSebelum = stockLama?.berat ?? new Prisma.Decimal(0)
         const beratSesudah = beratSebelum.add(r.berat)
@@ -213,6 +214,25 @@ export async function POST(request: Request) {
             keterangan: `Setoran ${setoran.kodeTransaksi}`,
           },
         })
+
+        // PRD §4.1 langkah 16: "Cek stock vs threshold -> lewat -> notifikasi
+        // Admin". Syaratnya MELEWATI, bukan sekadar di atas ambang; lihat
+        // melewatiThreshold() untuk alasannya.
+        if (
+          melewatiThreshold({
+            sebelum: Number(beratSebelum),
+            sesudah: Number(beratSesudah),
+            threshold: Number(stockLama?.threshold ?? 0),
+          })
+        ) {
+          await notifStockThreshold(tx, {
+            bankSampahId,
+            namaBankSampah: setoran.bankSampah.nama,
+            namaJenis: jenisById.get(r.jenisSampahId)?.nama ?? "Stock",
+            berat: Number(beratSesudah),
+            threshold: Number(stockLama?.threshold ?? 0),
+          })
+        }
       }
 
       await tx.auditLog.create({

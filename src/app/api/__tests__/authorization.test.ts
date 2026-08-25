@@ -33,6 +33,8 @@ import * as serahTerima from "@/app/api/dispatch/[id]/serah-terima/route"
 import * as tutup from "@/app/api/dispatch/[id]/tutup/route"
 import * as batalkan from "@/app/api/dispatch/[id]/batalkan/route"
 import * as revisi from "@/app/api/dispatch/[id]/revisi/route"
+import * as notifikasi from "@/app/api/notifikasi/route"
+import * as notifikasiBaca from "@/app/api/notifikasi/baca/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("@/lib/prisma", () => ({ prisma: {} }))
@@ -109,6 +111,10 @@ const ANY_LOGGED_IN: [string, Handler][] = [
   ["PATCH  /api/profil", profil.PATCH as unknown as Handler],
   ["GET    /api/setoran", setoran.GET as Handler],
   ["GET    /api/stock", stock.GET as unknown as Handler],
+  // Notifikasi milik kedua peran (FR-E5). Yang membatasi bukan peran melainkan
+  // userId dari sesi — diuji di notifikasi.test.ts.
+  ["GET    /api/notifikasi", notifikasi.GET as unknown as Handler],
+  ["POST   /api/notifikasi/baca", notifikasiBaca.POST as unknown as Handler],
 ]
 
 /**

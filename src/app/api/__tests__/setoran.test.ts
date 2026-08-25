@@ -71,7 +71,13 @@ function mockTransaction() {
     setoran: {
       count: jest.fn().mockResolvedValue(2),
       create: jest.fn().mockImplementation(({ data }) =>
-        Promise.resolve({ id: "set1", kodeTransaksi: data.kodeTransaksi, ...data }),
+        Promise.resolve({
+          id: "set1",
+          kodeTransaksi: data.kodeTransaksi,
+          ...data,
+          // Handler memakai `include: setoranInclude`, jadi relasi ikut terbawa.
+          bankSampah: { id: "bs-mawar", nama: "BS Mawar" },
+        }),
       ),
     },
     stock: {
@@ -81,6 +87,9 @@ function mockTransaction() {
     },
     stockMutation: { create: jest.fn().mockResolvedValue({}) },
     auditLog: { create: jest.fn().mockResolvedValue({}) },
+    // FR-E5: pengecekan ambang berjalan di transaksi yang sama (§4.1 langkah 16).
+    user: { findMany: jest.fn().mockResolvedValue([{ id: "u-admin" }]) },
+    notifikasi: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
   }
   mPrisma.$transaction.mockImplementation((cb: (t: typeof tx) => unknown) => cb(tx))
   return tx
@@ -281,5 +290,57 @@ describe("GET /api/setoran — scope & filter", () => {
     const res = await GET(new Request("http://x/api/setoran?dari=bukan-tanggal"))
     expect(res.status).toBe(422)
     expect(mPrisma.setoran.findMany).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * FR-E5 / AC PRD baris 313: "Given total stock melewati threshold, When setoran
+ * selesai, Then notifikasi terkirim ke Admin."
+ */
+describe("POST /api/setoran — notifikasi ambang (FR-E5)", () => {
+  /** Stock lama 65 kg dengan ambang tertentu; setoran menambah 12.5 kg PET. */
+  function stockAmbang(threshold: number) {
+    const tx = mockTransaction()
+    tx.stock.findUnique.mockResolvedValue({
+      id: "st1",
+      berat: new Prisma.Decimal(65),
+      threshold: new Prisma.Decimal(threshold),
+    })
+    return tx
+  }
+
+  it("memberi tahu admin saat setoran membuat stock melewati ambang", async () => {
+    const tx = stockAmbang(70) // 65 -> 77.5 melewati 70
+    const res = await POST(post(validBody))
+
+    expect(res.status).toBe(201)
+    // Satu transaksi saja: notifikasi tidak boleh ada untuk setoran yang gagal.
+    expect(mPrisma.$transaction).toHaveBeenCalledTimes(1)
+    expect(tx.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ role: "ADMIN" }) }),
+    )
+    const baris = tx.notifikasi.createMany.mock.calls[0][0].data
+    expect(baris[0]).toMatchObject({
+      userId: "u-admin",
+      tipe: "STOCK_THRESHOLD",
+      bankSampahId: "bs-mawar",
+      tautan: "/admin/peta",
+    })
+    expect(baris[0].judul).toContain("BS Mawar")
+  })
+
+  it("TIDAK memberi tahu lagi kalau stock sudah di atas ambang sebelumnya", async () => {
+    // Inti anti-kebisingan: tanpa ini setiap setoran berikutnya di gudang penuh
+    // mengirim notifikasi baru dan admin berhenti membacanya (risiko §8).
+    const tx = stockAmbang(50) // 65 sudah di atas 50 sebelum setoran ini
+
+    await POST(post(validBody))
+    expect(tx.notifikasi.createMany).not.toHaveBeenCalled()
+  })
+
+  it("ambang 0 berarti belum diatur — tidak ada notifikasi", async () => {
+    const tx = stockAmbang(0)
+    await POST(post(validBody))
+    expect(tx.notifikasi.createMany).not.toHaveBeenCalled()
   })
 })

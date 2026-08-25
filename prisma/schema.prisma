@@ -35,6 +35,14 @@ enum TipeMutasi {
   ADJUST
 }
 
+// FR-E5. Dua pemicu yang ditetapkan PRD: stock melewati threshold saat setoran
+// selesai (§4.1 langkah 16, AC baris 313) dan dispatch masuk ke petugas pemilik
+// (diagram urutan §6).
+enum TipeNotifikasi {
+  STOCK_THRESHOLD
+  DISPATCH_MASUK
+}
+
 enum KondisiSampah {
   BERSIH
   KOTOR
@@ -70,6 +78,7 @@ model BankSampah {
   setoran     Setoran[]
   stock       Stock[]
   dispatch    Dispatch[]
+  notifikasi  Notifikasi[]
 
   @@map("bank_sampah")
 }
@@ -92,6 +101,7 @@ model User {
   mutasiStock      StockMutation[]
   koreksiStock     KoreksiStock[]  @relation("PelakuKoreksi")
   auditLog         AuditLog[]
+  notifikasi       Notifikasi[]
 
   @@index([bankSampahId])
   @@map("user")
@@ -308,4 +318,41 @@ model AuditLog {
   @@index([entitas, entitasId])
   @@index([userId, createdAt])
   @@map("audit_log")
+}
+
+/// Notifikasi in-app — FR-E5.
+///
+/// Satu baris PER PENERIMA, bukan satu baris dibagi banyak orang. PRD menyebut
+/// penerimanya sebagai peran ("notifikasi ke Admin", "push notif ke petugas
+/// pemilik"), bukan satu akun; kalau barisnya dibagi, `dibacaPada` jadi ambigu —
+/// satu admin membaca dan notifikasi itu hilang untuk admin lain. Penerima
+/// karena itu diselesaikan saat penulisan, dan status baca selalu milik satu
+/// akun.
+///
+/// PRD §4.2 (Arsitektur): tidak ada message broker; notifikasi disimpan di DB
+/// lalu ditarik aplikasi, tanpa cron (BR-06).
+model Notifikasi {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  tipe  TipeNotifikasi
+  judul String
+  pesan String
+  /// Rute in-app yang dituju saat notifikasi diklik, mis. /admin/peta.
+  tautan String?
+
+  /// Konteks bank sampah; null untuk notifikasi yang tidak terikat satu pos.
+  bankSampahId String?
+  bankSampah   BankSampah? @relation(fields: [bankSampahId], references: [id])
+
+  dibacaPada DateTime?
+  createdAt  DateTime  @default(now())
+  deletedAt  DateTime? // soft delete (BR-17)
+
+  /// Daftar notifikasi selalu diambil per user, terbaru dulu, dan jumlah yang
+  /// belum dibaca dihitung dari indeks yang sama.
+  @@index([userId, dibacaPada, createdAt])
+  @@index([bankSampahId])
+  @@map("notifikasi")
 }

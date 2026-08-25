@@ -3,6 +3,7 @@ import { Prisma, type StatusDispatch } from "@/generated/prisma/client"
 import type { AppUser } from "@/lib/auth"
 import { fail } from "@/lib/response"
 import { TOLERANSI_SELISIH } from "@/lib/constants"
+import { notifDispatchMasuk } from "@/lib/notifikasi"
 import {
   TRANSISI,
   MENAHAN_RESERVASI,
@@ -202,6 +203,15 @@ export async function transisiDispatch(input: TransisiInput): Promise<TransisiHa
           data: { beratReservasi: { increment: item.beratTarget } },
         })
       }
+
+      // Diagram urutan PRD §6: `TD->>N: push notif ke petugas pemilik` tepat
+      // pada transisi ini. Di transaksi yang sama dengan reservasi stock, jadi
+      // tidak ada notifikasi untuk dispatch yang gagal diterbitkan.
+      await notifDispatchMasuk(tx, {
+        bankSampahId: dispatch.bankSampahId,
+        dispatchId: dispatch.id,
+        kodeDispatch: dispatch.kodeDispatch,
+      })
     }
 
     // Melepas reservasi tanpa mengurangi berat: tidak ada StockMutation karena
