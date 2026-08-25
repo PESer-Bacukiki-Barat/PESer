@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { Download, Eye } from "lucide-react";
+import { Download } from "lucide-react";
 
 import { DataTable, type Column } from "@/components/ui/data-table";
-import type { Setoran, SetoranItem } from "@/lib/setoran-data";
+import { viewAction } from "@/components/admin/row-actions";
+import type { Setoran } from "@/lib/setoran-data";
 import {
   KONDISI_SAMPAH_LABEL,
   kondisiStyle,
@@ -190,14 +191,7 @@ export function SetoranTable({
           <span className="hidden sm:inline">Export Data</span>
         </button>
       }
-      actions={(s) => [
-        {
-          label: "Lihat Detail",
-          icon: Eye,
-          className: "hover:text-primary",
-          onClick: (row) => onView?.(row),
-        },
-      ]}
+      actions={() => [viewAction<Setoran>((row) => onView?.(row))]}
       emptyState={
         <p className="text-center text-on-surface-variant">
           Tidak ada transaksi setoran ditemukan.
