@@ -27,7 +27,11 @@ const mAuth = requireAuth as jest.Mock
 type ModelMock = { findMany: jest.Mock; create: jest.Mock; findFirst: jest.Mock; update: jest.Mock }
 const m = prisma.nasabah as unknown as ModelMock
 
-const authOk = { ok: true, user: { id: "u1" } }
+const authOk = { ok: true, user: { id: "u1", role: "ADMIN", bankSampahId: null } }
+const authPetugas = {
+  ok: true,
+  user: { id: "u2", role: "PETUGAS", bankSampahId: "bs-mawar" },
+}
 const unauthorized = { ok: false, response: Response.json({ error: "unauthorized" }, { status: 401 }) }
 const prismaError = (code: string) =>
   new Prisma.PrismaClientKnownRequestError("boom", { code, clientVersion: "7.0.0" })
@@ -55,6 +59,8 @@ const body = (over: object = {}) => new Request("http://x", { method: "POST", bo
 const mTx = prisma as unknown as { $transaction: jest.Mock }
 beforeEach(() => {
   mTx.$transaction.mockImplementation((cb: (t: typeof prisma) => unknown) => cb(prisma))
+  // Pemeriksaan kepemilikan sebelum UBAH/HAPUS: baris ada dan di dalam lingkup.
+  m.findFirst.mockResolvedValue({ id: "n1", bankSampahId: "bs-mawar" })
 })
 
 describe("GET /api/nasabah", () => {
@@ -171,5 +177,93 @@ describe("DELETE /api/nasabah/[id]", () => {
     mAuth.mockResolvedValue(authOk)
     m.update.mockRejectedValue(prismaError("P2025"))
     expect((await DELETE(new Request("http://x"), params("n1"))).status).toBe(404)
+  })
+})
+
+/**
+ * Lingkup bank sampah — PRD §2.4 baris 209 ("PETUGAS: bank sampah sendiri")
+ * dan §2.5 aturan 4 ("scope tidak boleh diambil dari body request").
+ *
+ * Sebelumnya kelima handler mengabaikannya: GET mengembalikan nasabah SELURUH
+ * bank sampah, dan POST/PUT memakai bankSampahId dari body — jadi petugas satu
+ * pos bisa membaca nama, nomor HP, dan alamat warga pos lain, mengubahnya,
+ * bahkan memindahkannya ke pos lain.
+ */
+describe("lingkup bank sampah", () => {
+  it("GET petugas hanya bank sampahnya sendiri", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.findMany.mockResolvedValue([])
+    await GET()
+    expect(m.findMany.mock.calls[0][0].where).toEqual({
+      deletedAt: null,
+      bankSampahId: "bs-mawar",
+    })
+  })
+
+  it("GET admin tidak dibatasi satu bank sampah (§5.3)", async () => {
+    mAuth.mockResolvedValue(authOk)
+    m.findMany.mockResolvedValue([])
+    await GET()
+    expect(m.findMany.mock.calls[0][0].where).toEqual({ deletedAt: null })
+  })
+
+  it("POST petugas MENGABAIKAN bankSampahId dari body", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.create.mockResolvedValue({ id: "n9" })
+    const res = await POST(body({ bankSampahId: "bs-pos-lain" }))
+    expect(res.status).toBe(201)
+    expect(m.create.mock.calls[0][0].data.bankSampahId).toBe("bs-mawar")
+  })
+
+  it("POST admin wajib menyebut bankSampahId, tidak ditebak", async () => {
+    mAuth.mockResolvedValue(authOk)
+    const res = await POST(body({ bankSampahId: undefined }))
+    expect(res.status).toBe(422)
+    expect((await apiErr(res)).field).toBe("bankSampahId")
+    expect(m.create).not.toHaveBeenCalled()
+  })
+
+  it("PUT petugas tidak bisa memindahkan nasabah ke bank sampah lain", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.update.mockResolvedValue({ id: "n1" })
+    await PUT(body({ bankSampahId: "bs-pos-lain" }), params("n1"))
+    expect(m.update.mock.calls[0][0].data.bankSampahId).toBe("bs-mawar")
+  })
+
+  it("PUT nasabah pos lain → 404, bukan 403 yang membocorkan keberadaannya", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.findFirst.mockResolvedValue(null) // di luar lingkup → tidak ditemukan
+    const res = await PUT(body(), params("n-pos-lain"))
+    expect(res.status).toBe(404)
+    expect(m.update).not.toHaveBeenCalled()
+  })
+
+  it("DELETE nasabah pos lain → 404 dan tidak menyentuh apa pun", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.findFirst.mockResolvedValue(null)
+    const res = await DELETE(new Request("http://x"), params("n-pos-lain"))
+    expect(res.status).toBe(404)
+    expect(m.update).not.toHaveBeenCalled()
+  })
+
+  it("GET by id menyertakan lingkup di where-nya", async () => {
+    mAuth.mockResolvedValue(authPetugas)
+    m.findFirst.mockResolvedValue({ id: "n1" })
+    await GET_ID(new Request("http://x"), params("n1"))
+    expect(m.findFirst.mock.calls[0][0].where).toEqual({
+      id: "n1",
+      deletedAt: null,
+      bankSampahId: "bs-mawar",
+    })
+  })
+
+  it("petugas tanpa penugasan ditolak saat menulis (BR-02)", async () => {
+    mAuth.mockResolvedValue({
+      ok: true,
+      user: { id: "u3", role: "PETUGAS", bankSampahId: null },
+    })
+    const res = await POST(body())
+    expect(res.status).toBe(403)
+    expect(m.create).not.toHaveBeenCalled()
   })
 })

@@ -2,8 +2,12 @@ import Link from "next/link"
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
 
+import { redirect } from "next/navigation";
+
 import { NasabahTable } from "@/components/admin/nasabah-table";
 import { prisma } from "@/lib/prisma";
+import { getServerUser } from "@/lib/auth";
+import { filterLingkup } from "@/app/api/nasabah/lingkup";
 
 export const metadata: Metadata = {
   title: "Manajemen Nasabah",
@@ -12,9 +16,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function NasabahPage() {
+  // Middleware mengizinkan PETUGAS membuka halaman ini (FR-B7), jadi
+  // lingkupnya harus dibatasi di sini juga — bukan hanya di API-nya. Tanpa itu
+  // tabel yang dirender server tetap membocorkan nama, nomor HP, dan alamat
+  // warga pos lain meski endpointnya sudah aman.
+  const user = await getServerUser();
+  if (!user) redirect("/login");
+  const lingkup = filterLingkup(user);
+
   const [nasabahs, bankSampahs] = await Promise.all([
     prisma.nasabah.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, ...lingkup },
       orderBy: { nama: "asc" },
       select: {
         id: true,
@@ -29,7 +41,10 @@ export default async function NasabahPage() {
       },
     }),
     prisma.bankSampah.findMany({
-      where: { deletedAt: null },
+      where: {
+        deletedAt: null,
+        ...(lingkup.bankSampahId ? { id: lingkup.bankSampahId } : {}),
+      },
       orderBy: { nama: "asc" },
       select: { id: true, nama: true },
     }),

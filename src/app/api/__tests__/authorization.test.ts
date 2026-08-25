@@ -171,10 +171,17 @@ describe("GET master data terbuka untuk semua yang sudah login", () => {
 })
 
 /**
- * Sengaja TIDAK diuji karena kewenangannya belum diputuskan, dan menuliskan
- * perilaku sekarang sebagai "benar" akan mengunci keputusan yang keliru:
+ * Sengaja TIDAK diuji di sini karena kewenangannya belum diputuskan, dan
+ * menuliskan perilaku sekarang sebagai "benar" akan mengunci keputusan yang
+ * keliru:
  *
- * - /api/nasabah (POST/PUT/DELETE): FR-B7 memberikannya ke PETUGAS "scoped
- *   ke 1 bank sampah", tapi UI yang sudah jadi menempatkannya di panel admin
- *   dan tidak ada pembatasan per bank sampah. Dua hal itu bertentangan.
+ * - /api/nasabah (POST/PUT/DELETE): matriks §2.4 baris 209 menulis ADMIN ❌ /
+ *   PETUGAS ✅, tapi UI yang sudah jadi menempatkannya di panel admin. Dua hal
+ *   itu masih bertentangan, jadi PERAN yang dituntut handler-nya belum
+ *   dikunci di sini.
+ *
+ *   Yang SUDAH diputuskan dan sudah dikunci: apa pun jawaban soal peran,
+ *   PETUGAS tidak boleh keluar dari bank sampahnya (§2.5 aturan 4). Lingkup
+ *   itu diuji di nasabah.test.ts — GET tersaring, bankSampahId dari body
+ *   diabaikan, dan nasabah pos lain menghasilkan 404.
  */

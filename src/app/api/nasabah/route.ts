@@ -4,13 +4,18 @@ import { nasabahSchema } from "./schema"
 import { requireAuth } from "@/lib/auth"
 import { ok, created, fail, failValidation } from "@/lib/response"
 import { denganAudit } from "@/lib/audit"
+import { filterLingkup, lingkupTulis } from "./lingkup"
 
 const notDeleted = { deletedAt: null }
 
 export async function GET() {
   const auth = await requireAuth()
   if (!auth.ok) return auth.response
-  const data = await prisma.nasabah.findMany({ where: notDeleted })
+  // §2.4 baris 209: petugas hanya bank sampahnya sendiri. Lingkupnya dari sesi.
+  const data = await prisma.nasabah.findMany({
+    where: { ...notDeleted, ...filterLingkup(auth.user) },
+    orderBy: { kodeNasabah: "asc" },
+  })
   return ok(data)
 }
 
@@ -21,10 +26,16 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return failValidation(parsed.error.issues)
   }
+  const lingkup = lingkupTulis(auth.user, parsed.data.bankSampahId)
+  if (!lingkup.ok) return lingkup.response
+
   try {
     const data = await denganAudit(
       { operasi: "BUAT", entitas: "Nasabah", userId: auth.user.id },
-      (tx) => tx.nasabah.create({ data: parsed.data }),
+      (tx) =>
+        tx.nasabah.create({
+          data: { ...parsed.data, bankSampahId: lingkup.bankSampahId },
+        }),
     )
     return created(data)
   } catch (e) {
