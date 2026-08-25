@@ -328,7 +328,7 @@ function Kartu({
     <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
       <p className="font-label-sm text-label-sm text-on-surface-variant">{label}</p>
       <p
-        className={`font-headline-sm text-headline-sm font-mono font-semibold ${
+        className={`text-headline-md font-mono font-semibold ${
           utama ? "text-primary" : "text-on-surface"
         }`}
       >

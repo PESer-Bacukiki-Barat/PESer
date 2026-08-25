@@ -178,7 +178,7 @@ export function DispatchTable({
             </button>
             <Link
               href="/admin/transaksi/tambah"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-white hover:bg-primary-fixed-variant transition-colors shadow-sm font-label-md text-label-md font-semibold"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm font-label-md text-label-md font-semibold"
             >
               <Plus className="size-[18px]" />
               <span className="hidden sm:inline">Tambah Dispatch</span>

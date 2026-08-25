@@ -162,7 +162,7 @@ export function SetorWargaForm({
         <div className="flex items-start gap-3 rounded-xl border border-tertiary bg-tertiary-container/40 p-4">
           <CloudOff className="size-5 shrink-0 text-on-tertiary-container" aria-hidden />
           <div>
-            <p className="font-headline-sm text-[16px] font-semibold text-on-tertiary-container">
+            <p className="font-headline-md text-[16px] font-semibold text-on-tertiary-container">
               Tersimpan di antrean
             </p>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">

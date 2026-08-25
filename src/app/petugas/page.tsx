@@ -106,7 +106,7 @@ export default async function BerandaPetugasPage() {
           <p className="font-label-sm text-label-sm text-on-surface-variant">
             Setoran hari ini
           </p>
-          <p className="font-headline-sm text-headline-sm font-mono font-semibold text-on-surface">
+          <p className="text-headline-md font-mono font-semibold text-on-surface">
             {setoranHariIni.length}
           </p>
           <p className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
@@ -117,7 +117,7 @@ export default async function BerandaPetugasPage() {
           <p className="font-label-sm text-label-sm text-on-surface-variant">
             Stock tersedia
           </p>
-          <p className="font-headline-sm text-headline-sm font-mono font-semibold text-on-surface">
+          <p className="text-headline-md font-mono font-semibold text-on-surface">
             {fmtBerat(totalStock - reservasi)} kg
           </p>
           <p className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">

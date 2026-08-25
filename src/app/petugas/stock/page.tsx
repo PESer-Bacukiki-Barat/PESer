@@ -55,13 +55,13 @@ export default async function StockPetugasPage() {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
           <p className="font-label-sm text-label-sm text-on-surface-variant">Total</p>
-          <p className="font-headline-sm text-headline-sm font-mono font-semibold text-on-surface">
+          <p className="text-headline-md font-mono font-semibold text-on-surface">
             {fmtBerat(total)} kg
           </p>
         </div>
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
           <p className="font-label-sm text-label-sm text-on-surface-variant">Tersedia</p>
-          <p className="font-headline-sm text-headline-sm font-mono font-semibold text-on-surface">
+          <p className="text-headline-md font-mono font-semibold text-on-surface">
             {fmtBerat(total - reservasi)} kg
           </p>
           {reservasi > 0 && (
@@ -122,7 +122,7 @@ export default async function StockPetugasPage() {
                       {ditahan > 0 && ` · ${fmtBerat(ditahan)} kg ditahan`}
                     </p>
                   </div>
-                  <p className="font-headline-sm text-headline-sm font-mono text-on-surface shrink-0">
+                  <p className="text-headline-md font-normal font-mono text-on-surface shrink-0">
                     {fmtBerat(berat)} kg
                   </p>
                 </div>

@@ -148,11 +148,11 @@ export default async function AdminDashboardPage() {
               <p className="font-label-sm text-label-sm text-on-surface-variant">{k.label}</p>
               <k.Icon className="size-4 text-on-surface-variant" aria-hidden />
             </div>
-            <p className="font-headline-sm text-headline-sm font-mono font-semibold text-on-surface">
+            <p className="text-headline-md font-mono font-semibold text-on-surface">
               {k.nilai}
             </p>
             {k.sub && (
-              <p className="font-label-xs text-label-xs text-on-surface-variant mt-1">{k.sub}</p>
+              <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">{k.sub}</p>
             )}
           </Link>
         ))}

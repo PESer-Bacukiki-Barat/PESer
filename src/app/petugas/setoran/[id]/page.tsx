@@ -135,7 +135,7 @@ export default async function BuktiSetorPage({
             <span className="font-label-md text-label-md text-on-surface-variant">
               Total dibayar
             </span>
-            <span className="font-headline-sm text-headline-sm font-mono font-semibold text-primary">
+            <span className="text-headline-md font-mono font-semibold text-primary">
               {fmtRupiah(Number(setoran.totalNilai))}
             </span>
           </div>

@@ -210,7 +210,7 @@ export function SetorForm({
             <dt className="font-label-md text-label-md text-on-surface-variant">
               Total nilai
             </dt>
-            <dd className="font-headline-sm text-headline-sm font-mono font-semibold text-primary">
+            <dd className="text-headline-md font-mono font-semibold text-primary">
               {fmtRupiah(totalNilai)}
             </dd>
           </div>
@@ -393,7 +393,7 @@ export function SetorForm({
             <dt className="font-label-md text-label-md text-on-surface-variant">
               Total berat
             </dt>
-            <dd className="font-headline-sm text-headline-sm font-mono text-on-surface">
+            <dd className="text-headline-md font-normal font-mono text-on-surface">
               {fmtBerat(totalBerat)} kg
             </dd>
           </div>
@@ -401,7 +401,7 @@ export function SetorForm({
             <dt className="font-label-md text-label-md text-on-surface-variant">
               Total nilai
             </dt>
-            <dd className="font-headline-sm text-headline-sm font-mono font-semibold text-primary">
+            <dd className="text-headline-md font-mono font-semibold text-primary">
               {fmtRupiah(totalNilai)}
             </dd>
           </div>

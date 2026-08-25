@@ -38,11 +38,11 @@ function SummaryCard({ label, value, sub }: SummaryCardProps) {
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
       <p className="font-label-sm text-label-sm text-on-surface-variant mb-1">{label}</p>
-      <p className="font-headline-sm text-headline-sm font-mono text-on-surface font-semibold">
+      <p className="text-headline-md font-mono text-on-surface font-semibold">
         {value}
       </p>
       {sub && (
-        <p className="font-label-xs text-label-xs text-on-surface-variant mt-1">{sub}</p>
+        <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">{sub}</p>
       )}
     </div>
   );

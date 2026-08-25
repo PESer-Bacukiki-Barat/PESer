@@ -128,7 +128,7 @@ export default async function HomePage() {
       <section aria-labelledby="quick-action-title">
         <h2
           id="quick-action-title"
-          className="mb-3 font-headline-sm text-[14px] font-semibold text-on-surface"
+          className="mb-3 font-headline-md text-[14px] font-semibold text-on-surface"
         >
           Aksi Cepat
         </h2>
@@ -154,7 +154,7 @@ export default async function HomePage() {
         <div className="mb-3 flex items-center justify-between">
           <h2
             id="activity-title"
-            className="font-headline-sm text-[14px] font-semibold text-on-surface"
+            className="font-headline-md text-[14px] font-semibold text-on-surface"
           >
             Setoran Terakhir
           </h2>

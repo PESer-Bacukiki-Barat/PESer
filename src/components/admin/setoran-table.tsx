@@ -103,12 +103,12 @@ export function SetoranTable({
                 </p>
               ))}
               {jenisUnik.length > 2 && (
-                <p className="font-label-xs text-label-xs text-on-surface-variant">
+                <p className="font-label-sm text-label-sm text-on-surface-variant">
                   +{jenisUnik.length - 2} lainnya
                 </p>
               )}
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-xs text-label-xs ${
+                className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm ${
                   jenisUnik.length > 1
                     ? "bg-surface-variant text-on-surface-variant border border-outline-variant"
                     : kondisiStyle(s.items[0].kondisi)
