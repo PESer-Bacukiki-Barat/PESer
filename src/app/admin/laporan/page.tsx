@@ -133,7 +133,7 @@ export default async function LaporanPage({
         </div>
         <button
           type="submit"
-          className="h-10 rounded-lg bg-primary px-4 font-label-md text-white text-label-md text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="h-10 rounded-lg bg-primary px-4 font-label-md text-label-md text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Terapkan
         </button>

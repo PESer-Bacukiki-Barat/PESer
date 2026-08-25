@@ -58,6 +58,7 @@
   --color-surface-tint: var(--surface-tint);
   --color-outline: var(--outline);
   --color-outline-variant: var(--outline-variant);
+  --color-on-primary: var(--on-primary);
   --color-primary-container: var(--primary-container);
   --color-on-primary-container: var(--on-primary-container);
   --color-primary-fixed: var(--primary-fixed);
@@ -182,6 +183,10 @@
   --surface-tint: #006c49;
   --outline: #6c7a71;
   --outline-variant: #bbcabf;
+  /* DESIGN.md: on-primary '#ffffff'. Tanpa baris ini kelas text-on-primary
+     tidak menghasilkan CSS apa pun, dan teks di atas tombol bg-primary
+     mewarisi --foreground yang gelap — nyaris tak terbaca di atas emerald. */
+  --on-primary: #ffffff;
   --primary-container: #10b981;
   --on-primary-container: #00422b;
   --primary-fixed: #6ffbbe;
@@ -258,6 +263,9 @@
   --surface-tint: #4edea3;
   --outline: #85938a;
   --outline-variant: #3c4a42;
+  /* Dark: --primary jadi #4edea3 (hijau terang), jadi teks di atasnya gelap.
+     Senada dengan --primary-foreground dark di blok yang sama. */
+  --on-primary: #005236;
   --primary-container: #005236;
   --on-primary-container: #6ffbbe;
   --primary-fixed: #6ffbbe;

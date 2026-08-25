@@ -90,7 +90,7 @@ export default function TransaksiTabs({
       <div className="flex items-center justify-between mb-stack-lg">
         <nav
           aria-label="Tabs"
-          className="inline-flex items-center gap-1 p-1.5 text-white bg-surface-container-high rounded-full border border-outline-variant"
+          className="inline-flex items-center gap-1 p-1.5 bg-surface-container-high rounded-full border border-outline-variant"
         >
           {tabs.map((tab) => (
             <button
@@ -102,7 +102,7 @@ export default function TransaksiTabs({
                 "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-headline-md text-[15px] font-semibold transition-all duration-200",
                 activeTab === tab.id
                   ? "bg-primary text-on-primary shadow-md"
-                  : "text-on-surface-variant hover:text-on-surface hover:bg-green-200 transition-all duration-200",
+                  : "text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container",
               )}
             >
               <tab.Icon className="size-5" />
