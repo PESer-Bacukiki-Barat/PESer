@@ -12,6 +12,7 @@ import {
   Landmark,
   LayoutDashboard,
   LogOut,
+  Map as MapIcon,
   Menu,
   ReceiptText,
   Search,
@@ -39,6 +40,7 @@ const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/admin/transaksi", label: "Transaksi", icon: ReceiptText },
   { href: "/admin/profil", label: "Profil", icon: Settings },
   { href: "/admin/laporan", label: "Laporan", icon: BarChart3 },
+  { href: "/admin/peta", label: "Peta Sebaran", icon: MapIcon },
   { href: "/admin/bantuan", label: "Bantuan", icon: HelpCircle },
 ];
 
