@@ -9,6 +9,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // migrate/db/studio butuh koneksi langsung, bukan pooled pgbouncer.
+    // Runtime app tetap pakai DATABASE_URL lewat adapter di src/lib/prisma.ts.
+    url: process.env["DIRECT_URL"],
   },
 });
