@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, apiError, apiFieldErrors } from "@/lib/api";
+import { MIN_DIGIT_NOHP, normalkanNoHp } from "@/lib/no-hp";
 import { ROLE_OPTIONS, type Role, type UserPayload, type UserRow } from "@/lib/users-data";
 
 export function UsersForm({
@@ -42,6 +43,7 @@ export function UsersForm({
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [password, setPassword] = useState("");
+  const [noHp, setNoHp] = useState(initialData?.noHp ?? "");
   const [role, setRole] = useState<Role>(initialData?.role ?? "PETUGAS");
   const [bankSampahId, setBankSampahId] = useState(initialData?.bankSampahId ?? "");
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
@@ -81,6 +83,9 @@ export function UsersForm({
     const payload: UserPayload = {
       email: email.trim(),
       nama: nama.trim(),
+      // Kosong dikirim sebagai null, bukan "" — schema /api/users memperlakukan
+      // keduanya sama, tapi null yang eksplisit membuat maksudnya terbaca.
+      noHp: noHp.trim() || null,
       role,
       bankSampahId: role === "PETUGAS" ? bankSampahId || null : null,
       isActive,
@@ -97,6 +102,8 @@ export function UsersForm({
     if (!email.trim()) errors.email = "Email wajib diisi";
     if (mode === "create" && password.length < 6)
       errors.password = "Password minimal 6 karakter";
+    if (noHp.trim() && normalkanNoHp(noHp) === null)
+      errors.noHp = `Nomor HP minimal ${MIN_DIGIT_NOHP} angka`;
     if (role === "PETUGAS" && !bankSampahId)
       errors.bankSampahId = "Bank sampah wajib dipilih untuk PETUGAS (BR-02)";
     if (Object.keys(errors).length > 0) {
@@ -180,6 +187,25 @@ export function UsersForm({
             placeholder={mode === "edit" ? "Tidak diubah" : "Minimal 6 karakter"}
             required={mode === "create"}
             aria-invalid={!!fieldErrors.password}
+          />
+        </Field>
+        <Field
+          label="Nomor HP"
+          htmlFor="noHp"
+          error={fieldErrors.noHp}
+          hint="Dipakai area warga untuk mengenali akun ini sebagai nasabah. Kosongkan untuk akun admin/petugas biasa."
+        >
+          <Input
+            id="noHp"
+            type="tel"
+            inputMode="tel"
+            value={noHp}
+            onChange={(e) => {
+              clearErrors();
+              setNoHp(e.target.value);
+            }}
+            placeholder="0812xxxxxxx"
+            aria-invalid={!!fieldErrors.noHp}
           />
         </Field>
         <SelectField

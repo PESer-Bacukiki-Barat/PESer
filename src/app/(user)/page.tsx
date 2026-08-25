@@ -5,6 +5,8 @@ import { ArrowRight, Recycle, Scale, Wallet } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { nasabahTertaut } from "@/lib/nasabah-tertaut";
+import { StatusTaut } from "@/components/user/status-taut";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -37,17 +39,13 @@ export default async function HomePage() {
   if (!user?.bankSampah) redirect("/login");
   const bankSampahId = user.bankSampah.id;
 
-  // Penautan akun ke nasabah lewat noHp yang sama di bank sampah itu. PRD §1.3
-  // memang tidak membuat akun warga, jadi ini penautan longgar: kalau belum
-  // ketemu, semua angka nol dan UI mengarahkan mendaftar ke petugas.
-  const nasabah = await prisma.nasabah.findFirst({
-    where: {
-      bankSampahId,
-      deletedAt: null,
-      ...(user.noHp ? { noHp: user.noHp } : {}),
-    },
-    select: { id: true, nama: true, kodeNasabah: true },
-  });
+  // Penautan akun ke nasabah lewat noHp yang sama di bank sampah itu (§1.3
+  // tidak membuat akun warga). Kalau tautannya tidak pasti, halaman berhenti di
+  // sini: menampilkan angka milik nasabah lain jauh lebih buruk daripada
+  // menampilkan penjelasan.
+  const taut = await nasabahTertaut({ noHp: user.noHp, bankSampahId });
+  if (taut.status !== "TERTAUT") return <StatusTaut hasil={taut} />;
+  const nasabah = taut.nasabah;
 
   const awalBulan = new Date();
   awalBulan.setDate(1);

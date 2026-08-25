@@ -5,6 +5,7 @@ import { CheckCircle2, ChevronRight } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import {
   KONDISI_SAMPAH_LABEL,
   formatCurrency,
@@ -36,15 +37,15 @@ export default async function BuktiSetoranPage({
   const user = await getServerUser();
   if (!user?.bankSampah) redirect("/login");
 
-  const nasabah = await prisma.nasabah.findFirst({
-    where: {
-      bankSampahId: user.bankSampah.id,
-      deletedAt: null,
-      ...(user.noHp ? { noHp: user.noHp } : {}),
-    },
-    select: { id: true },
+  // Di sini notFound() memang jawaban yang benar: halaman ini mengungkap satu
+  // bukti setor tertentu, jadi akun yang belum tertaut tidak boleh diberi
+  // petunjuk apa pun tentang ada/tidaknya setoran itu.
+  const taut = await nasabahTertaut({
+    noHp: user.noHp,
+    bankSampahId: user.bankSampah.id,
   });
-  if (!nasabah) notFound();
+  if (taut.status !== "TERTAUT") notFound();
+  const nasabah = taut.nasabah;
 
   const setoran = await prisma.setoran.findFirst({
     where: { id, nasabahId: nasabah.id },

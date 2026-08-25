@@ -130,6 +130,50 @@ describe("POST /api/users", () => {
   })
 })
 
+/**
+ * noHp adalah jangkar penautan akun → Nasabah di area warga
+ * (src/lib/nasabah-tertaut.ts). Pengisiannya kewenangan ADMIN, dan sengaja
+ * TIDAK ada di PATCH /api/profil — kalau pemilik akun boleh mengubahnya
+ * sendiri, ia bisa menuliskan nomor warga lain dan mengklaim riwayat
+ * setorannya. Batasan itu dijaga di profil.test.ts.
+ */
+describe("noHp di /api/users", () => {
+  it("POST menyimpan noHp apa adanya", async () => {
+    mAuth.mockResolvedValue(authOk)
+    m.create.mockResolvedValue({ ...userRow, bankSampah: null })
+    await POST(body({ noHp: "081234500001" }))
+    expect(m.create.mock.calls[0][0].data.noHp).toBe("081234500001")
+  })
+
+  it("POST menerima string kosong sebagai null, supaya form bisa mengosongkan", async () => {
+    mAuth.mockResolvedValue(authOk)
+    m.create.mockResolvedValue({ ...userRow, bankSampah: null })
+    await POST(body({ noHp: "" }))
+    expect(m.create.mock.calls[0][0].data.noHp).toBeNull()
+  })
+
+  it("POST 422 untuk nomor yang tidak bisa mengidentifikasi siapa pun", async () => {
+    mAuth.mockResolvedValue(authOk)
+    // Nomor "terisi tapi tidak pernah cocok" lebih membingungkan daripada kosong.
+    expect((await POST(body({ noHp: "-" }))).status).toBe(422)
+    expect((await POST(body({ noHp: "12345" }))).status).toBe(422)
+    expect(m.create).not.toHaveBeenCalled()
+  })
+
+  it("PUT bisa mengisi maupun mengosongkan noHp", async () => {
+    mAuth.mockResolvedValue(authOk)
+    m.findFirst.mockResolvedValue({ id: "u1", email: "andi@mail.com" })
+    m.update.mockResolvedValue(userRow)
+
+    await PUT(putBody({ noHp: "+62 812-3450-0001" }), params("u1"))
+    expect(m.update.mock.calls[0][0].data.noHp).toBe("+62 812-3450-0001")
+
+    m.update.mockClear()
+    await PUT(putBody({ noHp: null }), params("u1"))
+    expect(m.update.mock.calls[0][0].data.noHp).toBeNull()
+  })
+})
+
 describe("GET /api/users/[id]", () => {
   it("mengembalikan detail", async () => {
     mAuth.mockResolvedValue(authOk)

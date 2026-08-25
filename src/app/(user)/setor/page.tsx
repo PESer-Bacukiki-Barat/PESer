@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { nasabahTertaut } from "@/lib/nasabah-tertaut";
+import { StatusTaut } from "@/components/user/status-taut";
 import { SetorWargaForm, type JenisOpsi, type NasabahOpsi } from "@/components/user/setor-warga-form";
 
 export const metadata: Metadata = {
@@ -20,25 +22,19 @@ export default async function SetorWargaPage() {
   if (!user?.bankSampah) redirect("/login");
   const bankSampahId = user.bankSampah.id;
 
-  const nasabah = await prisma.nasabah.findFirst({
-    where: {
-      bankSampahId,
-      deletedAt: null,
-      ...(user.noHp ? { noHp: user.noHp } : {}),
-    },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, kodeNasabah: true, nama: true },
-  });
+  const taut = await nasabahTertaut({ noHp: user.noHp, bankSampahId });
 
-  if (!nasabah) {
-    return (
-      <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-        Nomor HP Anda belum terdaftar sebagai nasabah di bank sampah ini. Datang ke
-        pos bank sampah untuk didaftarkan petugas lebih dulu — setelah itu form
-        setor akan terbuka otomatis di halaman ini.
-      </p>
-    );
+  // Setoran ditulis atas nama nasabah ini, jadi identitas yang meragukan harus
+  // menghentikan form — bukan diteruskan dengan nasabah tebakan.
+  if (taut.status !== "TERTAUT") return <StatusTaut hasil={taut} />;
+
+  // Form petugas hanya menawarkan nasabah aktif; aturan yang sama berlaku di
+  // sini supaya nasabah nonaktif tidak punya jalan pintas lewat area warga.
+  if (!taut.nasabah.isActive) {
+    return <StatusTaut hasil={taut} nasabahNonAktif />;
   }
+
+  const nasabah = taut.nasabah;
 
   // BR-16: hanya jenis aktif berharga > 0 yang boleh masuk setoran.
   const jenisRows = await prisma.jenisSampah.findMany({
@@ -65,7 +61,13 @@ export default async function SetorWargaPage() {
       </div>
 
       <SetorWargaForm
-        nasabah={nasabah satisfies NasabahOpsi}
+        nasabah={
+          {
+            id: nasabah.id,
+            kodeNasabah: nasabah.kodeNasabah,
+            nama: nasabah.nama,
+          } satisfies NasabahOpsi
+        }
         jenis={jenis}
       />
     </div>

@@ -176,6 +176,11 @@ describe("PATCH /api/profil — penyimpanan", () => {
         bankSampahId: "bs-lain",
         isActive: false,
         email: "curang@peser.local",
+        // noHp menentukan nasabah mana yang diklaim akun ini di area warga
+        // (src/lib/nasabah-tertaut.ts). Kalau body ini diterima, siapa pun bisa
+        // menulis nomor HP warga lain dan membaca riwayat setoran orang itu —
+        // jadi pengisiannya hanya lewat /api/users (ADMIN).
+        noHp: "081234500001",
       }),
     )
     expect(res.status).toBe(200)
@@ -185,6 +190,7 @@ describe("PATCH /api/profil — penyimpanan", () => {
     expect(data).not.toHaveProperty("bankSampahId")
     expect(data).not.toHaveProperty("isActive")
     expect(data).not.toHaveProperty("email")
+    expect(data).not.toHaveProperty("noHp")
   })
 
   it("hanya mengubah dirinya sendiri, id diambil dari sesi", async () => {

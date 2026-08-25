@@ -4,6 +4,8 @@ export type UserRow = {
   id: string
   email: string
   nama: string
+  /** Jangkar penautan akun ke Nasabah di area warga (lihat nasabah-tertaut.ts). */
+  noHp: string | null
   role: Role
   bankSampahId: string | null
   isActive: boolean
@@ -17,6 +19,7 @@ export type UserPayload = {
   email: string
   password?: string
   nama: string
+  noHp?: string | null
   role: Role
   bankSampahId?: string | null
   isActive?: boolean

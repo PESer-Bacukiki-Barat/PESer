@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ChevronRight, Recycle } from "lucide-react";
 
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { nasabahTertaut } from "@/lib/nasabah-tertaut";
+import { StatusTaut } from "@/components/user/status-taut";
 
 export const metadata: Metadata = {
   title: "Aktivitas",
@@ -44,15 +46,14 @@ export default async function AktivitasPage({
   const user = await getServerUser();
   if (!user?.bankSampah) redirect("/login");
 
-  const nasabah = await prisma.nasabah.findFirst({
-    where: {
-      bankSampahId: user.bankSampah.id,
-      deletedAt: null,
-      ...(user.noHp ? { noHp: user.noHp } : {}),
-    },
-    select: { id: true },
+  // notFound() diganti penjelasan: akun yang belum tertaut bukan URL keliru,
+  // dan warga perlu tahu langkah apa yang membuka halaman ini.
+  const taut = await nasabahTertaut({
+    noHp: user.noHp,
+    bankSampahId: user.bankSampah.id,
   });
-  if (!nasabah) notFound();
+  if (taut.status !== "TERTAUT") return <StatusTaut hasil={taut} />;
+  const nasabah = taut.nasabah;
 
   const dari = tanggalDari(q.dari);
   const sampai = tanggalDari(q.sampai);
