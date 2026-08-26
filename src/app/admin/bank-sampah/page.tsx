@@ -93,6 +93,8 @@ export default async function BankSampahPage() {
         </p>
       </div>
 
+      <BankSampahStockSummary bankSampah={stockSummaryData} />
+
       <BankSampahTable
         bankSampah={bankSampah.map((b) => ({
           id: b.id,
@@ -107,7 +109,6 @@ export default async function BankSampahPage() {
         kelurahanOptions={kelurahanOptions}
       />
 
-      <BankSampahStockSummary bankSampah={stockSummaryData} />
     </>
   );
 }

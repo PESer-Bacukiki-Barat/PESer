@@ -332,22 +332,15 @@ flowchart TD
     B -- Ya --> C[Ambil bankSampahId dari sesi]
     C --> D[Cari / daftar Nasabah]
     D --> E[Timbang fisik]
-    E --> F{Jenis sesuai master & tersortir?}
-    F -- Tidak --> G[Sortir ulang / tolak item + catat alasan]
-    G --> F
-    F -- Ya --> H[Input item: jenis, berat kg, kondisi]
+    
+    E --> H[Input item: jenis, berat kg, kondisi]
     H --> I[Sistem ambil harga beli aktif, hitung subtotal]
     I --> J{Item lain?}
     J -- Ya --> H
     J -- Tidak --> K[Tampilkan total berat & rupiah]
     K --> L[Petugas konfirmasi simpan]
-    L --> M{Cek koneksi}
-    M -- Offline --> N[Simpan draft IndexedDB PENDING_SYNC + idempotencyKey]
-    M -- Online --> O[POST /api/setoran]
-    N --> P[Background Sync saat koneksi pulih]
-    P --> O
-    O --> Q[Transaksi atomik: INSERT Setoran, Items, UPDATE Stock, INSERT Mutation MASUK, INSERT AuditLog]
-    Q --> R[Petugas serahkan tunai ke warga di luar sistem]
+    
+    L --> R[Petugas serahkan tunai ke warga di luar sistem]
     R --> S[Catat nominal + flag cashDibayar=true]
     S --> T[Tampilkan bukti setor]
     T --> U{Stock > threshold?}
@@ -356,23 +349,21 @@ flowchart TD
     V --> W
 ```
 
+
 **Langkah detail (lihat juga BR & aturan harga 6.3, 6.4):**
 1. Petugas login → verifikasi sesi & `role = PETUGAS`.
 2. Sistem ambil `bankSampahId` dari sesi.
 3. Cari nasabah, atau daftarkan nasabah baru.
 4. Sampah ditimbang secara fisik.
-5. **Gerbang kualitas:** apakah tersortir & sesuai master jenis sampah? Tidak → sortir ulang/tolak + **wajib catat alasan**. Ya → lanjut.
-6. Input item: jenis, berat (kg), kondisi.
-7. **Sistem** ambil `harga` dari `JenisSampah`, `subtotal = berat × harga`.
-8. Ulangi 6–7 untuk jenis lain.
-9. Tampilkan total berat & rupiah.
-10. Petugas konfirmasi simpan.
-11. Cek koneksi → Offline: simpan draft IndexedDB `PENDING_SYNC`; Online: `POST /api/setoran`.
-12. Transaksi atomik (lihat 4.4).
-13. Petugas serahkan uang tunai (**di luar sistem**).
-14. Sistem catat nominal + `cashDibayar = true`.
-15. Tampilkan bukti setor.
-16. Cek stock vs threshold → lewat → notifikasi Admin.
+5. Input item: jenis, berat (kg), kondisi.
+6. **Sistem** ambil `harga` dari `JenisSampah`, `subtotal = berat × harga`.
+7. Ulangi 6–7 untuk jenis lain.
+8. Tampilkan total berat & rupiah.
+9. Petugas konfirmasi simpan.
+10. Petugas serahkan uang tunai (**di luar sistem**).
+11. Sistem catat nominal + `cashDibayar = true`.
+12. Tampilkan bukti setor.
+13. Cek stock vs threshold → lewat → notifikasi Admin.
 
 **Aturan Harga [WAJIB]:** harga = kolom `harga` di `JenisSampah` (sudah flat; tabel `HargaSampah` dihapus); `harga = 0` → tidak muncul di dropdown (BR-16); harga dikunci saat item masuk keranjang (bukan submit); disimpan ke `SetoranItem.hargaSaatItu` sebagai angka.
 

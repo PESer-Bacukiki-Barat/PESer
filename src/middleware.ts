@@ -6,6 +6,11 @@ function isAdminExempt(pathname: string): boolean {
   return pathname === "/admin/nasabah" || pathname.startsWith("/admin/nasabah/")
 }
 
+// Beranda per role — pengganti /dashboard yang dihapus.
+function homeForRole(role?: string): string {
+  return role === "ADMIN" ? "/admin" : "/petugas"
+}
+
 export default auth((req) => {
   const { pathname } = req.nextUrl
   if (pathname.startsWith("/api")) return NextResponse.next()
@@ -15,22 +20,26 @@ export default auth((req) => {
   const isPublic =
     pathname === "/" || pathname === "/login" || pathname === "/offline"
   const isLoggedIn = !!req.auth
+  const role = req.auth?.user?.role
 
   if (!isLoggedIn && !isPublic) {
     return NextResponse.redirect(new URL("/login", req.nextUrl))
   }
   if (isLoggedIn && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+    return NextResponse.redirect(new URL(homeForRole(role), req.nextUrl))
   }
 
-  const role = req.auth?.user?.role
+  // /dashboard sudah dihapus: arahkan pengguna login ke beranda per role-nya.
+  if (isLoggedIn && pathname === "/dashboard") {
+    return NextResponse.redirect(new URL(homeForRole(role), req.nextUrl))
+  }
 
   // Panel /admin adalah Modul B — Master Data (ADMIN) di PRD, kecuali
   // /admin/nasabah yang FR-B7 tetapkan sebagai kewenangan PETUGAS.
   // role dibaca dari JWT (lihat callbacks di src/auth.ts), tanpa query DB.
   if (isLoggedIn && pathname.startsWith("/admin") && !isAdminExempt(pathname)) {
     if (role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
+      return NextResponse.redirect(new URL(homeForRole(role), req.nextUrl))
     }
   }
 
@@ -38,7 +47,7 @@ export default auth((req) => {
   // milik PETUGAS. Admin diarahkan ke panelnya sendiri karena halaman di sini
   // selalu di-scope ke satu bank sampah, yang admin tidak punya (§5.3).
   if (isLoggedIn && pathname.startsWith("/petugas") && role !== "PETUGAS") {
-    return NextResponse.redirect(new URL(role === "ADMIN" ? "/admin" : "/dashboard", req.nextUrl))
+    return NextResponse.redirect(new URL(homeForRole(role), req.nextUrl))
   }
 
   return NextResponse.next()

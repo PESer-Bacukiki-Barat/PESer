@@ -21,7 +21,7 @@ export default async function PetugasLayout({
 }) {
   const user = await getServerUser()
   if (!user) redirect("/login")
-  if (user.role !== "PETUGAS") redirect("/dashboard")
+  if (user.role !== "PETUGAS") redirect(user.role === "ADMIN" ? "/admin" : "/petugas")
 
   if (!user.bankSampah) {
     return (

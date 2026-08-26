@@ -9,7 +9,7 @@ export async function login(formData: FormData) {
   const password = String(formData.get("password"))
 
   try {
-    await signIn("credentials", { email, password, redirectTo: "/dashboard" })
+    await signIn("credentials", { email, password, redirectTo: "/petugas" })
   } catch (error) {
     if (error instanceof AuthError) {
       return redirect(`/login?error=${encodeURIComponent("Email atau password salah")}`)

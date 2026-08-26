@@ -37,7 +37,7 @@ function awalHariIni(): Date {
 
 export default async function BerandaPetugasPage() {
   const user = await getServerUser()
-  if (!user?.bankSampahId) redirect("/dashboard")
+  if (!user?.bankSampahId) redirect("/petugas")
   const bankSampahId = user.bankSampahId
 
   const [setoranHariIni, stockRows, dispatchAktif] = await Promise.all([

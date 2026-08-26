@@ -5,3 +5,4 @@
 
 -- AlterTable
 ALTER TABLE "user" ADD COLUMN "noHp" TEXT;
+ 
