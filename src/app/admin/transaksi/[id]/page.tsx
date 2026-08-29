@@ -16,33 +16,13 @@ import {
   type ItemAksi,
 } from "@/components/dispatch/aksi-dispatch"
 import { FotoBukti } from "@/components/dispatch/foto-bukti"
+import { fmtBerat, fmtRupiah, fmtTanggalWaktu } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Detail Dispatch",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number | null) =>
-  n == null
-    ? "—"
-    : new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-      }).format(n)
-
-const fmtTanggal = (d: Date) =>
-  d.toLocaleString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
 
 export default async function DetailDispatchPage({
   params,
@@ -168,7 +148,7 @@ export default async function DetailDispatchPage({
             {[
               ["Bank Sampah", dispatch.bankSampah.nama],
               ["Pembeli", dispatch.pembeli.nama],
-              ["Tanggal Jemput", fmtTanggal(dispatch.tanggalJemput)],
+              ["Tanggal Jemput", fmtTanggalWaktu(dispatch.tanggalJemput)],
               ["Dibuat Oleh", dispatch.dibuatOleh.nama],
               ["Total Target", `${fmtBerat(totalTarget)} kg`],
               ["Total Aktual", totalAktual == null ? "—" : `${fmtBerat(totalAktual)} kg`],

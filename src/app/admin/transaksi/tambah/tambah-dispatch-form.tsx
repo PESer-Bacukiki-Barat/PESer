@@ -57,6 +57,7 @@ export function TambahDispatchForm({ options }: { options: DispatchFormOptions }
         cancelLabel="Batal"
         cancelHref="/admin/transaksi"
         onSubmit={handleSubmit}
+        menyimpan={isSubmitting}
         onCancel={() => router.push("/admin/transaksi")}
       />
     </>

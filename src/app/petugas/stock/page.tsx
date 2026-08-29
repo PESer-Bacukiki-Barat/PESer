@@ -6,15 +6,13 @@ import { getServerUser } from "@/lib/auth"
 import { markerBankSampah } from "@/lib/peta"
 import { GAYA_LEVEL } from "@/lib/level-stock"
 import { PetaBankSampah } from "@/components/peta/peta-bank-sampah"
+import { fmtBerat } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Stock",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
 
 /** Stock bank sampah sendiri — FR-C5. */
 export default async function StockPetugasPage() {

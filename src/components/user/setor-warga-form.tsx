@@ -18,6 +18,7 @@ import {
   DESIMAL_BERAT,
   PEMBULATAN_TUNAI,
 } from "@/lib/constants";
+import { fmtBerat, fmtRupiah } from "@/lib/format";
 
 export type NasabahOpsi = { id: string; kodeNasabah: string; nama: string };
 export type JenisOpsi = { id: string; nama: string; harga: number };
@@ -25,16 +26,6 @@ export type JenisOpsi = { id: string; nama: string; harga: number };
 type Baris = { jenisSampahId: string; berat: string; kondisi: KondisiSampah };
 
 const barisBaru = (): Baris => ({ jenisSampahId: "", berat: "", kondisi: "BERSIH" });
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n);
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n);
 
 /** Pembulatan tunai ke Rp 500 terdekat — PRD §4.1 "Aturan Pembulatan". */
 const bulatkanTunai = (n: number) => Math.round(n / PEMBULATAN_TUNAI) * PEMBULATAN_TUNAI;

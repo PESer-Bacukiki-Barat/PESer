@@ -12,15 +12,13 @@ import {
   kondisiStyle,
   type KondisiSampah,
 } from "@/lib/setoran-data";
+import { fmtBerat } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Bukti Setor",
 };
 
 export const dynamic = "force-dynamic";
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n);
 
 /**
  * Bukti setor warga — FR-C4. Akses dijaga dua lapis: harus login (middleware)

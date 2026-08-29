@@ -7,16 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
 import { logout } from "@/app/actions/auth"
 import { useAntrean } from "@/components/petugas/antrean-provider"
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 /**
  * Badge antrean di header — §4.3 aturan 5 "Badge jumlah antrean tertunda selalu

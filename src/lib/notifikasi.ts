@@ -1,4 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client"
+import { fmtBerat } from "@/lib/format"
 
 /**
  * Notifikasi in-app — FR-E5.
@@ -39,9 +40,6 @@ export function melewatiThreshold({
   if (threshold <= 0) return false
   return sebelum < threshold && sesudah >= threshold
 }
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
 
 /**
  * Stock satu jenis melewati ambang jemput — AC PRD baris 313:

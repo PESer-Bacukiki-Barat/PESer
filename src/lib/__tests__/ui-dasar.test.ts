@@ -196,3 +196,36 @@ describe("kenyamanan pakai", () => {
     expect(dt).toContain("Hapus filter")
   })
 })
+
+describe("konsistensi tampilan", () => {
+  it("tidak ada pemformat angka yang didefinisikan ulang di luar src/lib/format.ts", () => {
+    // 34 definisi lokal di 19 berkas sudah mulai menyimpang sebelum disatukan:
+    // sebelas membulatkan rupiah, empat membiarkan desimal. Angka yang sama
+    // tampil berbeda antar layar.
+    const pelanggar = [...isi.entries()]
+      .filter(([f]) => f !== "src/lib/format.ts")
+      .filter(([, teks]) => /const (fmtRupiah|fmtBerat|fmtTanggal|formatCurrency)\s*=/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("blok aksi form memakai komponen bersama, bukan susunan sendiri", () => {
+    // Sebelumnya dispatch-form merakit tombolnya sendiri dengan rounded-full
+    // dan bg-primary-container, jadi ia terlihat berasal dari aplikasi lain.
+    const pelanggar = [...isi.entries()]
+      .filter(([f]) => /components\/admin\/.*-form\.tsx$/.test(f))
+      .filter(([, teks]) => teks.includes('justify-end gap-4 pt-6'))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("setiap form admin punya keadaan menyimpan — tidak bisa submit dobel", () => {
+    // dispatch-form sempat tidak punya sama sekali: menekannya dua kali
+    // membuat dua dispatch.
+    for (const [f, teks] of isi) {
+      if (!/components\/admin\/.*-form\.tsx$/.test(f)) continue
+      if (!teks.includes("<AksiForm")) continue
+      expect(teks).toContain("menyimpan=")
+    }
+  })
+})

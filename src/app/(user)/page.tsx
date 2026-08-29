@@ -9,22 +9,13 @@ import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import { StatusTaut } from "@/components/user/status-taut";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { fmtBerat, fmtRupiah } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Beranda",
 };
 
 export const dynamic = "force-dynamic";
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n);
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n);
 
 /**
  * Beranda warga — rekap setoran miliknya di bank sampah tempat akunnya

@@ -6,9 +6,7 @@ import {
   URUTAN_LEVEL,
   type MarkerBankSampah,
 } from "@/lib/level-stock"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
+import { fmtBerat } from "@/lib/format"
 
 /**
  * Pendamping teks untuk peta.

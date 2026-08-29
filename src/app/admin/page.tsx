@@ -6,22 +6,13 @@ import { prisma } from "@/lib/prisma"
 import { Badge } from "@/components/ui/badge"
 import { STATUS_FINAL } from "@/lib/dispatch-aksi"
 import { DISPATCH_STATUS_LABEL, statusStyle, type DispatchStatus } from "@/lib/dispatch-data"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Dashboard",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
 
 /** Dispatch yang belum final = masih menunggu tindakan seseorang. */
 const BELUM_FINAL = { notIn: [...STATUS_FINAL] }

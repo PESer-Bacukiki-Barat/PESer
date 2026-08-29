@@ -7,22 +7,13 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import { StatusTaut } from "@/components/user/status-taut";
+import { fmtBerat, fmtRupiah } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Aktivitas",
 };
 
 export const dynamic = "force-dynamic";
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n);
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n);
 
 /** Tanggal valid dari query, atau undefined kalau kosong/ngawur. */
 function tanggalDari(nilai: string | undefined): Date | undefined {

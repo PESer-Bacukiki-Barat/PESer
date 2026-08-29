@@ -9,9 +9,7 @@ import {
   pusatPeta,
   type MarkerBankSampah,
 } from "@/lib/level-stock"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
+import { fmtBerat } from "@/lib/format"
 
 /** Kalau tidak ada koordinat sama sekali, jatuh ke pusat Parepare. */
 const PUSAT_CADANGAN: [number, number] = [-4.0135, 119.6255]

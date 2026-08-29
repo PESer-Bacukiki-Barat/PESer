@@ -11,22 +11,13 @@ import {
   statusStyle,
   type DispatchStatus,
 } from "@/lib/dispatch-data"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Beranda Petugas",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
 
 /** Awal hari ini menurut waktu server — batas untuk rekap "hari ini". */
 function awalHariIni(): Date {

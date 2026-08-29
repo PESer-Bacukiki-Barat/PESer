@@ -9,6 +9,7 @@ import {
   type RincianPenjualan,
   type RincianVolume,
 } from "@/lib/laporan"
+import { fmtBerat, fmtRupiah, fmtTanggal } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Laporan",
@@ -21,23 +22,6 @@ export const metadata: Metadata = {
  */
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
-
-const fmtTanggal = (iso: string) =>
-  new Date(iso).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
 
 /** Tanggal valid dari query, atau undefined kalau kosong/ngawur. */
 function tanggalDari(nilai: string | undefined): Date | undefined {

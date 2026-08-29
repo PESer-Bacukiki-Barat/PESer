@@ -5,22 +5,13 @@ import { ChevronRight } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Riwayat Setoran",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
 
 /**
  * Riwayat setoran — FR-C9 "PETUGAS (sendiri)".

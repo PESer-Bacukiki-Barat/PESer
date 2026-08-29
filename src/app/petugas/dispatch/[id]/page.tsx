@@ -16,24 +16,13 @@ import {
   type ItemAksi,
 } from "@/components/dispatch/aksi-dispatch"
 import { FotoBukti } from "@/components/dispatch/foto-bukti"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Detail Dispatch",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number | null) =>
-  n == null
-    ? "—"
-    : new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        minimumFractionDigits: 0,
-      }).format(n)
 
 /** Detail dispatch untuk petugas — terima, tolak, serah terima (FR-D3..D5). */
 export default async function DetailDispatchPetugasPage({

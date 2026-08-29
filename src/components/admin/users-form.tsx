@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -9,7 +8,7 @@ import {
   SelectField,
   type SelectOption,
 } from "@/components/admin/form-fields";
-import { Button } from "@/components/ui/button";
+import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { api, apiError, apiFieldErrors } from "@/lib/api";
 import { MIN_DIGIT_NOHP, normalkanNoHp } from "@/lib/no-hp";
@@ -254,15 +253,13 @@ export function UsersForm({
         </p>
       )}
 
-      <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <Button type="button" variant="outline" onClick={handleCancel}>
-          {cancelLabel}
-        </Button>
-        <Button type="submit" disabled={saving}>
-          <Save className="size-[18px]" />
-          {saving ? "Menyimpan..." : submitLabel}
-        </Button>
-      </div>
+      <AksiForm
+        onBatal={handleCancel}
+        labelBatal={cancelLabel}
+        labelSimpan={submitLabel}
+        labelMenyimpan="Menyimpan…"
+        menyimpan={saving}
+      />
     </form>
   );
 

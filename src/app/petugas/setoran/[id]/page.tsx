@@ -13,22 +13,13 @@ import {
   type AlasanTolak,
   type KondisiSampah,
 } from "@/lib/setoran-data"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Bukti Setor",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
 
 /** Bukti setor — FR-C4. Ditampilkan ke warga setelah setoran tersimpan. */
 export default async function BuktiSetorPage({

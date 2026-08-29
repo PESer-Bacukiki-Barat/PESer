@@ -16,6 +16,7 @@ import {
   type AlasanTolak,
   type KondisiSampah,
 } from "@/lib/setoran-data"
+import { fmtBerat, fmtRupiah } from "@/lib/format"
 
 export type NasabahOpsi = { id: string; kodeNasabah: string; nama: string }
 export type JenisOpsi = { id: string; nama: string; harga: number }
@@ -38,16 +39,6 @@ const tolakanBaru = (): Tolakan => ({
   alasan: "TIDAK_TERSORTIR",
   catatan: "",
 })
-
-const fmtRupiah = (n: number) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(n)
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
 
 /**
  * Form setoran — FR-C1..C4, alur PRD §4.1.

@@ -11,15 +11,13 @@ import {
   statusStyle,
   type DispatchStatus,
 } from "@/lib/dispatch-data"
+import { fmtBerat } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Dispatch",
 }
 
 export const dynamic = "force-dynamic"
-
-const fmtBerat = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
 
 /** Dispatch yang ditujukan ke bank sampah petugas — FR-D3..D5. */
 export default async function DispatchPetugasPage() {

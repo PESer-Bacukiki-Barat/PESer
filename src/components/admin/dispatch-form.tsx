@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Save, Trash2, Plus } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Field, SelectField, inputClasses, type SelectOption } from "@/components/admin/form-fields";
 import { type DispatchFormValues } from "@/lib/dispatch-data";
+import { AksiForm } from "@/components/ui/aksi-form";
 
 export function DispatchForm({
   initialData,
@@ -17,6 +18,7 @@ export function DispatchForm({
   cancelLabel = "Batal",
   cancelHref,
   onSubmit,
+  menyimpan = false,
   onCancel,
   bare = false,
 }: {
@@ -28,6 +30,8 @@ export function DispatchForm({
   cancelLabel?: string;
   cancelHref?: string;
   onSubmit?: (values: DispatchFormValues) => void;
+  /** Diteruskan induk: form ini tidak melakukan permintaannya sendiri. */
+  menyimpan?: boolean;
   onCancel?: () => void;
   bare?: boolean;
 }) {
@@ -72,6 +76,9 @@ export function DispatchForm({
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Lapis kedua: tombolnya sudah dinonaktifkan saat menyimpan, tapi Enter di
+    // dalam input tetap bisa memicu submit.
+    if (menyimpan) return;
     onSubmit?.({
       bankSampahId: bankSampahId.trim(),
       pembeliId: pembeliId.trim(),
@@ -216,22 +223,17 @@ export function DispatchForm({
         />
       </Field>
 
-      <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant/50">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
-        >
-          {cancelLabel}
-        </button>
-        <button
-          type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
-        >
-          <Save className="size-[18px]" />
-          {submitLabel}
-        </button>
-      </div>
+      {/* Sebelumnya tombolnya dirakit sendiri dengan rounded-full dan
+          bg-primary-container, jadi form ini terlihat berasal dari aplikasi
+          yang berbeda dari enam form lainnya. Dan tanpa keadaan menyimpan,
+          menekannya dua kali membuat dua dispatch. */}
+      <AksiForm
+        onBatal={handleCancel}
+        labelBatal={cancelLabel}
+        labelSimpan={submitLabel}
+        labelMenyimpan="Menyimpan…"
+        menyimpan={menyimpan}
+      />
     </form>
   );
 
