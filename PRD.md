@@ -1,7 +1,7 @@
 # PRD — Bank Sampah Digital Kecamatan
 
-**Versi:** 1.3
-**Tanggal:** 19 Agustus 2026
+**Versi:** 1.6
+**Tanggal:** 29 Agustus 2026
 **Sumber:** Notulensi 3 Agustus 2026 + Board Whimsical "Bank Sampah Digital — Logic"
 **Status:** Siap dieksekusi, dengan 6 keputusan terbuka di Bagian 8 (Keputusan Terbuka)
 
@@ -191,6 +191,8 @@ Aplikasi web berbasis **PWA** akan mencatat setoran sampah plastik dari warga, m
 | BR-15 | Uang dari pembeli tidak pernah dipegang petugas | Diterima Pak Camat langsung |
 | BR-16 | Jenis sampah dengan harga = 0 tidak muncul di form setoran | Mencegah kalkulasi nol |
 | BR-17 | Master data tidak dihapus fisik | Soft delete via `deletedAt`; query selalu filter `deletedAt IS NULL` (kecuali audit) |
+| BR-18 | Barang yang **ditolak** gerbang kualitas tidak pernah masuk stock, tidak dibayar, dan tidak masuk laporan volume | Disimpan di tabel terpisah `setoran_ditolak`, **bukan** sebagai `SetoranItem`. Barang tolakan dikembalikan ke warga, jadi ia tidak pernah menjadi milik bank sampah |
+| BR-19 | Foto bukti serah terima disimpan di database, bukan di filesystem | Vercel serverless tidak punya penyimpanan persisten, dan §8.1 melarang menambah dependency besar. Berkas dibatasi ukuran & tipe, dikompresi di klien |
 
 ## 2.4 Matriks Hak Akses
 
@@ -332,15 +334,22 @@ flowchart TD
     B -- Ya --> C[Ambil bankSampahId dari sesi]
     C --> D[Cari / daftar Nasabah]
     D --> E[Timbang fisik]
-    
-    E --> H[Input item: jenis, berat kg, kondisi]
+    E --> F{Tersortir & sesuai master jenis sampah?}
+    F -- Tidak --> G[Catat penolakan: deskripsi, berat, alasan - BR-18]
+    G --> J
+    F -- Ya --> H[Input item: jenis, berat kg, kondisi]
     H --> I[Sistem ambil harga beli aktif, hitung subtotal]
     I --> J{Item lain?}
-    J -- Ya --> H
+    J -- Ya --> E
     J -- Tidak --> K[Tampilkan total berat & rupiah]
     K --> L[Petugas konfirmasi simpan]
-    
-    L --> R[Petugas serahkan tunai ke warga di luar sistem]
+    L --> M{Cek koneksi}
+    M -- Offline --> N[Simpan draft IndexedDB PENDING_SYNC + idempotencyKey]
+    M -- Online --> O[POST /api/setoran]
+    N --> P[Background Sync saat koneksi pulih]
+    P --> O
+    O --> Q[Transaksi atomik: INSERT Setoran, Items, Ditolak, UPDATE Stock, INSERT Mutation MASUK, INSERT AuditLog]
+    Q --> R[Petugas serahkan tunai ke warga di luar sistem]
     R --> S[Catat nominal + flag cashDibayar=true]
     S --> T[Tampilkan bukti setor]
     T --> U{Stock > threshold?}
@@ -355,15 +364,28 @@ flowchart TD
 2. Sistem ambil `bankSampahId` dari sesi.
 3. Cari nasabah, atau daftarkan nasabah baru.
 4. Sampah ditimbang secara fisik.
-5. Input item: jenis, berat (kg), kondisi.
-6. **Sistem** ambil `harga` dari `JenisSampah`, `subtotal = berat × harga`.
-7. Ulangi 6–7 untuk jenis lain.
-8. Tampilkan total berat & rupiah.
-9. Petugas konfirmasi simpan.
-10. Petugas serahkan uang tunai (**di luar sistem**).
-11. Sistem catat nominal + `cashDibayar = true`.
-12. Tampilkan bukti setor.
-13. Cek stock vs threshold → lewat → notifikasi Admin.
+5. **Gerbang kualitas (FR-C2):** apakah tersortir & sesuai master jenis sampah? Tidak → **wajib catat penolakan** (deskripsi, berat, alasan) dan barangnya dikembalikan ke warga. Ya → lanjut.
+6. Input item: jenis, berat (kg), kondisi.
+7. **Sistem** ambil `harga` dari `JenisSampah`, `subtotal = berat × harga`.
+8. Ulangi 5–7 untuk jenis lain.
+9. Tampilkan total berat & rupiah **yang diterima saja** (BR-18).
+10. Petugas konfirmasi simpan.
+11. Cek koneksi → Offline: simpan draft IndexedDB `PENDING_SYNC`; Online: `POST /api/setoran`.
+12. Transaksi atomik (lihat 4.4).
+13. Petugas serahkan uang tunai (**di luar sistem**).
+14. Sistem catat nominal + `cashDibayar = true`.
+15. Tampilkan bukti setor, termasuk daftar barang yang ditolak beserta alasannya.
+16. Cek stock vs threshold → lewat → notifikasi Admin.
+
+**Aturan Gerbang Kualitas [WAJIB] (FR-C2, BR-18):** penolakan dicatat di tabel
+`setoran_ditolak`, **terpisah** dari `SetoranItem`. Alasannya struktural, bukan
+gaya: barang tolakan dikembalikan ke warga dan tidak pernah menjadi milik bank
+sampah, jadi ia tidak boleh bisa masuk ke stock, pembayaran, atau laporan
+volume — bahkan kalau suatu saat ada query yang lupa memasang filter. Setiap
+baris penolakan wajib punya `deskripsi`, `berat > 0`, dan `alasan` dari enum;
+`alasan = LAINNYA` mewajibkan `catatan` diisi. Satu setoran boleh berisi **hanya**
+penolakan (semua barang ditolak) — itu tetap kunjungan yang harus tercatat —
+tapi tidak boleh kosong sama sekali.
 
 **Aturan Harga [WAJIB]:** harga = kolom `harga` di `JenisSampah` (sudah flat; tabel `HargaSampah` dihapus); `harga = 0` → tidak muncul di dropdown (BR-16); harga dikunci saat item masuk keranjang (bukan submit); disimpan ke `SetoranItem.hargaSaatItu` sebagai angka.
 
@@ -665,6 +687,19 @@ sequenceDiagram
 | | beratAktual | Decimal(10,2)? | |
 | | hargaJualPerKg | Decimal(14,2) | |
 | | subtotal | Decimal(14,2)? | |
+| `setoran_ditolak` | id | String | PK |
+| | setoranId | String | FK→setoran, index |
+| | jenisSampahId | String? | FK→jenis_sampah (null = tidak cocok master mana pun) |
+| | deskripsi | String | apa yang ditolak, kata-kata petugas |
+| | berat | Decimal(10,2) | > 0; **tidak** masuk stock/laporan (BR-18) |
+| | alasan | AlasanTolak | enum |
+| | catatan | String? | wajib kalau alasan = LAINNYA |
+| `foto_bukti` | id | String | PK |
+| | dispatchId | String | FK→dispatch, UNIQUE (satu foto per dispatch) |
+| | mimeType | String | image/jpeg \| image/png \| image/webp |
+| | ukuran | Int | byte, maks 1 MB (BR-19) |
+| | data | Bytes | isi berkas |
+| | diunggahOlehId | String | FK→user |
 | `audit_log` | id | String | PK |
 | | userId | String | FK→user |
 | | aksi, entitas, entitasId | String | |
@@ -977,7 +1012,7 @@ model AuditLog {
 | Caching / NoSQL | **IndexedDB** (client offline queue) | Antrean setoran offline + idempotency; tanpa server cache untuk dispatch/laporan. |
 | ORM | **Prisma** | Satu-satunya jalur akses DB; skema sebagai kontrak. |
 | Auth | **NextAuth (Auth.js)** — Credentials (email + password) | Password di-hash (`bcrypt`) di tabel `credential`; sesi JWT; guard berlapis. |
-| Storage | *(belum ditentukan)* | Foto bukti serah terima (form `fotoBuktiUrl` sudah ada; provider upload belum dipilih). |
+| Storage | **PostgreSQL `Bytes`** (tabel `foto_bukti`), disajikan lewat `GET /api/dispatch/[id]/foto` | Foto bukti serah terima (FR-D5, BR-19). Vercel serverless tidak punya filesystem persisten, dan §8.1 melarang menambah dependency besar seperti SDK S3/Blob — sementara Postgres sudah ada dan transaksional, sehingga foto dan transisi status bisa ditulis atomik. Volume kecil: satu foto per dispatch, dikompresi di klien ke maks 1600px / 1 MB. Kalau kelak volumenya naik, pindah ke object storage cukup mengganti isi satu route tanpa menyentuh pemanggilnya. |
 | Peta | **Leaflet + React Leaflet** (OSM tiles) | Tanpa biaya tile; marker warna by level stock. |
 | Validasi | **Zod** | Dipakai client & server (satu sumber kebenaran). |
 | Message Broker / Queue | *(tidak ada)* | Antrean offline cukup IndexedDB + Background Sync; tidak ada cron (BR-06). |
@@ -1104,6 +1139,7 @@ export const TARGET_SENTUH_MIN_PX = 44
 | 1.2 | 17 Agu 2026 | Tambah soft delete (`deletedAt DateTime?`) pada 7 model master data; aturan BR-17 + query filter `deletedAt IS NULL`. |
 | 1.3 | 19 Agu 2026 | Ganti Supabase Auth → NextAuth (Auth.js) Credentials: tabel `credential` baru (hash bcrypt), `User.authUserId` dihapus, guard 2 lapis (menghapus RLS), update §5, §7, §8. |
 | 1.5 | 24 Agu 2026 | **Hapus fitur koreksi stock** (FR-C7, FR-C8) beserta endpoint `POST/GET /api/koreksi-stock` dan halamannya. Konsekuensi: stock hanya berubah lewat Setoran (MASUK) dan serah terima Dispatch (KELUAR) — tidak ada lagi jalur koreksi manual. Model `KoreksiStock` **dipertahankan** untuk data historis karena `StockMutation` lama merujuknya. Update §2.1, §2.4, §2.5, §7.2, §8.4. |
+| 1.6 | 29 Agu 2026 | **FR-C2 & FR-D5 diputuskan dan dikerjakan.** (a) Gerbang kualitas: penolakan disimpan di tabel baru `setoran_ditolak` terpisah dari `SetoranItem`, dengan enum `AlasanTolak`; BR-18 menetapkan barang tolakan tidak masuk stock/pembayaran/laporan. (b) Foto bukti: baris Storage §8 yang sebelumnya "(belum ditentukan)" diisi PostgreSQL `Bytes` lewat tabel `foto_bukti`; BR-19 menjelaskan alasannya (Vercel tanpa filesystem, §8.1 melarang dependency besar). (c) Memulihkan langkah §4.1 yang sempat terhapus — gerbang kualitas, antrean offline, dan transaksi atomik — yang bertentangan dengan FR-F1/F3/F4 dan §8.7 yang sudah diimplementasi. (d) Header versi dikoreksi dari 1.3, tertinggal sejak 1.5. |
 | 1.4 | 19 Agu 2026 | Hapus model `HargaSampah`; harga dipindah ke kolom `harga` di `JenisSampah` (flat, tidak ada lagi riwayat). `KoreksiStock` diubah jadi koreksi langsung oleh PETUGAS tanpa approval: `beratSebelum`/`beratSesudah`/`dilakukanOlehId`, hapus enum `StatusKoreksi`. Update §2, §5.2, §7, §8.4. |
 
 **Catatan akhir:** Dokumen ini akan usang kalau tidak diperbarui. Setiap keputusan di rapat wajib masuk ke sini di hari yang sama, dengan menaikkan nomor versi.

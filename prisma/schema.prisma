@@ -49,6 +49,15 @@ enum KondisiSampah {
   CAMPUR
 }
 
+/// Alasan penolakan gerbang kualitas — FR-C2, PRD §4.1 langkah 5.
+/// LAINNYA mewajibkan `catatan` diisi (dijaga zod + CHECK di migration).
+enum AlasanTolak {
+  TIDAK_TERSORTIR // masih campur, belum dipisah per jenis
+  TIDAK_SESUAI_MASTER // jenisnya tidak ada di master JenisSampah
+  TERKONTAMINASI // basah, berminyak, bercampur sisa makanan
+  LAINNYA
+}
+
 model Kelurahan {
   id          String      @id @default(cuid())
   nama        String
@@ -62,16 +71,16 @@ model Kelurahan {
 }
 
 model BankSampah {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   nama        String
-  kelurahanId String     @unique // BR-01: 1 kelurahan = 1 bank sampah
-  kelurahan   Kelurahan  @relation(fields: [kelurahanId], references: [id])
+  kelurahanId String       @unique // BR-01: 1 kelurahan = 1 bank sampah
+  kelurahan   Kelurahan    @relation(fields: [kelurahanId], references: [id])
   alamat      String
-  latitude    Decimal    @db.Decimal(10, 7)
-  longitude   Decimal    @db.Decimal(10, 7)
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  latitude    Decimal      @db.Decimal(10, 7)
+  longitude   Decimal      @db.Decimal(10, 7)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   deletedAt   DateTime? // soft delete (BR-17)
   petugas     User[]
   nasabah     Nasabah[]
@@ -84,37 +93,38 @@ model BankSampah {
 }
 
 model User {
-  id               String          @id @default(cuid())
-  email            String          @unique
-  nama             String
-  noHp             String? // jangkar penautan akun warga ke Nasabah (dicocokkan per bank sampah)
-  role             Role
-  bankSampahId     String? // wajib kalau PETUGAS (BR-02)
-  bankSampah   BankSampah? @relation(fields: [bankSampahId], references: [id])
-  isActive     Boolean     @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  deletedAt    DateTime? // soft delete (BR-17)
-  credential      Credential?
-  setoranDicatat  Setoran[]        @relation("PetugasSetoran")
-  dispatchDibuat   Dispatch[]      @relation("AdminDispatch")
-  mutasiStock      StockMutation[]
-  koreksiStock     KoreksiStock[]  @relation("PelakuKoreksi")
-  auditLog         AuditLog[]
-  notifikasi       Notifikasi[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  nama           String
+  noHp           String? // jangkar penautan akun warga ke Nasabah (dicocokkan per bank sampah)
+  role           Role
+  bankSampahId   String? // wajib kalau PETUGAS (BR-02)
+  bankSampah     BankSampah?     @relation(fields: [bankSampahId], references: [id])
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime? // soft delete (BR-17)
+  credential     Credential?
+  setoranDicatat Setoran[]       @relation("PetugasSetoran")
+  dispatchDibuat Dispatch[]      @relation("AdminDispatch")
+  mutasiStock    StockMutation[]
+  koreksiStock   KoreksiStock[]  @relation("PelakuKoreksi")
+  auditLog       AuditLog[]
+  notifikasi     Notifikasi[]
+  fotoDiunggah   FotoBukti[]
 
   @@index([bankSampahId])
   @@map("user")
 }
 
 model Credential {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id])
-  email        String   @unique
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id])
+  email        String    @unique
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   deletedAt    DateTime? // soft delete (BR-17)
 
   @@map("credential")
@@ -128,33 +138,34 @@ model Nasabah {
   nama         String
   noHp         String?
   alamat       String
-  rt            String
-  rw            String
-  isActive      Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  deletedAt     DateTime? // soft delete (BR-17)
-  setoran       Setoran[]
+  rt           String
+  rw           String
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime? // soft delete (BR-17)
+  setoran      Setoran[]
 
   @@index([bankSampahId])
   @@map("nasabah")
 }
 
 model JenisSampah {
-  id           String         @id @default(cuid())
-  kode         Int            @unique
-  nama         String
-  kategori     String         @default("PLASTIK")
-  satuan       String         @default("KG")
-  harga        Decimal        @default(0) @db.Decimal(14, 2) // harga beli/jual tunggal (flatten dari HargaSampah)
-  deskripsi    String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime? // soft delete (BR-17)
-  setoranItem  SetoranItem[]
-  dispatchItem DispatchItem[]
-  stock        Stock[]
+  id             String           @id @default(cuid())
+  kode           Int              @unique
+  nama           String
+  kategori       String           @default("PLASTIK")
+  satuan         String           @default("KG")
+  harga          Decimal          @default(0) @db.Decimal(14, 2) // harga beli/jual tunggal (flatten dari HargaSampah)
+  deskripsi      String?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime? // soft delete (BR-17)
+  setoranItem    SetoranItem[]
+  setoranDitolak SetoranDitolak[]
+  dispatchItem   DispatchItem[]
+  stock          Stock[]
 
   @@map("jenis_sampah")
 }
@@ -176,21 +187,22 @@ model Pembeli {
 }
 
 model Setoran {
-  id             String        @id @default(cuid())
-  kodeTransaksi  String        @unique
+  id             String           @id @default(cuid())
+  kodeTransaksi  String           @unique
   bankSampahId   String
-  bankSampah     BankSampah    @relation(fields: [bankSampahId], references: [id])
+  bankSampah     BankSampah       @relation(fields: [bankSampahId], references: [id])
   nasabahId      String
-  nasabah        Nasabah       @relation(fields: [nasabahId], references: [id])
+  nasabah        Nasabah          @relation(fields: [nasabahId], references: [id])
   petugasId      String
-  petugas        User          @relation("PetugasSetoran", fields: [petugasId], references: [id])
-  totalBerat     Decimal       @db.Decimal(10, 2)
-  totalNilai     Decimal       @db.Decimal(14, 2)
-  cashDibayar    Boolean       @default(false) // BR-04: tunai di luar sistem
+  petugas        User             @relation("PetugasSetoran", fields: [petugasId], references: [id])
+  totalBerat     Decimal          @db.Decimal(10, 2)
+  totalNilai     Decimal          @db.Decimal(14, 2)
+  cashDibayar    Boolean          @default(false) // BR-04: tunai di luar sistem
   tanggal        DateTime
-  idempotencyKey String        @unique
-  createdAt      DateTime      @default(now())
+  idempotencyKey String           @unique
+  createdAt      DateTime         @default(now())
   items          SetoranItem[]
+  ditolak        SetoranDitolak[]
 
   @@index([bankSampahId, tanggal])
   @@map("setoran")
@@ -209,6 +221,36 @@ model SetoranItem {
 
   @@index([setoranId])
   @@map("setoran_item")
+}
+
+/// Barang yang DITOLAK gerbang kualitas — FR-C2, BR-18.
+///
+/// Sengaja tabel TERPISAH dari SetoranItem, bukan kolom status di dalamnya.
+/// Barang tolakan dikembalikan ke warga dan tidak pernah menjadi milik bank
+/// sampah, jadi ia tidak boleh bisa masuk ke stock, pembayaran, atau laporan
+/// volume — dan dengan bentuk ini ia TIDAK BISA, bahkan kalau suatu saat ada
+/// query yang lupa memasang filter. Invarian "totalBerat = jumlah SetoranItem"
+/// pun tetap utuh.
+model SetoranDitolak {
+  id        String  @id @default(cuid())
+  setoranId String
+  setoran   Setoran @relation(fields: [setoranId], references: [id])
+
+  /// null kalau barangnya tidak cocok dengan master jenis mana pun — justru
+  /// itu salah satu alasan penolakan (TIDAK_SESUAI_MASTER).
+  jenisSampahId String?
+  jenisSampah   JenisSampah? @relation(fields: [jenisSampahId], references: [id])
+
+  /// Apa yang ditolak, dengan kata-kata petugas. Selalu diisi, karena inilah
+  /// catatan yang berguna saat penolakan ditinjau kemudian.
+  deskripsi String
+  berat     Decimal     @db.Decimal(10, 2) // BR-08; > 0, tidak masuk stock
+  alasan    AlasanTolak
+  catatan   String? // wajib kalau alasan = LAINNYA
+  createdAt DateTime    @default(now())
+
+  @@index([setoranId])
+  @@map("setoran_ditolak")
 }
 
 model Stock {
@@ -248,16 +290,16 @@ model StockMutation {
 }
 
 model KoreksiStock {
-  id              String      @id @default(cuid())
+  id              String   @id @default(cuid())
   stockId         String
-  stock           Stock       @relation(fields: [stockId], references: [id])
-  beratSebelum    Decimal     @db.Decimal(10, 2)
-  beratSesudah    Decimal     @db.Decimal(10, 2)
+  stock           Stock    @relation(fields: [stockId], references: [id])
+  beratSebelum    Decimal  @db.Decimal(10, 2)
+  beratSesudah    Decimal  @db.Decimal(10, 2)
   alasan          String
   dilakukanOlehId String
-  dilakukanOleh   User        @relation("PelakuKoreksi", fields: [dilakukanOlehId], references: [id])
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  dilakukanOleh   User     @relation("PelakuKoreksi", fields: [dilakukanOlehId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([stockId])
   @@map("koreksi_stock")
@@ -272,21 +314,22 @@ model Dispatch {
   pembeli           Pembeli        @relation(fields: [pembeliId], references: [id])
   dibuatOlehId      String
   dibuatOleh        User           @relation("AdminDispatch", fields: [dibuatOlehId], references: [id])
-   status              StatusDispatch @default(DRAFT)
-   tanggalJemput       DateTime
-   totalNilai          Decimal?       @db.Decimal(14, 2)
-   alasanTolak         String?
-   alasanSelisih       String?
-   selisihSignifikan   Boolean        @default(false)
-   fotoBuktiUrl        String?
-   createdAt           DateTime       @default(now())
-   updatedAt           DateTime       @updatedAt
-   deletedAt           DateTime?      // soft delete — admin dapat hapus dispatch (diperbolehkan, BR-10 revisi)
-   items               DispatchItem[]
+  status            StatusDispatch @default(DRAFT)
+  tanggalJemput     DateTime
+  totalNilai        Decimal?       @db.Decimal(14, 2)
+  alasanTolak       String?
+  alasanSelisih     String?
+  selisihSignifikan Boolean        @default(false)
+  fotoBuktiUrl      String? // diisi rute /api/dispatch/[id]/foto saat foto ada
+  fotoBukti         FotoBukti?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime? // soft delete — admin dapat hapus dispatch (diperbolehkan, BR-10 revisi)
+  items             DispatchItem[]
 
-   @@index([bankSampahId, status])
-   @@index([bankSampahId, deletedAt])
-   @@map("dispatch")
+  @@index([bankSampahId, status])
+  @@index([bankSampahId, deletedAt])
+  @@map("dispatch")
 }
 
 model DispatchItem {
@@ -336,9 +379,9 @@ model Notifikasi {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  tipe  TipeNotifikasi
-  judul String
-  pesan String
+  tipe   TipeNotifikasi
+  judul  String
+  pesan  String
   /// Rute in-app yang dituju saat notifikasi diklik, mis. /admin/peta.
   tautan String?
 
@@ -355,4 +398,36 @@ model Notifikasi {
   @@index([userId, dibacaPada, createdAt])
   @@index([bankSampahId])
   @@map("notifikasi")
+}
+
+/// Foto bukti serah terima dispatch — FR-D5, BR-19.
+///
+/// Isinya disimpan di Postgres, bukan di filesystem: Vercel serverless tidak
+/// punya penyimpanan persisten, dan §8.1 melarang menambah dependency besar
+/// seperti SDK object storage. Postgres sudah ada, jadi tidak ada infrastruktur
+/// baru yang harus disiapkan tim maupun di-deploy.
+///
+/// Unggahnya SENGAJA endpoint terpisah, bukan dibundel ke serah-terima:
+/// petugas bekerja dari HP di lapangan, dan menyandera perpindahan status pada
+/// unggahan 1 MB yang bisa gagal akan membuat barang yang sudah fisik berpindah
+/// tidak tercatat. Foto boleh menyusul selama dispatch masih DITERIMA atau
+/// SERAH_TERIMA; setelah SELESAI ia terkunci mengikuti BR-13.
+///
+/// Barisnya dipisah dari Dispatch supaya kolom Bytes yang besar tidak ikut
+/// terbaca setiap kali dispatch di-query; hanya rute foto yang menyentuhnya.
+model FotoBukti {
+  id         String   @id @default(cuid())
+  dispatchId String   @unique // satu foto per dispatch (FR-D5)
+  dispatch   Dispatch @relation(fields: [dispatchId], references: [id])
+
+  mimeType String // dibatasi image/jpeg | image/png | image/webp
+  ukuran   Int // byte; batas di src/lib/constants.ts
+  data     Bytes
+
+  diunggahOlehId String
+  diunggahOleh   User     @relation(fields: [diunggahOlehId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([diunggahOlehId])
+  @@map("foto_bukti")
 }
