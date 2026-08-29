@@ -229,3 +229,53 @@ describe("konsistensi tampilan", () => {
     }
   })
 })
+
+describe("identitas & kontrol yang jujur", () => {
+  it("cn() tahu ukuran teks DESIGN.md, tidak membuangnya", () => {
+    // tailwind-merge menyangka `text-body-md` (ukuran) sekelompok dengan
+    // `text-on-surface` (warna) karena sama-sama berawalan `text-`, lalu
+    // MEMBUANG yang lebih dulu. Akibatnya nyata dan senyap: input password di
+    // halaman login sempat berukuran font berbeda dari input email.
+    const u = isi.get("src/lib/utils.ts")!
+    expect(u).toContain("extendTailwindMerge")
+    expect(u).toContain('"font-size"')
+    expect(u).toContain("body-md")
+  })
+
+  it("satu lambang untuk seluruh aplikasi", () => {
+    // Sebelumnya login memakai ikon daur ulang bawaan lucide, sidebar memakai
+    // huruf "P" dalam kotak — dua identitas untuk satu produk.
+    expect(BERKAS).toContain("src/components/brand/logo-peser.tsx")
+    for (const f of ["src/app/login/page.tsx", "src/components/admin/admin-nav.tsx"]) {
+      expect(isi.get(f)).toContain("LogoPeser")
+    }
+  })
+
+  it("tidak ada kontrol yang berpura-pura bekerja di topbar admin", () => {
+    // Kotak pencarian tanpa handler dan tombol Settings tanpa aksi lebih
+    // menyesatkan daripada tidak ada sama sekali.
+    const nav = isi.get("src/components/admin/admin-nav.tsx")!
+    expect(nav).not.toContain('placeholder="Search..."')
+    expect(nav).not.toContain('aria-label="Settings"')
+    // Avatar menampilkan pengguna yang benar-benar masuk, bukan "AP".
+    expect(nav).toContain("inisial(nama)")
+  })
+
+  it("animasi dipakai sekali per layar, bukan per kartu", () => {
+    // Animasi bertingkat pada tiap kartu terlihat mewah di tangkapan layar
+    // tapi menyiksa saat dipakai: pengguna menunggu barisan yang belum sampai.
+    expect(css).toContain("@keyframes masuk-halus")
+    const pemakai = [...isi.entries()].filter(([, t]) => /className="masuk /.test(t))
+    expect(pemakai.length).toBeLessThanOrEqual(4)
+  })
+
+  it("aksen warna punya arti tetap, bukan warna acak", () => {
+    const a = isi.get("src/lib/aksen.ts")!
+    // Semuanya dari palet DESIGN.md yang sudah berpasangan dengan warna teks,
+    // jadi kontrasnya terjaga di terang maupun gelap.
+    for (const nama of ["tempat", "orang", "barang", "gerak", "perhatian"]) {
+      expect(a).toContain(nama)
+    }
+    expect(a).not.toMatch(/-(red|blue|green|amber|purple)-\d/)
+  })
+})

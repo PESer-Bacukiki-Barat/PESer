@@ -72,7 +72,7 @@ export default async function UserLayout({
         </header>
 
         {/* pb-aman = ruang bottom nav fixed + gesture bar iOS */}
-        <main className="flex-1 px-4 pt-4 pb-aman">{children}</main>
+        <main className="masuk flex-1 px-4 pt-4 pb-aman">{children}</main>
 
         <UserBottomNav />
       </div>

@@ -14,7 +14,6 @@ import {
   Map as MapIcon,
   Menu,
   ReceiptText,
-  Search,
   Settings,
   Shield,
   ShieldUser,
@@ -27,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/actions/auth";
+import { LogoPeser } from "@/components/brand/logo-peser";
 import { LoncengNotifikasi } from "@/components/notifikasi/lonceng-notifikasi";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
@@ -77,7 +77,35 @@ function AdminSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function AdminShell({ children }: { children: ReactNode }) {
+/** Inisial dari nama, maksimal dua huruf. */
+function inisial(nama: string): string {
+  return (
+    nama
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
+}
+
+/** Judul halaman aktif, diambil dari daftar navigasi yang sudah ada. */
+function judulHalaman(pathname: string): string {
+  const cocok = [...NAV_ITEMS]
+    .filter((i) => isActive(pathname, i.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  return cocok?.label ?? "Admin";
+}
+
+export function AdminShell({
+  children,
+  nama,
+  email,
+}: {
+  children: ReactNode;
+  nama: string;
+  email: string;
+}) {
   const currentPathname = usePathname();
   const [prevPathname, setPrevPathname] = useState(currentPathname);
   const [isOpen, setIsOpen] = useState(false);
@@ -119,24 +147,38 @@ export function AdminShell({ children }: { children: ReactNode }) {
           >
             <Menu className="size-5" />
           </Button>
-          <span className="font-headline-md text-headline-md font-bold text-primary">PESer</span>
-          <div className="relative w-full max-w-sm hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant size-4" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-surface-container-low border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface placeholder:text-on-surface-variant outline-none transition-[color,background-color,border-color,box-shadow] duration-fast"
-            />
-          </div>
+          {/* Kotak pencarian dan tombol Settings dihapus dari sini: keduanya
+              tidak punya handler sama sekali — kontrol yang berpura-pura
+              bekerja lebih menyesatkan daripada tidak ada. Pengaturan akun
+              sudah punya tempatnya sendiri di /admin/profil, yang kini bisa
+              dicapai lewat kartu identitas di kanan. */}
+          <LogoPeser ukuran="sm" className="md:hidden" />
+          <span className="hidden font-headline-md text-headline-md font-bold text-on-surface md:inline">
+            {judulHalaman(currentPathname)}
+          </span>
         </div>
-        <div className="flex items-center justify-end gap-2 w-1/3">
+
+        <div className="flex shrink-0 items-center gap-2">
           <LoncengNotifikasi />
-          <Button type="button" variant="ghost" size="icon" aria-label="Settings">
-            <Settings className="size-5" />
-          </Button>
-          <div className="w-8 h-8 rounded-full overflow-hidden ml-2 cursor-pointer border border-outline-variant hover:border-primary transition-colors flex items-center justify-center bg-primary-container text-primary font-label-md text-label-md">
-            AP
-          </div>
+          <Link
+            href="/admin/profil"
+            className="flex items-center gap-2 rounded-full border border-outline-variant py-1 pr-3 pl-1 transition-colors duration-fast hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          >
+            <span
+              aria-hidden
+              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-container font-label-sm text-label-sm font-semibold text-on-primary-container"
+            >
+              {inisial(nama)}
+            </span>
+            <span className="hidden min-w-0 text-left sm:block">
+              <span className="block truncate font-label-md text-label-md text-on-surface">
+                {nama}
+              </span>
+              <span className="block truncate font-label-sm text-label-sm text-on-surface-variant">
+                {email}
+              </span>
+            </span>
+          </Link>
         </div>
       </nav>
 
@@ -158,15 +200,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         )}
       >
         <div className="px-4 md:px-6 mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-lg">
-              P
-            </div>
-            <div>
-              <h2 className="font-label-md text-label-md font-bold text-on-surface">PESer Admin</h2>
-              <p className="font-label-sm text-label-sm text-on-surface-variant">Waste Management</p>
-            </div>
-          </div>
+          {/* Lambang yang SAMA dengan layar masuk. Sebelumnya di sini huruf
+              "P" dalam kotak, di login ikon daur ulang — dua identitas berbeda
+              untuk satu produk. Subjudulnya juga berbahasa Inggris. */}
+          <LogoPeser ukuran="sm" tampilkanSubjudul />
           <button
             type="button"
             onClick={() => setIsOpen(false)}
@@ -198,7 +235,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <div className="flex pt-16">
-        <main className="flex-1 md:ml-64 p-4 md:p-8 bg-background min-h-[calc(100vh-64px)] overflow-auto">
+        <main className="masuk flex-1 md:ml-64 p-4 md:p-8 bg-background min-h-[calc(100vh-64px)] overflow-auto">
           {children}
         </main>
       </div>

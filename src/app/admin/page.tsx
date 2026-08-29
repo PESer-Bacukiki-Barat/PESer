@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Building2, Package, Truck, Users } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
+import { AKSEN } from "@/lib/aksen"
 import { Badge } from "@/components/ui/badge"
 import { STATUS_FINAL } from "@/lib/dispatch-aksi"
 import { DISPATCH_STATUS_LABEL, statusStyle, type DispatchStatus } from "@/lib/dispatch-data"
@@ -86,12 +87,14 @@ export default async function AdminDashboardPage() {
       label: "Bank Sampah Aktif",
       nilai: String(jumlahBankSampah),
       Icon: Building2,
+      aksen: "tempat" as const,
       href: "/admin/bank-sampah",
     },
     {
       label: "Nasabah Aktif",
       nilai: String(jumlahNasabah),
       Icon: Users,
+      aksen: "orang" as const,
       href: "/admin/nasabah",
     },
     {
@@ -102,6 +105,7 @@ export default async function AdminDashboardPage() {
           ? `${fmtBerat(totalReservasi)} kg ditahan dispatch`
           : `${jumlahJenisSampah} jenis sampah aktif`,
       Icon: Package,
+      aksen: "barang" as const,
       href: "/admin/jenis-sampah",
     },
     {
@@ -109,6 +113,7 @@ export default async function AdminDashboardPage() {
       nilai: String(dispatchPerluTindakan.length),
       sub: `Penjualan selesai ${fmtRupiah(Number(totalNilaiSelesai._sum.totalNilai ?? 0))}`,
       Icon: Truck,
+      aksen: "gerak" as const,
       href: "/admin/transaksi",
     },
   ]
@@ -133,11 +138,19 @@ export default async function AdminDashboardPage() {
           <Link
             key={k.label}
             href={k.href}
-            className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+            className="group bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm transition-[color,background-color,border-color,box-shadow] duration-fast hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-start justify-between gap-2 mb-3">
               <p className="font-label-sm text-label-sm text-on-surface-variant">{k.label}</p>
-              <k.Icon className="size-4 text-on-surface-variant" aria-hidden />
+              {/* Warna hanya di chip ikon — angkanya tetap on-surface supaya
+                  yang paling penting tetap yang paling mudah dibaca, dan
+                  deretan kartu tidak berubah jadi pelangi. */}
+              <span
+                aria-hidden
+                className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN[k.aksen]}`}
+              >
+                <k.Icon className="size-[18px]" />
+              </span>
             </div>
             <p className="text-headline-md font-mono font-semibold text-on-surface">
               {k.nilai}

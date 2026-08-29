@@ -4,34 +4,56 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 
 import { Field, inputClass } from "@/components/admin/form-fields"
-import { cn } from "@/lib/utils"
 
 /**
  * Input password dengan tombol lihat/sembunyi.
  *
- * Memakai `Field` dan `inputClass` yang sama dengan seluruh form aplikasi —
- * sebelumnya berkas ini menulis gayanya sendiri dengan palet Tailwind mentah
- * (zinc/emerald), sehingga layar login tidak ikut tema dan tidak ikut mode
- * gelap seperti halaman lain.
+ * Tombolnya duduk DI DALAM kotak input dan diberi jarak dari tepinya
+ * (`right-1.5`, `inset-y-1.5`) beserta latar saat disorot, sehingga terbaca
+ * sebagai bagian dari kolom isian — bukan ikon yang menempel di garis
+ * pinggirnya. Lebarnya 36px dengan `sentuh-nyaman` yang memperluas daerah
+ * tangkap ke 44px di perangkat sentuh, jadi jari tetap mudah mengenainya tanpa
+ * membuat kotaknya terlihat besar.
  *
- * Tombolnya `tabIndex={-1}`: urutan tab yang wajar dari kolom password adalah
- * langsung ke tombol Masuk, bukan mampir ke pengalih visibilitas. Pengguna
- * keyboard tetap bisa menjangkaunya lewat mouse atau layar sentuh, dan
- * pembaca layar tetap membacanya karena ia bukan `aria-hidden`.
+ * Kelasnya digabung dengan `+` biasa, bukan `cn()`: tailwind-merge sempat
+ * membuang `text-body-md` di sini karena ia menyangkanya sekelompok dengan
+ * `text-on-surface`, sehingga ukuran font kolom ini berbeda dari kolom email di
+ * atasnya. Akar masalahnya sudah diperbaiki di src/lib/utils.ts, dan di sini
+ * penggabungan sederhana memang sudah cukup — tidak ada kelas yang bertabrakan.
+ *
+ * `tabIndex={-1}`: urutan tab yang wajar dari kolom password adalah langsung ke
+ * tombol Masuk, bukan mampir ke pengalih visibilitas. Ia tetap bisa dijangkau
+ * lewat sentuh atau mouse, dan tetap dibacakan pembaca layar.
  */
-export function PasswordField() {
+export function PasswordField({
+  label = "Password",
+  id = "password",
+  name = "password",
+  autoComplete = "current-password",
+  required = true,
+  error,
+}: {
+  label?: string
+  id?: string
+  name?: string
+  autoComplete?: string
+  required?: boolean
+  error?: string
+}) {
   const [terlihat, setTerlihat] = useState(false)
 
   return (
-    <Field label="Password" htmlFor="password" required>
+    <Field label={label} htmlFor={id} required={required} error={error}>
       <div className="relative">
         <input
-          id="password"
-          name="password"
+          id={id}
+          name={name}
           type={terlihat ? "text" : "password"}
-          required
-          autoComplete="current-password"
-          className={cn(inputClass(false), "pr-12")}
+          required={required}
+          autoComplete={autoComplete}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={inputClass(!!error) + " pr-12"}
         />
         <button
           type="button"
@@ -39,7 +61,7 @@ export function PasswordField() {
           onClick={() => setTerlihat((v) => !v)}
           aria-label={terlihat ? "Sembunyikan password" : "Tampilkan password"}
           aria-pressed={terlihat}
-          className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-r-lg text-on-surface-variant transition-colors duration-fast hover:text-on-surface focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="sentuh-nyaman absolute inset-y-1.5 right-1.5 flex w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors duration-fast hover:bg-surface-container-high hover:text-on-surface focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           {terlihat ? (
             <EyeOff className="size-[18px]" aria-hidden />

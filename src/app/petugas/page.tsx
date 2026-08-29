@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Scale, Truck } from "lucide-react"
+import { AlertTriangle, Package, Scale, Truck } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
+import { AKSEN } from "@/lib/aksen"
 import { aksiTersedia } from "@/lib/dispatch-aksi"
 import {
   DISPATCH_STATUS_LABEL,
@@ -92,11 +93,22 @@ export default async function BerandaPetugasPage() {
       </Link>
 
       {/* Rekap hari ini */}
-      <section className="mb-4 grid grid-cols-2 gap-3">
+      <section aria-label="Ringkasan hari ini" className="mb-4 grid grid-cols-2 gap-3">
+        {/* Chip ikon berwarna memberi jangkar visual: di layar sempit, dua
+            kartu yang seluruhnya abu-abu sulit dibedakan sekilas. Warnanya
+            dari AKSEN — arti yang sama dengan di panel admin. */}
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Setoran hari ini
-          </p>
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <p className="font-label-sm text-label-sm text-on-surface-variant">
+              Setoran hari ini
+            </p>
+            <span
+              aria-hidden
+              className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN.gerak}`}
+            >
+              <Scale className="size-[18px]" />
+            </span>
+          </div>
           <p className="text-headline-md font-mono font-semibold text-on-surface">
             {setoranHariIni.length}
           </p>
@@ -105,9 +117,17 @@ export default async function BerandaPetugasPage() {
           </p>
         </div>
         <div className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Stock tersedia
-          </p>
+          <div className="mb-2 flex items-start justify-between gap-2">
+            <p className="font-label-sm text-label-sm text-on-surface-variant">
+              Stock tersedia
+            </p>
+            <span
+              aria-hidden
+              className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN.barang}`}
+            >
+              <Package className="size-[18px]" />
+            </span>
+          </div>
           <p className="text-headline-md font-mono font-semibold text-on-surface">
             {fmtBerat(totalStock - reservasi)} kg
           </p>
@@ -118,8 +138,13 @@ export default async function BerandaPetugasPage() {
       </section>
 
       {tunaiBelum > 0 && (
-        <p className="mb-4 rounded-xl border border-error bg-error-container/40 p-4 font-label-md text-label-md text-on-error-container">
-          {tunaiBelum} setoran hari ini belum ditandai tunai diserahkan.
+        // Peringatan diberi ikon: di layar sempit, blok berwarna tanpa lambang
+        // mudah terbaca sebagai dekorasi, bukan sesuatu yang menuntut tindakan.
+        <p className="mb-4 flex items-start gap-2.5 rounded-xl border border-error/40 bg-error-container/50 p-4 font-label-md text-label-md text-on-error-container">
+          <AlertTriangle className="mt-px size-[18px] shrink-0" aria-hidden />
+          <span>
+            {tunaiBelum} setoran hari ini belum ditandai tunai diserahkan.
+          </span>
         </p>
       )}
 

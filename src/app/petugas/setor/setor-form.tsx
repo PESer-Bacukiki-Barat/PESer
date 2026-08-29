@@ -623,7 +623,14 @@ export function SetorForm({
             {rincian.filter((r) => r.berat > 0).length} item
             {tolakan.length > 0 && ` · ${tolakan.length} ditolak`}
           </span>
-          <span className="font-mono text-body-lg font-semibold text-primary">
+          {/* key memaksa elemen ini dipasang ulang setiap nilainya berubah,
+              sehingga denyut `sorot` main lagi. Total berubah tiap kali berat
+              diketik, dan tanpa penanda perubahannya mudah terlewat karena
+              mata sedang di kolom input. */}
+          <span
+            key={totalNilai}
+            className="sorot px-1.5 font-mono text-body-lg font-semibold text-primary"
+          >
             {fmtRupiah(totalNilai)}
           </span>
         </div>

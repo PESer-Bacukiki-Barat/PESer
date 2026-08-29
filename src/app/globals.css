@@ -375,6 +375,55 @@
 }
 
 /**
+ * Masuknya sebuah halaman atau bagian.
+ *
+ * Dipakai sekali per layar, bukan per elemen. Animasi bertingkat ("stagger")
+ * pada setiap kartu terlihat mewah pada tangkapan layar tapi menyiksa saat
+ * dipakai: pengguna menunggu barisan yang belum sampai sebelum bisa membaca
+ * atau menekan apa pun. Di sini hanya opacity dan pergeseran 4px — cukup
+ * memberi kesan "isi baru saja tiba", selesai dalam satu tarikan napas, dan
+ * tidak pernah menggeser tata letak karena transform tidak memengaruhi layout.
+ *
+ * Otomatis mati untuk prefers-reduced-motion lewat aturan global di bawah.
+ */
+@keyframes masuk-halus {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility masuk {
+  animation: masuk-halus var(--duration-normal) var(--ease-standard) both;
+}
+
+/**
+ * Denyut sekali untuk angka yang baru berubah.
+ *
+ * Total di form setoran berubah setiap kali berat diketik. Tanpa penanda,
+ * perubahannya mudah terlewat karena mata sedang di kolom input. Satu denyut
+ * warna latar, tanpa gerak, jadi ia tidak menarik perhatian lebih dari yang
+ * perlu.
+ */
+@keyframes sorot-sekali {
+  0% {
+    background-color: color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@utility sorot {
+  animation: sorot-sekali 600ms var(--ease-standard);
+  border-radius: var(--radius-md);
+}
+
+/**
  * Perluas daerah sentuh sebuah kontrol menjadi minimal 44x44px TANPA mengubah
  * ukuran visualnya — PRD §8.7 (TARGET_SENTUH_MIN_PX).
  *
