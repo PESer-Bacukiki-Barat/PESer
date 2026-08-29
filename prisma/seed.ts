@@ -260,6 +260,16 @@ async function main() {
             tanggal,
             idempotencyKey: s.kunci,
             items: { create: rincian },
+            // BR-18: penolakan ditulis di transaksi yang sama, dan sengaja
+            // TIDAK menyentuh Stock — barangnya dikembalikan ke warga.
+            ditolak: {
+              create: (s.ditolak ?? []).map((d) => ({
+                deskripsi: d.deskripsi,
+                berat: new Prisma.Decimal(d.berat),
+                alasan: d.alasan,
+                catatan: d.catatan ?? null,
+              })),
+            },
           },
           select: { id: true, kodeTransaksi: true },
         })

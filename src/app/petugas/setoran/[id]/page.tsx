@@ -6,7 +6,13 @@ import { CheckCircle2 } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
 import { Badge } from "@/components/ui/badge"
-import { KONDISI_SAMPAH_LABEL, kondisiStyle, type KondisiSampah } from "@/lib/setoran-data"
+import {
+  ALASAN_TOLAK_LABEL,
+  KONDISI_SAMPAH_LABEL,
+  kondisiStyle,
+  type AlasanTolak,
+  type KondisiSampah,
+} from "@/lib/setoran-data"
 
 export const metadata: Metadata = {
   title: "Bukti Setor",
@@ -42,6 +48,7 @@ export default async function BuktiSetorPage({
       petugas: { select: { nama: true } },
       bankSampah: { select: { nama: true } },
       items: { include: { jenisSampah: { select: { nama: true } } } },
+      ditolak: { orderBy: { createdAt: "asc" } },
     },
   })
   if (!setoran) notFound()
@@ -141,6 +148,46 @@ export default async function BuktiSetorPage({
           </div>
         </div>
       </section>
+
+      {/* FR-C2 / PRD §4.1 langkah 15: bukti setor memperlihatkan apa yang
+          ditolak beserta alasannya. Tanpa ini, "wajib catat alasan" hanya
+          tersimpan di database dan tidak pernah sampai ke warga. */}
+      {setoran.ditolak.length > 0 && (
+        <section className="mt-4 rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
+          <div className="border-b border-outline-variant bg-surface-bright px-4 py-3">
+            <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+              Barang Ditolak
+            </h2>
+            <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
+              Dikembalikan ke warga — tidak dibayar dan tidak masuk stock.
+            </p>
+          </div>
+          <ul className="divide-y divide-outline-variant">
+            {setoran.ditolak.map((d) => (
+              <li key={d.id} className="px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-label-md text-label-md text-on-surface">
+                      {d.deskripsi}
+                    </p>
+                    <p className="mt-1 inline-flex items-center rounded-full bg-error-container px-2 py-0.5 font-label-sm text-label-sm text-on-error-container">
+                      {ALASAN_TOLAK_LABEL[d.alasan as AlasanTolak]}
+                    </p>
+                    {d.catatan && (
+                      <p className="mt-1 font-label-sm text-label-sm text-on-surface-variant">
+                        {d.catatan}
+                      </p>
+                    )}
+                  </div>
+                  <p className="shrink-0 font-label-md text-label-md font-mono text-on-surface-variant">
+                    {fmtBerat(Number(d.berat))} kg
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link

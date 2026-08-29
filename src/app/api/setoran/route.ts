@@ -14,6 +14,12 @@ const setoranInclude = {
   petugas: { select: { id: true, nama: true } },
   bankSampah: { select: { id: true, nama: true } },
   items: { include: { jenisSampah: { select: { id: true, nama: true } } } },
+  // FR-C2: bukti setor wajib memperlihatkan apa yang ditolak beserta alasannya
+  // (PRD §4.1 langkah 15) — kalau tidak, "wajib catat alasan" tidak ada gunanya.
+  ditolak: {
+    orderBy: { createdAt: "asc" },
+    include: { jenisSampah: { select: { id: true, nama: true } } },
+  },
 } satisfies Prisma.SetoranInclude
 
 /**
@@ -77,7 +83,7 @@ export async function POST(request: Request) {
 
   const parsed = setoranSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return failValidation(parsed.error.issues)
-  const { nasabahId, tanggal, cashDibayar, items } = parsed.data
+  const { nasabahId, tanggal, cashDibayar, items, ditolak } = parsed.data
 
   // Replay: request yang sama sudah pernah diproses. PRD §6.1 menetapkan
   // "kembalikan hasil lama", jadi yang dikirim adalah bukti setor sebelumnya.
@@ -116,6 +122,23 @@ export async function POST(request: Request) {
     return fail("TIDAK_DITEMUKAN", "Jenis sampah tidak ditemukan atau tidak aktif", {
       field: "items",
     })
+  }
+
+  // Jenis pada baris PENOLAKAN divalidasi terpisah: ia opsional, dan sengaja
+  // TIDAK tunduk BR-16 — barang tolakan tidak dibayar, jadi harga 0 tidak
+  // relevan. Yang tetap dijaga: kalau diisi, jenisnya harus benar-benar ada.
+  const jenisDitolakIds = [
+    ...new Set(ditolak.map((d) => d.jenisSampahId).filter((v): v is string => !!v)),
+  ]
+  if (jenisDitolakIds.length > 0) {
+    const adaBerapa = await prisma.jenisSampah.count({
+      where: { id: { in: jenisDitolakIds }, deletedAt: null },
+    })
+    if (adaBerapa !== jenisDitolakIds.length) {
+      return fail("TIDAK_DITEMUKAN", "Jenis sampah pada penolakan tidak ditemukan", {
+        field: "ditolak",
+      })
+    }
   }
 
   // BR-16: jenis sampah dengan harga 0 tidak boleh masuk setoran.
@@ -169,6 +192,18 @@ export async function POST(request: Request) {
           tanggal: tanggalSetoran,
           idempotencyKey,
           items: { create: rincian },
+          // BR-18: baris penolakan ditulis di transaksi yang SAMA dengan
+          // setorannya. Ia tidak menyentuh Stock maupun total apa pun —
+          // barangnya dikembalikan ke warga, bukan diterima bank sampah.
+          ditolak: {
+            create: ditolak.map((d) => ({
+              jenisSampahId: d.jenisSampahId ?? null,
+              deskripsi: d.deskripsi,
+              berat: new Prisma.Decimal(d.berat),
+              alasan: d.alasan,
+              catatan: d.catatan ?? null,
+            })),
+          },
         },
         include: setoranInclude,
       })

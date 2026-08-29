@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Field, inputClass } from "@/components/admin/form-fields"
 import { api, apiError, apiFieldErrors, apiStatus } from "@/lib/api"
 import { useAntrean } from "@/components/petugas/antrean-provider"
-import { KONDISI_SAMPAH_OPTIONS, type KondisiSampah } from "@/lib/setoran-data"
+import {
+  ALASAN_BUTUH_CATATAN,
+  ALASAN_TOLAK_KETERANGAN,
+  ALASAN_TOLAK_OPTIONS,
+  KONDISI_SAMPAH_OPTIONS,
+  type AlasanTolak,
+  type KondisiSampah,
+} from "@/lib/setoran-data"
 
 export type NasabahOpsi = { id: string; kodeNasabah: string; nama: string }
 export type JenisOpsi = { id: string; nama: string; harga: number }
@@ -16,6 +23,21 @@ export type JenisOpsi = { id: string; nama: string; harga: number }
 type Baris = { jenisSampahId: string; berat: string; kondisi: KondisiSampah }
 
 const barisBaru = (): Baris => ({ jenisSampahId: "", berat: "", kondisi: "BERSIH" })
+
+/** Satu baris gerbang kualitas — FR-C2. Barang tolakan tidak punya harga. */
+type Tolakan = {
+  deskripsi: string
+  berat: string
+  alasan: AlasanTolak
+  catatan: string
+}
+
+const tolakanBaru = (): Tolakan => ({
+  deskripsi: "",
+  berat: "",
+  alasan: "TIDAK_TERSORTIR",
+  catatan: "",
+})
 
 const fmtRupiah = (n: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -52,6 +74,8 @@ export function SetorForm({
   const [nasabahId, setNasabahId] = useState("")
   const [cari, setCari] = useState("")
   const [baris, setBaris] = useState<Baris[]>([barisBaru()])
+  // Kosong secara bawaan: penolakan adalah pengecualian, bukan langkah rutin.
+  const [tolakan, setTolakan] = useState<Tolakan[]>([])
   const [cashDibayar, setCashDibayar] = useState(true)
   const [mengirim, setMengirim] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -94,13 +118,31 @@ export function SetorForm({
   const totalBerat = rincian.reduce((a, r) => a + r.berat, 0)
   const totalNilai = rincian.reduce((a, r) => a + r.subtotal, 0)
 
+  /** Baris item yang benar-benar terisi; baris kosong diabaikan saat kirim. */
+  const barisTerisi = baris.filter((b) => b.jenisSampahId && Number(b.berat) > 0)
+
+  const tolakanValid = tolakan.every(
+    (t) =>
+      t.deskripsi.trim() &&
+      Number(t.berat) > 0 &&
+      (t.alasan !== ALASAN_BUTUH_CATATAN || t.catatan.trim()),
+  )
+
+  // PRD §4.1: setoran boleh berisi HANYA penolakan (semua barang ditolak) —
+  // itu tetap kunjungan yang harus tercatat. Yang dilarang adalah keduanya
+  // kosong sekaligus.
   const bisaKirim =
     !!nasabahId &&
-    baris.length > 0 &&
-    baris.every((b) => b.jenisSampahId && Number(b.berat) > 0)
+    (barisTerisi.length > 0 || tolakan.length > 0) &&
+    baris.every((b) => !b.jenisSampahId || Number(b.berat) > 0) &&
+    tolakanValid
 
   function ubahBaris(i: number, patch: Partial<Baris>) {
     setBaris((p) => p.map((b, idx) => (idx === i ? { ...b, ...patch } : b)))
+  }
+
+  function ubahTolakan(i: number, patch: Partial<Tolakan>) {
+    setTolakan((p) => p.map((t, idx) => (idx === i ? { ...t, ...patch } : t)))
   }
 
   async function kirim() {
@@ -113,10 +155,18 @@ export function SetorForm({
     const payload = {
       nasabahId,
       cashDibayar,
-      items: baris.map((b) => ({
+      items: barisTerisi.map((b) => ({
         jenisSampahId: b.jenisSampahId,
         berat: Number(b.berat),
         kondisi: b.kondisi,
+      })),
+      // BR-18: dikirim terpisah dari items karena barang tolakan tidak dibayar
+      // dan tidak masuk stock.
+      ditolak: tolakan.map((t) => ({
+        deskripsi: t.deskripsi.trim(),
+        berat: Number(t.berat),
+        alasan: t.alasan,
+        ...(t.alasan === ALASAN_BUTUH_CATATAN ? { catatan: t.catatan.trim() } : {}),
       })),
     }
     const ringkasan = {
@@ -174,6 +224,7 @@ export function SetorForm({
     setNasabahId("")
     setCari("")
     setBaris([barisBaru()])
+    setTolakan([])
     setCashDibayar(true)
     setDiantrekan(false)
     setError(null)
@@ -382,10 +433,137 @@ export function SetorForm({
         </ul>
       </section>
 
+      {/* Gerbang kualitas — FR-C2, PRD §4.1 langkah 5 */}
+      <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+              3. Barang Ditolak
+            </h2>
+            <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
+              Opsional. Barang yang dikembalikan ke warga — tidak dibayar dan
+              tidak masuk stock.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={() => setTolakan((p) => [...p, tolakanBaru()])}
+          >
+            <Plus aria-hidden /> Tolak
+          </Button>
+        </div>
+
+        {fieldError.ditolak && (
+          <p className="font-label-sm text-label-sm text-error">{fieldError.ditolak}</p>
+        )}
+
+        {tolakan.length === 0 ? (
+          <p className="font-label-sm text-label-sm text-on-surface-variant">
+            Tidak ada barang yang ditolak.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {tolakan.map((t, i) => (
+              <li
+                key={i}
+                className="rounded-lg border border-outline-variant bg-surface-container-low p-3 space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    Penolakan {i + 1}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    aria-label={`Hapus penolakan ${i + 1}`}
+                    onClick={() =>
+                      setTolakan((p) => p.filter((_, idx) => idx !== i))
+                    }
+                  >
+                    <Trash2 aria-hidden />
+                  </Button>
+                </div>
+
+                <Field
+                  label="Barang apa"
+                  htmlFor={`tolak-deskripsi-${i}`}
+                  required
+                  hint="Mis. kardus basah, plastik campur organik"
+                >
+                  <input
+                    id={`tolak-deskripsi-${i}`}
+                    type="text"
+                    value={t.deskripsi}
+                    onChange={(e) => ubahTolakan(i, { deskripsi: e.target.value })}
+                    className={inputClass(false)}
+                    placeholder="Kardus basah"
+                  />
+                </Field>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Berat (kg)" htmlFor={`tolak-berat-${i}`} required>
+                    <input
+                      id={`tolak-berat-${i}`}
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="0.01"
+                      value={t.berat}
+                      onChange={(e) => ubahTolakan(i, { berat: e.target.value })}
+                      className={inputClass(false)}
+                      placeholder="0"
+                    />
+                  </Field>
+
+                  <Field label="Alasan" htmlFor={`tolak-alasan-${i}`} required>
+                    <select
+                      id={`tolak-alasan-${i}`}
+                      value={t.alasan}
+                      onChange={(e) =>
+                        ubahTolakan(i, { alasan: e.target.value as AlasanTolak })
+                      }
+                      className={inputClass(false)}
+                    >
+                      {ALASAN_TOLAK_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                <p className="font-label-sm text-label-sm text-on-surface-variant">
+                  {ALASAN_TOLAK_KETERANGAN[t.alasan]}
+                </p>
+
+                {/* PRD §4.1: alasan Lainnya tidak berguna tanpa penjelasan. */}
+                {t.alasan === ALASAN_BUTUH_CATATAN && (
+                  <Field label="Catatan" htmlFor={`tolak-catatan-${i}`} required>
+                    <input
+                      id={`tolak-catatan-${i}`}
+                      type="text"
+                      value={t.catatan}
+                      onChange={(e) => ubahTolakan(i, { catatan: e.target.value })}
+                      className={inputClass(false)}
+                      placeholder="Sebutkan alasannya"
+                    />
+                  </Field>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {/* Total & pembayaran */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
         <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
-          3. Total &amp; Pembayaran
+          4. Total &amp; Pembayaran
         </h2>
 
         <dl aria-live="polite" className="space-y-1">
@@ -437,7 +615,7 @@ export function SetorForm({
       </Button>
       {!bisaKirim && !mengirim && (
         <p className="text-center font-label-sm text-label-sm text-on-surface-variant">
-          Pilih nasabah dan lengkapi setiap item (jenis + berat) untuk menyimpan.
+          Pilih nasabah, lalu isi minimal satu item diterima atau satu penolakan.
         </p>
       )}
     </form>

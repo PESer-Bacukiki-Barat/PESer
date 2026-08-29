@@ -17,6 +17,46 @@ export const KONDISI_SAMPAH_OPTIONS = [
   { value: "CAMPUR", label: "Campur" },
 ];
 
+// --- Gerbang kualitas (FR-C2, BR-18) --------------------------------------
+
+export type AlasanTolak =
+  | "TIDAK_TERSORTIR"
+  | "TIDAK_SESUAI_MASTER"
+  | "TERKONTAMINASI"
+  | "LAINNYA";
+
+export const ALASAN_TOLAK_LABEL: Record<AlasanTolak, string> = {
+  TIDAK_TERSORTIR: "Belum tersortir",
+  TIDAK_SESUAI_MASTER: "Tidak ada di master jenis",
+  TERKONTAMINASI: "Terkontaminasi",
+  LAINNYA: "Lainnya",
+};
+
+/** Penjelasan singkat di bawah pilihan, supaya petugas memilih yang tepat. */
+export const ALASAN_TOLAK_KETERANGAN: Record<AlasanTolak, string> = {
+  TIDAK_TERSORTIR: "Masih campur, belum dipisah per jenis",
+  TIDAK_SESUAI_MASTER: "Jenisnya belum terdaftar di master jenis sampah",
+  TERKONTAMINASI: "Basah, berminyak, atau bercampur sisa makanan",
+  LAINNYA: "Sebutkan alasannya di catatan",
+};
+
+export const ALASAN_TOLAK_OPTIONS = (
+  Object.keys(ALASAN_TOLAK_LABEL) as AlasanTolak[]
+).map((value) => ({ value, label: ALASAN_TOLAK_LABEL[value] }));
+
+/** PRD §4.1: alasan LAINNYA tidak berguna tanpa catatan yang menjelaskannya. */
+export const ALASAN_BUTUH_CATATAN: AlasanTolak = "LAINNYA";
+
+export type SetoranDitolak = {
+  id: string;
+  jenisSampah: string | null;
+  jenisSampahId: string | null;
+  deskripsi: string;
+  berat: number;
+  alasan: AlasanTolak;
+  catatan: string | null;
+};
+
 // Bentuk serializable: Decimal Prisma sudah dikonversi ke number,
 // DateTime ke string ISO, sebelum dikirim ke Client Component.
 export type SetoranItem = {

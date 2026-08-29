@@ -20,7 +20,8 @@ jest.mock("@/lib/prisma", () => {
   const m = {
     setoran: { findUnique: jest.fn(), findMany: jest.fn() },
     nasabah: { findFirst: jest.fn() },
-    jenisSampah: { findMany: jest.fn() },
+    // count dipakai untuk memvalidasi jenis pada baris PENOLAKAN (FR-C2).
+    jenisSampah: { findMany: jest.fn(), count: jest.fn() },
     auditLog: { create: jest.fn() },
     $transaction: jest.fn(),
   }
@@ -32,7 +33,7 @@ const mAuth = requireAuth as jest.Mock
 const mPrisma = prisma as unknown as {
   setoran: { findUnique: jest.Mock; findMany: jest.Mock }
   nasabah: { findFirst: jest.Mock }
-  jenisSampah: { findMany: jest.Mock }
+  jenisSampah: { findMany: jest.Mock; count: jest.Mock }
   $transaction: jest.Mock
 }
 
@@ -101,6 +102,7 @@ beforeEach(() => {
   mPrisma.setoran.findUnique.mockResolvedValue(null)
   mPrisma.nasabah.findFirst.mockResolvedValue({ id: "n1" })
   mPrisma.jenisSampah.findMany.mockResolvedValue([JENIS_PET, JENIS_KARDUS])
+  mPrisma.jenisSampah.count.mockResolvedValue(1)
 })
 
 describe("POST /api/setoran — guard", () => {
@@ -342,5 +344,161 @@ describe("POST /api/setoran — notifikasi ambang (FR-E5)", () => {
     const tx = stockAmbang(0)
     await POST(post(validBody))
     expect(tx.notifikasi.createMany).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * Gerbang kualitas — FR-C2, BR-18.
+ *
+ * Jaminan yang paling penting di sini bukan "baris penolakan tersimpan",
+ * melainkan bahwa berat tolakan TIDAK menyentuh apa pun yang bernilai: tidak
+ * Stock, tidak StockMutation, tidak totalBerat, tidak totalNilai. Barangnya
+ * dikembalikan ke warga, jadi ia tidak pernah menjadi milik bank sampah.
+ */
+describe("POST /api/setoran — gerbang kualitas (FR-C2)", () => {
+  const tolakan = {
+    deskripsi: "Kardus basah",
+    berat: 7,
+    alasan: "TERKONTAMINASI" as const,
+  }
+
+  it("menyimpan penolakan di transaksi yang sama dengan setorannya", async () => {
+    const tx = mockTransaction()
+    const res = await POST(post({ ...validBody, ditolak: [tolakan] }))
+
+    expect(res.status).toBe(201)
+    expect(mPrisma.$transaction).toHaveBeenCalledTimes(1)
+    const data = tx.setoran.create.mock.calls[0][0].data
+    expect(data.ditolak.create).toHaveLength(1)
+    expect(data.ditolak.create[0]).toMatchObject({
+      deskripsi: "Kardus basah",
+      alasan: "TERKONTAMINASI",
+      jenisSampahId: null,
+      catatan: null,
+    })
+    expect(data.ditolak.create[0].berat.toString()).toBe("7")
+  })
+
+  it("berat tolakan TIDAK masuk totalBerat maupun totalNilai", async () => {
+    const tx = mockTransaction()
+    await POST(post({ ...validBody, ditolak: [{ ...tolakan, berat: 999 }] }))
+
+    const data = tx.setoran.create.mock.calls[0][0].data
+    const totalItem = validBody.items.reduce(
+      (a: number, i: { berat: number }) => a + i.berat,
+      0,
+    )
+    expect(Number(data.totalBerat)).toBe(totalItem)
+    // 999 kg tolakan tidak menambah sepeser pun.
+    expect(Number(data.totalNilai)).toBeGreaterThan(0)
+    expect(Number(data.totalBerat)).not.toBeGreaterThan(totalItem)
+  })
+
+  it("berat tolakan TIDAK menyentuh Stock maupun StockMutation (BR-18)", async () => {
+    const tx = mockTransaction()
+    await POST(post({ ...validBody, ditolak: [{ ...tolakan, berat: 999 }] }))
+
+    // Mutasi hanya sebanyak item DITERIMA — tidak ada satu pun untuk tolakan.
+    expect(tx.stockMutation.create).toHaveBeenCalledTimes(validBody.items.length)
+    for (const panggilan of tx.stockMutation.create.mock.calls) {
+      expect(Number(panggilan[0].data.berat)).not.toBe(999)
+    }
+  })
+
+  it("setoran boleh berisi HANYA penolakan — itu tetap kunjungan", async () => {
+    const tx = mockTransaction()
+    const res = await POST(post({ ...validBody, items: [], ditolak: [tolakan] }))
+
+    expect(res.status).toBe(201)
+    const data = tx.setoran.create.mock.calls[0][0].data
+    expect(Number(data.totalBerat)).toBe(0)
+    expect(Number(data.totalNilai)).toBe(0)
+    // Tidak ada barang diterima, jadi tidak ada stock yang bergerak.
+    expect(tx.stock.update).not.toHaveBeenCalled()
+    expect(tx.stockMutation.create).not.toHaveBeenCalled()
+  })
+
+  it("422 kalau item DAN penolakan sama-sama kosong", async () => {
+    mockTransaction()
+    const res = await POST(post({ ...validBody, items: [], ditolak: [] }))
+    expect(res.status).toBe(422)
+  })
+
+  it("422 kalau alasan LAINNYA tanpa catatan", async () => {
+    // PRD §4.1: alasan Lainnya tanpa penjelasan tidak bisa ditinjau kemudian.
+    mockTransaction()
+    const res = await POST(
+      post({ ...validBody, ditolak: [{ ...tolakan, alasan: "LAINNYA" }] }),
+    )
+    expect(res.status).toBe(422)
+  })
+
+  it("alasan LAINNYA dengan catatan diterima", async () => {
+    const tx = mockTransaction()
+    const res = await POST(
+      post({
+        ...validBody,
+        ditolak: [{ ...tolakan, alasan: "LAINNYA", catatan: "Bau menyengat" }],
+      }),
+    )
+    expect(res.status).toBe(201)
+    expect(tx.setoran.create.mock.calls[0][0].data.ditolak.create[0].catatan).toBe(
+      "Bau menyengat",
+    )
+  })
+
+  it("422 kalau berat tolakan nol atau negatif", async () => {
+    mockTransaction()
+    expect((await POST(post({ ...validBody, ditolak: [{ ...tolakan, berat: 0 }] }))).status).toBe(422)
+    expect((await POST(post({ ...validBody, ditolak: [{ ...tolakan, berat: -3 }] }))).status).toBe(422)
+  })
+
+  it("422 kalau deskripsi kosong", async () => {
+    // Deskripsi adalah satu-satunya catatan tentang barang yang sudah telanjur
+    // dikembalikan ke warga.
+    mockTransaction()
+    const res = await POST(
+      post({ ...validBody, ditolak: [{ ...tolakan, deskripsi: "   " }] }),
+    )
+    expect(res.status).toBe(422)
+  })
+
+  it("jenisSampah pada tolakan boleh kosong — justru itu salah satu alasannya", async () => {
+    // TIDAK_SESUAI_MASTER berarti jenisnya memang tidak ada di master.
+    const tx = mockTransaction()
+    const res = await POST(
+      post({
+        ...validBody,
+        ditolak: [{ ...tolakan, alasan: "TIDAK_SESUAI_MASTER" }],
+      }),
+    )
+    expect(res.status).toBe(201)
+    expect(tx.setoran.create.mock.calls[0][0].data.ditolak.create[0].jenisSampahId).toBeNull()
+  })
+
+  it("tolakan TIDAK tunduk BR-16 — harga 0 tidak relevan karena tidak dibayar", async () => {
+    // Jenis berharga 0 dilarang di items, tapi barang tolakan memang tidak
+    // dibayar sama sekali, jadi larangan itu tidak berlaku di sini.
+    const tx = mockTransaction()
+    mPrisma.jenisSampah.count.mockResolvedValue(1)
+    const res = await POST(
+      post({
+        ...validBody,
+        ditolak: [{ ...tolakan, jenisSampahId: JENIS_PET.id }],
+      }),
+    )
+    expect(res.status).toBe(201)
+    expect(tx.setoran.create.mock.calls[0][0].data.ditolak.create[0].jenisSampahId).toBe(
+      JENIS_PET.id,
+    )
+  })
+
+  it("404 kalau jenisSampah pada tolakan tidak ada", async () => {
+    mockTransaction()
+    mPrisma.jenisSampah.count.mockResolvedValue(0)
+    const res = await POST(
+      post({ ...validBody, ditolak: [{ ...tolakan, jenisSampahId: "j-hantu" }] }),
+    )
+    expect(res.status).toBe(404)
   })
 })

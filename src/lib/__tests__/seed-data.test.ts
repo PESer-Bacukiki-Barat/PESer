@@ -226,3 +226,51 @@ describe("cakupan demo", () => {
     }
   })
 })
+
+describe("gerbang kualitas di data seed (FR-C2, BR-18)", () => {
+  const semuaTolakan = SETORAN.flatMap((s) => s.ditolak ?? [])
+
+  it("ada contoh penolakan, supaya fiturnya terlihat tanpa membuat data sendiri", () => {
+    expect(semuaTolakan.length).toBeGreaterThan(0)
+  })
+
+  it("setiap penolakan punya deskripsi dan berat positif", () => {
+    for (const d of semuaTolakan) {
+      expect(d.deskripsi.trim()).not.toHaveLength(0)
+      expect(d.berat).toBeGreaterThan(0)
+    }
+  })
+
+  it("alasan LAINNYA selalu disertai catatan (PRD §4.1)", () => {
+    for (const d of semuaTolakan) {
+      if (d.alasan === "LAINNYA") expect(d.catatan?.trim()).toBeTruthy()
+    }
+  })
+
+  it("berat tolakan TIDAK ikut ke ringkasan stock — BR-18", () => {
+    // Inilah jaminan strukturalnya: ringkasanSeed() menjumlahkan items saja.
+    // Kalau suatu saat tolakan ikut terhitung, angka di sini akan bergeser dan
+    // tes ini merah sebelum siapa pun melihatnya di layar.
+    const beratTolakan = semuaTolakan.reduce((a, d) => a + d.berat, 0)
+    expect(beratTolakan).toBeGreaterThan(0)
+
+    const totalRingkasan = ringkasanSeed().reduce((a, r) => a + r.berat, 0)
+    const totalItem = SETORAN.reduce(
+      (a, s) => a + s.items.reduce((b, i) => b + i.berat, 0),
+      0,
+    )
+    expect(totalRingkasan).toBe(totalItem)
+    expect(totalRingkasan).not.toBe(totalItem + beratTolakan)
+  })
+
+  it("level peta tidak berubah oleh adanya penolakan", () => {
+    // Penolakan ditambahkan ke seed setelah level dirancang; kalau ia bocor ke
+    // perhitungan stock, salah satu bank sampah akan berpindah level.
+    expect(ringkasanSeed().map((r) => r.level)).toEqual([
+      "SIAP_JEMPUT",
+      "NORMAL",
+      "TERISI",
+      "KOSONG",
+    ])
+  })
+})

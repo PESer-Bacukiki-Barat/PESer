@@ -64,6 +64,14 @@ export type SeedUser = {
   noHp: string | null
 }
 
+/** Satu baris penolakan gerbang kualitas — FR-C2, BR-18. */
+export type SeedDitolak = {
+  deskripsi: string
+  berat: number
+  alasan: "TIDAK_TERSORTIR" | "TIDAK_SESUAI_MASTER" | "TERKONTAMINASI" | "LAINNYA"
+  catatan?: string
+}
+
 export type SeedSetoran = {
   /** Dipakai sebagai idempotencyKey; unique di skema, jadi seed aman diulang. */
   kunci: string
@@ -80,6 +88,8 @@ export type SeedSetoran = {
     berat: number
     kondisi: "BERSIH" | "KOTOR" | "CAMPUR"
   }[]
+  /** Barang yang ditolak gerbang kualitas. Tidak masuk stock maupun total. */
+  ditolak?: SeedDitolak[]
 }
 
 export type SeedThreshold = {
@@ -239,6 +249,16 @@ export const SETORAN: SeedSetoran[] = [
     petugas: "petugas2@peser.local",
     hariLalu: 2,
     items: [{ jenis: 201, berat: 30, kondisi: "BERSIH" }],
+    // FR-C2: satu contoh penolakan supaya gerbang kualitas terlihat bekerja
+    // tanpa perlu membuat data sendiri. Beratnya sengaja besar (18 kg) agar
+    // jelas bahwa ia TIDAK ikut ke stock maupun total yang dibayar (BR-18).
+    ditolak: [
+      {
+        deskripsi: "Kardus basah kena hujan",
+        berat: 18,
+        alasan: "TERKONTAMINASI",
+      },
+    ],
   },
   {
     kunci: "seed-05-anggrek-nurhayati",
@@ -249,6 +269,13 @@ export const SETORAN: SeedSetoran[] = [
     items: [
       { jenis: 103, berat: 18, kondisi: "BERSIH" },
       { jenis: 202, berat: 12, kondisi: "BERSIH" },
+    ],
+    ditolak: [
+      {
+        deskripsi: "Karung campur plastik + sisa makanan",
+        berat: 6.5,
+        alasan: "TIDAK_TERSORTIR",
+      },
     ],
   },
 ]
