@@ -164,7 +164,7 @@ export function LoncengNotifikasi({
             <button
               type="button"
               onClick={tandaiSemua}
-              className="h-10 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+              className="h-10 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors duration-fast hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
             >
               Tandai semua dibaca
             </button>

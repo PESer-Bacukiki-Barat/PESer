@@ -99,7 +99,7 @@ export default function TransaksiTabs({
               aria-current={activeTab === tab.id ? "page" : undefined}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-headline-md text-[15px] font-semibold transition-all duration-200",
+                "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-headline-md text-[15px] font-semibold transition-colors duration-fast focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50",
                 activeTab === tab.id
                   ? "bg-primary text-on-primary shadow-md"
                   : "text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container",

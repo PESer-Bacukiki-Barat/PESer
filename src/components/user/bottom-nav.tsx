@@ -24,7 +24,7 @@ export function UserBottomNav() {
   return (
     <nav
       aria-label="Navigasi utama"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-outline-variant bg-surface-container-lowest"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-outline-variant bg-surface-container-lowest pt-aman-bawah"
     >
       <div className="flex h-16 items-stretch px-2">
         {NAV_ITEMS.map((item) => {
@@ -46,7 +46,7 @@ export function UserBottomNav() {
               >
                 <span
                   className={cn(
-                    "absolute -top-5 flex size-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-md ring-4 ring-surface-container-lowest transition-all active:scale-95",
+                    "absolute -top-5 flex size-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-md ring-4 ring-surface-container-lowest transition-transform duration-fast active:scale-95",
                     pathname === item.href && "ring-2 ring-primary/30",
                   )}
                 >

@@ -129,6 +129,30 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Bahasa gerak.
+   *
+   * Sebelumnya durasi ditulis ad hoc (100/200/300) dengan easing bawaan, jadi
+   * dua elemen yang melakukan hal sama bergerak dengan tempo berbeda. Empat
+   * token ini cukup untuk seluruh aplikasi:
+   *
+   * - fast    : umpan balik langsung di bawah jari (hover, tekan, warna).
+   * - normal  : sesuatu muncul atau hilang (dialog, panel, baris).
+   * - slow    : perpindahan besar yang perlu diikuti mata (drawer, sheet).
+   *
+   * Easing "standard" masuk dan keluar dengan tenang; "emphasized" berakhir
+   * lebih tegas untuk elemen yang datang menuntut perhatian. Keduanya
+   * ease-out — tidak ada gerak yang mulai lambat lalu menyentak, karena itu
+   * yang membuat antarmuka terasa berat. */
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
+
+  /* Tinggi aman di atas gesture bar iOS. Bottom nav fixed tanpa ini tertimpa
+   * home indicator, dan aplikasi ini memang dipasang sebagai PWA di HP. */
+  --spacing-aman-bawah: env(safe-area-inset-bottom, 0px);
 }
 
 :root {
@@ -301,5 +325,51 @@
   }
   html {
     @apply font-sans;
+    /* Menu, tab, dan tombol "kembali ke atas" melompat tanpa ini. */
+    scroll-behavior: smooth;
   }
+
+  /* Semua transisi memakai easing yang sama secara bawaan, jadi kelas
+   * `transition-*` tanpa `ease-*` tetap konsisten dengan sisa aplikasi. */
+  *,
+  *::before,
+  *::after {
+    transition-timing-function: var(--ease-standard);
+  }
+
+  /**
+   * WCAG 2.3.3 (Animation from Interactions).
+   *
+   * Sebelum ini tidak ada satu pun aturan reduced-motion: pengguna yang
+   * sensitif gerak — vertigo, migrain, gangguan vestibular — tidak punya cara
+   * mematikan animasi, padahal sistem operasinya sudah menyatakan preferensi
+   * itu. Kita hormati.
+   *
+   * Durasi tidak dinolkan melainkan dipangkas ke 1ms: transisi yang benar-benar
+   * 0 membuat sebagian callback `transitionend` tidak pernah menyala, dan ada
+   * komponen yang menunggu event itu untuk membersihkan diri. 1ms tetap tak
+   * terlihat mata tapi siklusnya utuh.
+   *
+   * `!important` dipakai dengan sengaja: preferensi aksesibilitas pengguna
+   * harus mengalahkan utility apa pun yang ditulis di komponen.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility pb-aman {
+  /* Ruang untuk bottom nav fixed PLUS gesture bar iOS. */
+  padding-bottom: calc(var(--spacing) * 24 + var(--spacing-aman-bawah));
+}
+
+@utility pt-aman-bawah {
+  padding-bottom: var(--spacing-aman-bawah);
 }

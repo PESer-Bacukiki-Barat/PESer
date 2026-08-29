@@ -35,6 +35,10 @@ export const metadata: Metadata = {
  */
 export const viewport: Viewport = {
   themeColor: "#006c49",
+  // Tanpa viewport-fit=cover, env(safe-area-inset-*) SELALU bernilai 0 dan
+  // seluruh penyesuaian gesture bar iOS tidak berpengaruh apa pun. Aplikasi
+  // ini dipasang sebagai PWA di HP petugas, jadi itu bukan detail kecil.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

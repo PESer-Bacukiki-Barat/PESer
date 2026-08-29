@@ -186,7 +186,7 @@ export function DispatchForm({
                   type="button"
                   onClick={() => removeItem(index)}
                   aria-label="Hapus item"
-                  className="mb-[22px] px-3 py-2 text-error hover:bg-error-container/20 rounded-lg transition-colors"
+                  className="mb-[22px] px-3 py-2 text-error hover:bg-error-container/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
                 >
                   <Trash2 className="size-4" />
                 </button>
@@ -197,7 +197,7 @@ export function DispatchForm({
           <button
             type="button"
             onClick={addItem}
-            className="flex items-center gap-2 text-primary hover:text-on-primary-fixed-variant font-label-md text-label-md transition-colors"
+            className="flex items-center gap-2 text-primary hover:text-on-primary-fixed-variant font-label-md text-label-md transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
             <Plus className="size-4" />
             Tambah Item
@@ -220,13 +220,13 @@ export function DispatchForm({
         <button
           type="button"
           onClick={handleCancel}
-          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+          className="px-6 py-2.5 rounded-full border border-outline text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           {cancelLabel}
         </button>
         <button
           type="submit"
-          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm"
+          className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-2 shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           <Save className="size-[18px]" />
           {submitLabel}

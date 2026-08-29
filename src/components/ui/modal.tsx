@@ -60,7 +60,7 @@ export function Modal({
             "rounded-t-[24px] md:rounded-[24px]",
             "shadow-[0_-12px_40px_rgba(0,27,18,0.16)] md:shadow-[0_24px_60px_rgba(0,27,18,0.2)]",
             "md:inset-0 md:m-auto md:max-h-[85dvh]",
-            "transition-all duration-300 ease-out",
+            "transition-[opacity,transform,translate,scale] duration-normal ease-[var(--ease-emphasized)]",
             "translate-y-0",
             "data-[starting-style]:translate-y-full data-[ending-style]:translate-y-full",
             "md:data-[starting-style]:translate-y-0 md:data-[ending-style]:translate-y-0",

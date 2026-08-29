@@ -76,8 +76,8 @@ export default async function PetugasLayout({
         </div>
       </header>
 
-      {/* pb-24 memberi ruang untuk bottom nav yang fixed */}
-      <main className="flex-1 px-4 pt-4 pb-24">{children}</main>
+      {/* pb-aman = ruang bottom nav fixed + gesture bar iOS */}
+      <main className="flex-1 px-4 pt-4 pb-aman">{children}</main>
 
       <PetugasNav />
       </div>

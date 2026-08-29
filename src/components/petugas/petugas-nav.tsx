@@ -32,7 +32,7 @@ export function PetugasNav() {
   return (
     <nav
       aria-label="Navigasi petugas"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-outline-variant bg-surface-container-lowest"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md border-t border-outline-variant bg-surface-container-lowest pt-aman-bawah"
     >
       <ul className="flex h-16 items-stretch px-2">
         {ITEM.map((item) => {

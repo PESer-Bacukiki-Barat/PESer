@@ -62,7 +62,7 @@ function AdminSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+              "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-fast",
               active
                 ? "bg-secondary-container text-on-secondary-container font-semibold"
                 : "text-on-surface-variant hover:bg-surface-container-high",
@@ -125,7 +125,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full h-10 pl-10 pr-4 rounded-full bg-surface-container-low border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface placeholder:text-on-surface-variant outline-none transition-all"
+              className="w-full h-10 pl-10 pr-4 rounded-full bg-surface-container-low border-transparent focus:border-primary focus:ring-1 focus:ring-primary text-sm text-on-surface placeholder:text-on-surface-variant outline-none transition-[color,background-color,border-color,box-shadow] duration-fast"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Tutup menu"
-            className="md:hidden p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80"
+            className="md:hidden p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
             <X className="size-5" />
           </button>
@@ -182,7 +182,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="px-4 mt-auto space-y-1">
           <a
             href="/admin/privacy"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-200 font-label-md text-label-md"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-fast font-label-md text-label-md"
           >
             <Shield className="size-5 shrink-0" />
             <span>Privacy Policy</span>
