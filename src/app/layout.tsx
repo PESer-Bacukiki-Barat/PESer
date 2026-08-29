@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { PenyediaToast } from "@/components/ui/toast";
+import { SKRIP_TEMA } from "@/components/ui/penukar-tema";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -53,7 +55,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         "font-sans",
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        {/* Berjalan sebelum halaman digambar: tanpa ini pengguna bertema
+            gelap melihat kilatan putih di setiap muat halaman, karena React
+            baru bisa memasang kelasnya setelah hydrate. */}
+        <script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} />
+      </head>
+      <body
+        className="min-h-full flex flex-col"
+        /**
+         * Ekstensi peramban (Bitdefender Anti-tracker, Grammarly, dan
+         * sejenisnya) menyuntikkan atribut seperti `bis_register` dan
+         * `__processed_...` ke <body> SEBELUM React sempat hydrate, sehingga
+         * React melaporkan ketidakcocokan untuk sesuatu yang tidak pernah
+         * dikirim server.
+         *
+         * Ini escape hatch resmi React untuk kasus itu, dan sengaja hanya
+         * dipasang di <body>: cakupannya satu tingkat, jadi ia tidak bisa
+         * menutupi ketidakcocokan sungguhan di dalam pohon komponen.
+         */
+        suppressHydrationWarning
+      ><PenyediaToast>{children}</PenyediaToast></body>
     </html>
   );
 }

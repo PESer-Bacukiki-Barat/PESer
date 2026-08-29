@@ -11,6 +11,7 @@ import {
 import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { api, apiError, apiFieldErrors } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import { MIN_DIGIT_NOHP, normalkanNoHp } from "@/lib/no-hp";
 import { ROLE_OPTIONS, type Role, type UserPayload, type UserRow } from "@/lib/users-data";
 
@@ -38,6 +39,7 @@ export function UsersForm({
   bare?: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
 
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
@@ -119,6 +121,7 @@ export function UsersForm({
       } else {
         await api.post("/users", payload);
       }
+      toast.sukses(mode === "edit" ? "Akun diperbarui" : "Akun ditambahkan");
       if (onSubmit) onSubmit(payload);
       else if (cancelHref) router.push(cancelHref);
     } catch (err) {
@@ -126,8 +129,13 @@ export function UsersForm({
       if (fe) {
         setFieldErrors(fe);
         setFormError(fe._form ?? null);
+        // Kesalahan per-kolom sudah tampil di sebelah kolomnya; toast di sini
+        // hanya mengarahkan mata kembali ke atas form kalau layarnya sudah
+        // tergulir jauh.
+        toast.gagal("Periksa kembali isian", fe._form ?? undefined);
       } else {
         setFormError(apiError(err));
+        toast.gagal("Gagal menyimpan", apiError(err));
       }
     } finally {
       setSaving(false);

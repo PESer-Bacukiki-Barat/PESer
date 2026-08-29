@@ -279,3 +279,45 @@ describe("identitas & kontrol yang jujur", () => {
     expect(a).not.toMatch(/-(red|blue|green|amber|purple)-\d/)
   })
 })
+
+describe("umpan balik & tema", () => {
+  it("ada sistem pemberitahuan, dan dibangun dari paket yang sudah ada", () => {
+    // §8.1 melarang menambah dependency besar tanpa memeriksa yang sudah ada;
+    // Base UI yang sudah terpasang punya Toast.
+    const t = isi.get("src/components/ui/toast.tsx")!
+    expect(t).toContain("@base-ui/react/toast")
+    expect(isi.get("src/app/layout.tsx")).toContain("PenyediaToast")
+  })
+
+  it("setiap form admin memberi tahu hasil simpannya", () => {
+    // Sebelumnya simpan berhasil hanya membuat layar berpindah, dan gagal di
+    // latar belakang lewat tanpa jejak.
+    for (const [f, teks] of isi) {
+      if (!/components\/admin\/.*-form\.tsx$/.test(f)) continue
+      if (!teks.includes("api.post") && !teks.includes("api.put")) continue
+      expect(teks).toContain("useToast")
+      expect(teks).toContain("toast.gagal")
+    }
+  })
+
+  it("mode gelap bisa dipilih, bukan hanya ikut OS", () => {
+    // Palet gelap sudah lengkap sejak awal tapi pemicunya kelas `.dark` yang
+    // tidak pernah dipasang siapa pun.
+    expect(BERKAS).toContain("src/components/ui/penukar-tema.tsx")
+    const p = isi.get("src/components/ui/penukar-tema.tsx")!
+    // Dibaca lewat useSyncExternalStore, bukan setState di dalam effect.
+    expect(p).toContain("useSyncExternalStore")
+    // Skrip anti-kedip harus berjalan sebelum halaman digambar.
+    expect(isi.get("src/app/layout.tsx")).toContain("SKRIP_TEMA")
+  })
+
+  it("keempat area memakai lambang yang sama", () => {
+    for (const f of [
+      "src/app/login/page.tsx",
+      "src/components/admin/admin-nav.tsx",
+      "src/app/(user)/layout.tsx",
+    ]) {
+      expect(isi.get(f)).toMatch(/LogoPeser|MarkaPeser/)
+    }
+  })
+})

@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/app/actions/auth";
 import { LogoPeser } from "@/components/brand/logo-peser";
+import { PenukarTema } from "@/components/ui/penukar-tema";
 import { LoncengNotifikasi } from "@/components/notifikasi/lonceng-notifikasi";
 
 const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
@@ -217,6 +218,15 @@ export function AdminShell({
         <AdminSidebarNav onNavigate={() => setIsOpen(false)} />
 
         <div className="px-4 mt-auto space-y-1">
+          {/* Tema ditaruh di kaki sidebar, bukan di topbar: ia diatur sekali
+              lalu jarang disentuh lagi, jadi tidak perlu memakan ruang di
+              baris yang dipakai setiap saat. */}
+          <div className="mb-3 flex items-center justify-between gap-2 px-4">
+            <span className="font-label-sm text-label-sm text-on-surface-variant">
+              Tampilan
+            </span>
+            <PenukarTema />
+          </div>
           <a
             href="/admin/privacy"
             className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-fast font-label-md text-label-md"

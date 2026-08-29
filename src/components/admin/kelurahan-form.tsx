@@ -7,6 +7,7 @@ import { Field } from "@/components/admin/form-fields";
 import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { KelurahanPayload } from "@/lib/kelurahan-data";
 
 export function KelurahanForm({
@@ -31,6 +32,7 @@ export function KelurahanForm({
   bare?: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
 
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [kodeWilayah, setKodeWilayah] = useState(initialData?.kodeWilayah ?? "");
@@ -58,9 +60,13 @@ export function KelurahanForm({
       } else {
         await api.post("/kelurahan", values);
       }
+      toast.sukses(
+        mode === "edit" ? "Kelurahan diperbarui" : "Kelurahan ditambahkan",
+      );
       router.push(cancelHref ?? "/admin/kelurahan");
     } catch (err) {
       setError(apiError(err));
+      toast.gagal("Gagal menyimpan", apiError(err));
     } finally {
       setSaving(false);
     }

@@ -9,6 +9,7 @@ import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { BankSampahPayload } from "@/lib/bank-sampah-data";
 
 const LocationPicker = dynamic(
@@ -54,6 +55,7 @@ export function BankSampahForm({
   bare?: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
 
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [kelurahanId, setKelurahanId] = useState(initialData?.kelurahanId ?? "");
@@ -102,9 +104,13 @@ export function BankSampahForm({
       } else {
         await api.post("/bank-sampah", values);
       }
+      toast.sukses(
+        mode === "edit" ? "Bank sampah diperbarui" : "Bank sampah ditambahkan",
+      );
       router.push(cancelHref ?? "/admin/bank-sampah");
     } catch (err) {
       setError(apiError(err));
+      toast.gagal("Gagal menyimpan", apiError(err));
     } finally {
       setSaving(false);
     }

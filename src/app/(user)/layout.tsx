@@ -6,6 +6,7 @@ import { logout } from "@/app/actions/auth";
 import { UserBottomNav } from "@/components/user/bottom-nav";
 import { BadgeAntrean, TombolKeluar } from "@/components/user/bar-antrean";
 import { AntreanProvider } from "@/components/petugas/antrean-provider";
+import { MarkaPeser } from "@/components/brand/logo-peser";
 
 /**
  * Shell aplikasi warga/user (mobile-first, DESIGN.md: bottom tab bar dengan
@@ -55,14 +56,25 @@ export default async function UserLayout({
                 slot dan menambah keenam akan memecah TARGET_SENTUH_MIN_PX. */}
             <Link
               href="/profil"
-              className="-mx-1 min-w-0 rounded-lg px-1 transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+              className="-mx-1 flex min-w-0 items-center gap-2.5 rounded-lg px-1 transition-colors duration-fast hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
             >
-              <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
-                Selamat datang,
-              </p>
-              <p className="font-headline-md text-[16px] font-semibold text-on-surface truncate">
-                {user.nama}
-              </p>
+              {/* Lambang yang sama dengan layar masuk dan panel admin —
+                  sebelumnya area ini satu-satunya yang tanpa identitas apa
+                  pun, jadi terasa seperti aplikasi yang berbeda. */}
+              <span
+                aria-hidden
+                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary"
+              >
+                <MarkaPeser className="size-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate font-label-sm text-label-sm text-on-surface-variant">
+                  Selamat datang,
+                </span>
+                <span className="block truncate font-headline-md text-[16px] font-semibold text-on-surface">
+                  {user.nama}
+                </span>
+              </span>
             </Link>
             <div className="flex shrink-0 items-center gap-2">
               <BadgeAntrean />

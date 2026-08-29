@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react"
 
 import { getServerUser } from "@/lib/auth"
 import { ProfilForm, type Profil } from "@/components/profil/profil-form"
+import { PenukarTema } from "@/components/ui/penukar-tema"
 
 export const metadata: Metadata = {
   title: "Profil Saya",
@@ -48,6 +49,20 @@ export default async function ProfilAdminPage() {
 
       <div className="max-w-xl">
         <ProfilForm profil={profil} />
+
+      <section className="mt-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="font-label-md text-label-md font-semibold text-on-surface">
+              Tampilan
+            </h2>
+            <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
+              Tema gelap membantu saat bekerja malam atau baterai menipis.
+            </p>
+          </div>
+          <PenukarTema className="shrink-0" />
+        </div>
+      </section>
       </div>
     </>
   )

@@ -8,6 +8,7 @@ import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import { KATEGORI, SATUAN, type JenisSampah } from "@/lib/jenis-sampah-data";
 
 export const JENIS_SAMPAH_STATUS_OPTIONS: SelectOption[] = [
@@ -45,6 +46,7 @@ export function JenisSampahForm({
   bare?: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
 
   const [kode, setKode] = useState(
     initialData?.kode != null ? String(initialData.kode) : "",
@@ -105,6 +107,7 @@ export function JenisSampahForm({
       onSaved?.(saved);
     } catch (err) {
       setError(apiError(err));
+      toast.gagal("Gagal menyimpan", apiError(err));
     } finally {
       setSaving(false);
     }

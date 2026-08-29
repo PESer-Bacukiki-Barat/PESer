@@ -8,6 +8,7 @@ import { AksiForm } from "@/components/ui/aksi-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { Pembeli } from "@/lib/pembeli-data";
 
 export const PEMBELI_STATUS_OPTIONS: SelectOption[] = [
@@ -41,6 +42,7 @@ export function PembeliForm({
   bare?: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
 
   const [nama, setNama] = useState(initialData?.nama ?? "");
   const [perusahaan, setPerusahaan] = useState(initialData?.perusahaan ?? "");
@@ -85,6 +87,7 @@ export function PembeliForm({
       onSaved?.();
     } catch (err) {
       setError(apiError(err));
+      toast.gagal("Gagal menyimpan", apiError(err));
     } finally {
       setSaving(false);
     }
