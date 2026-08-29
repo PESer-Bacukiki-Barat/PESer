@@ -63,7 +63,7 @@ export default async function UserLayout({
                   pun, jadi terasa seperti aplikasi yang berbeda. */}
               <span
                 aria-hidden
-                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary"
+                className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm"
               >
                 <MarkaPeser className="size-5" />
               </span>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    Ikon tab & PWA — marka yang SAMA dengan src/components/brand/logo-peser.tsx.
+
+    Sebelumnya favicon masih logo bawaan Next.js (hitam-putih), sehingga tab
+    peramban menampilkan lambang yang sama sekali berbeda dari aplikasinya.
+    Ikon PWA di public/icons sudah hijau merek, jadi favicon-lah satu-satunya
+    yang tertinggal.
+
+    Warnanya dipatok, bukan currentColor: berkas ini dipakai peramban di luar
+    konteks halaman, jadi tidak ada warna teks yang bisa diwarisi. #006c49
+    adalah primary DESIGN.md, sama dengan themeColor di viewport dan latar
+    ikon PWA.
+  -->
+  <rect width="32" height="32" rx="7" fill="#006c49" />
+  <g transform="translate(4.6 4.6) scale(0.7125)" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round">
+    <path d="M26.5 19.2A11 11 0 1 1 22.6 7.2" />
+    <path d="M22.9 2.6v4.9h-4.9" stroke-linejoin="round" />
+    <path d="M16 22.5V13" />
+  </g>
+  <g transform="translate(4.6 4.6) scale(0.7125)" fill="#ffffff">
+    <path d="M16 15.6c0-2.6 1.8-4.7 4.4-4.9-.2 2.7-2 4.7-4.4 4.9Z" />
+    <path d="M16 18.9c0-2.6-1.8-4.7-4.4-4.9.2 2.7 2 4.7 4.4 4.9Z" />
+  </g>
+</svg>

@@ -321,3 +321,19 @@ describe("umpan balik & tema", () => {
     }
   })
 })
+
+describe("ikon aplikasi", () => {
+  it("ikon tab memakai warna merek, bukan sisa bawaan Next.js", () => {
+    // favicon.ico bawaan berwarna hitam-putih, sehingga tab peramban
+    // menampilkan lambang yang sama sekali berbeda dari aplikasinya.
+    expect(BERKAS.some((f) => f.endsWith("favicon.ico"))).toBe(false)
+    const svg = readFileSync(join(AKAR, "src", "app", "icon.svg"), "utf8")
+    expect(svg).toContain("#006c49")
+  })
+
+  it("ikon didaftarkan eksplisit di metadata", () => {
+    // `icons` yang eksplisit membuat Next berhenti memindai konvensi berkas,
+    // jadi icon.svg saja tidak cukup — tanpa baris ini tab tidak dapat ikon.
+    expect(isi.get("src/app/layout.tsx")).toContain('url: "/icon.svg"')
+  })
+})

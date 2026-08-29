@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   icons: {
+    // Ikon tab. Mendeklarasikannya di sini, bukan mengandalkan konvensi berkas
+    // src/app/icon.svg — `icons` yang eksplisit membuat Next berhenti memindai
+    // konvensi itu, jadi tanpa baris ini tab peramban tidak dapat ikon sama
+    // sekali setelah favicon.ico bawaan Next.js dihapus.
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     apple: "/icons/apple-touch-icon.png",
   },
 };
