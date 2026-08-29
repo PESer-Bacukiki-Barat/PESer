@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -17,13 +17,30 @@ export function inputClass(error?: boolean) {
     : inputClasses;
 }
 
-export function FieldError({ error }: { error?: string }) {
+export function FieldError({ error, id }: { error?: string; id?: string }) {
   if (!error) return null;
   return (
-    <p className="font-label-sm text-label-sm text-error">{error}</p>
+    // role="alert" supaya pesan yang MUNCUL setelah submit diumumkan pembaca
+    // layar. Tanpa itu, pengguna yang tidak melihat layar hanya tahu formnya
+    // tidak jadi terkirim, tanpa tahu kenapa.
+    <p id={id} role="alert" className="font-label-sm text-label-sm text-error">
+      {error}
+    </p>
   );
 }
 
+/**
+ * Satu kolom isian beserta label, petunjuk, dan pesan errornya.
+ *
+ * Menyambungkan ketiganya ke input lewat `aria-describedby` dan
+ * `aria-invalid` — sebelumnya pesan error dirender berdekatan secara visual
+ * tapi tidak terhubung sama sekali, jadi pembaca layar membacakan input tanpa
+ * pernah menyebut apa yang salah dengannya.
+ *
+ * Penyambungan dilakukan dengan meng-clone anaknya, bukan menuntut setiap
+ * pemanggil menuliskan atribut itu sendiri: ada puluhan pemanggil, dan yang
+ * dikerjakan manual di puluhan tempat pasti terlewat di sebagian.
+ */
 export function Field({
   label,
   required,
@@ -40,16 +57,41 @@ export function Field({
   hint?: ReactNode;
   children: ReactNode;
 }) {
+  const idError = error ? `${htmlFor}-error` : undefined;
+  const idHint = hint && !error ? `${htmlFor}-hint` : undefined;
+  const describedBy = [idError, idHint].filter(Boolean).join(" ") || undefined;
+
+  // Anak yang berupa elemen disambungkan otomatis. Atribut yang sudah ditulis
+  // pemanggil tidak ditimpa — beberapa form memasang aria-invalid sendiri.
+  const isian =
+    isValidElement<Record<string, unknown>>(children) && describedBy
+      ? cloneElement(children, {
+          "aria-describedby":
+            (children.props["aria-describedby"] as string | undefined) ?? describedBy,
+          "aria-invalid": children.props["aria-invalid"] ?? (error ? true : undefined),
+        })
+      : children;
+
   return (
     <div className="space-y-1">
       <label htmlFor={htmlFor} className="block font-label-md text-label-md text-on-surface">
-        {label} {required && <span className="text-error">*</span>}
+        {label}{" "}
+        {required && (
+          // Tanda bintang telanjang dibacakan "star" tanpa makna. Teks
+          // tersembunyi memberi artinya, dan bintangnya sendiri jadi dekorasi.
+          <span className="text-error">
+            <span aria-hidden>*</span>
+            <span className="sr-only">(wajib diisi)</span>
+          </span>
+        )}
       </label>
-      {children}
+      {isian}
       {hint && !error && (
-        <p className="font-label-sm text-label-sm text-on-surface-variant">{hint}</p>
+        <p id={idHint} className="font-label-sm text-label-sm text-on-surface-variant">
+          {hint}
+        </p>
       )}
-      <FieldError error={error} />
+      <FieldError error={error} id={idError} />
     </div>
   );
 }
@@ -75,11 +117,15 @@ export function SelectField({
 }) {
   return (
     <Field label={label} required={required} htmlFor={id} error={error}>
+      {/* <select> dibungkus <div> untuk ikon panah, jadi penyambungan otomatis
+          di Field tidak menjangkaunya — disambungkan manual di sini. */}
       <div className="relative">
         <select
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           className={cn(inputClass(!!error), "appearance-none pr-10")}
         >
           {placeholder && (

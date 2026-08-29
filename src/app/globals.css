@@ -373,3 +373,34 @@
 @utility pt-aman-bawah {
   padding-bottom: var(--spacing-aman-bawah);
 }
+
+/**
+ * Perluas daerah sentuh sebuah kontrol menjadi minimal 44x44px TANPA mengubah
+ * ukuran visualnya — PRD §8.7 (TARGET_SENTUH_MIN_PX).
+ *
+ * Tombol ikon di aplikasi ini berukuran 32px: pas untuk kursor di desktop,
+ * tapi di bawah ambang jari. Membesarkannya secara visual akan merusak
+ * kepadatan tabel admin, jadi yang diperbesar hanya daerah tangkapnya lewat
+ * pseudo-element transparan yang berada di tengah kontrol.
+ *
+ * Hanya aktif pada perangkat yang penunjuk utamanya kasar (jari). Di desktop
+ * tidak ada pseudo-element sama sekali, jadi tidak ada risiko ia menutupi
+ * elemen tetangga.
+ */
+@utility sentuh-nyaman {
+  position: relative;
+
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      min-width: 44px;
+      min-height: 44px;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

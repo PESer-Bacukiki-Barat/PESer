@@ -610,14 +610,43 @@ export function SetorForm({
         </p>
       )}
 
-      <Button type="submit" className="w-full h-12" disabled={!bisaKirim || mengirim}>
-        {mengirim ? "Menyimpan..." : "Simpan Setoran"}
-      </Button>
-      {!bisaKirim && !mengirim && (
-        <p className="text-center font-label-sm text-label-sm text-on-surface-variant">
-          Pilih nasabah, lalu isi minimal satu item diterima atau satu penolakan.
-        </p>
-      )}
+      {/* Ruang setinggi bilah aksi di bawah, supaya isi terakhir form tidak
+          tertutup olehnya saat digulir sampai habis. */}
+      <div aria-hidden className="h-28" />
+
+      {/**
+       * Bilah aksi menempel di atas bottom nav.
+       *
+       * Form ini panjang: satu setoran bisa berisi beberapa item dan beberapa
+       * penolakan, dan tombol simpan sebelumnya berada di paling bawah. Petugas
+       * di lapangan harus menggulir jauh hanya untuk menyimpan, sambil
+       * kehilangan pandangan atas totalnya. Sekarang total dan tombolnya selalu
+       * ada di tempat yang sama.
+       *
+       * bottom-16 = tepat di atas bottom nav setinggi h-16; pt-aman-bawah
+       * menambah ruang gesture bar iOS.
+       */}
+      <div className="fixed inset-x-0 bottom-16 z-40 mx-auto w-full max-w-md border-t border-outline-variant bg-surface-container-lowest/95 px-4 pt-3 pb-3 backdrop-blur pt-aman-bawah">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span className="font-label-sm text-label-sm text-on-surface-variant">
+            {rincian.filter((r) => r.berat > 0).length} item
+            {tolakan.length > 0 && ` · ${tolakan.length} ditolak`}
+          </span>
+          <span className="font-mono text-body-lg font-semibold text-primary">
+            {fmtRupiah(totalNilai)}
+          </span>
+        </div>
+
+        <Button type="submit" className="h-12 w-full" disabled={!bisaKirim || mengirim}>
+          {mengirim ? "Menyimpan..." : "Simpan Setoran"}
+        </Button>
+
+        {!bisaKirim && !mengirim && (
+          <p className="mt-1.5 text-center font-label-sm text-label-sm text-on-surface-variant">
+            Pilih nasabah, lalu isi minimal satu item atau satu penolakan.
+          </p>
+        )}
+      </div>
     </form>
   )
 }

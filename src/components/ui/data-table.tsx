@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -89,6 +89,21 @@ export function DataTable<T>({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
 
+  // Dipakai untuk mengembalikan pandangan ke awal tabel setiap ganti halaman.
+  const wadahRef = useRef<HTMLDivElement>(null);
+
+  const jumlahKolom = columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0);
+
+  /** Ada pencarian atau filter aktif — membedakan "kosong" dari "tersaring". */
+  const sedangMenyaring =
+    query.trim().length > 0 || Object.values(filterValues).some(Boolean);
+
+  function resetSaringan() {
+    setQuery("");
+    setFilterValues({});
+    setPage(1);
+  }
+
   const filtered = useMemo(() => {
     let rows = data;
 
@@ -145,6 +160,11 @@ export function DataTable<T>({
 
   function handlePage(nextPage: number) {
     setPage(Math.min(Math.max(1, nextPage), pageCount));
+
+    // Tombol paginasi ada di BAWAH tabel. Tanpa ini, menekan "Berikutnya"
+    // memuat baris baru sementara pandangan pengguna masih di footer — halaman
+    // terasa tidak berubah sampai ia menggulir ke atas sendiri.
+    wadahRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   const showToolbar = searchKeys.length > 0 || filters.length > 0 || toolbarActions;
@@ -197,10 +217,16 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+      <div
+        ref={wadahRef}
+        className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm scroll-mt-20"
+      >
         <div className="overflow-x-auto">
           <table className="w-full block md:table text-left border-collapse">
-            <thead className="hidden md:table-header-group">
+            {/* sticky: pada daftar panjang, header yang hilang membuat pengguna
+                lupa kolom mana yang sedang dibacanya. Hanya di md ke atas —
+                di bawah itu tabel berubah jadi kartu bertumpuk. */}
+            <thead className="hidden md:table-header-group md:sticky md:top-0 md:z-10">
               <tr className="bg-surface-container-low border-b border-outline-variant">
                 {selectable && (
                   <th className={cn(headerClass, "w-12 text-center")}>
@@ -228,13 +254,47 @@ export function DataTable<T>({
               </tr>
             </thead>
             <tbody className="block md:table-row-group md:divide-y divide-outline-variant space-y-3 md:space-y-0 p-3 md:p-0">
-              {pageItems.length === 0 && (
+              {/* Saat memuat, bentuk tabelnya dipertahankan lewat baris
+                  skeleton — bukan satu kalimat "Memuat..." yang membuat tinggi
+                  wadah menyusut lalu melompat kembali begitu data datang. */}
+              {loading &&
+                Array.from({ length: 5 }, (_, i) => (
+                  <tr
+                    key={`memuat-${i}`}
+                    className="block md:table-row border border-outline-variant md:border-0 rounded-xl md:rounded-none"
+                  >
+                    <td
+                      colSpan={jumlahKolom}
+                      className="block md:table-cell px-4 py-3.5"
+                    >
+                      <span className="sr-only">Memuat data…</span>
+                      <span
+                        aria-hidden
+                        className="block h-5 animate-pulse rounded-md bg-surface-container-high"
+                      />
+                    </td>
+                  </tr>
+                ))}
+
+              {!loading && pageItems.length === 0 && (
                 <tr className="block md:table-row border border-outline-variant md:border-0 rounded-xl md:rounded-none">
                   <td
-                    colSpan={columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}
+                    colSpan={jumlahKolom}
                     className="block md:table-cell p-6 md:p-8 text-center text-on-surface-variant font-label-md text-label-md"
                   >
-                    {loading ? "Memuat..." : (emptyState ?? "Tidak ada data.")}
+                    {sedangMenyaring ? (
+                      // Beda dengan "belum ada data": di sini datanya ADA, hanya
+                      // tersembunyi oleh filter. Menyebutnya saja tidak cukup —
+                      // pengguna butuh jalan keluarnya.
+                      <span className="flex flex-col items-center gap-3">
+                        <span>Tidak ada data yang cocok dengan pencarian atau filter.</span>
+                        <Button type="button" variant="outline" size="sm" onClick={resetSaringan}>
+                          Hapus filter
+                        </Button>
+                      </span>
+                    ) : (
+                      (emptyState ?? "Belum ada data.")
+                    )}
                   </td>
                 </tr>
               )}
@@ -303,16 +363,22 @@ export function DataTable<T>({
         </div>
 
         <div className="p-4 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface-container-lowest">
-          <p className="font-label-md text-label-md text-on-surface-variant">
-            Showing{" "}
+          {/* aria-live: menyaring atau mencari mengubah isi tabel tanpa
+              memindahkan fokus, jadi pengguna pembaca layar tidak akan tahu
+              hasilnya berubah kalau tidak diumumkan. */}
+          <p
+            aria-live="polite"
+            className="font-label-md text-label-md text-on-surface-variant"
+          >
+            Menampilkan{" "}
             <span className="font-medium text-on-surface">
               {filtered.length === 0 ? 0 : pageStart + 1}
-            </span>{" "}
-            to{" "}
+            </span>
+            –
             <span className="font-medium text-on-surface">
               {Math.min(pageStart + pageSize, filtered.length)}
             </span>{" "}
-            of <span className="font-medium text-on-surface">{filtered.length}</span> results
+            dari <span className="font-medium text-on-surface">{filtered.length}</span> data
           </p>
           {pageCount > 1 && (
             <div className="flex items-center space-x-2">
@@ -324,7 +390,7 @@ export function DataTable<T>({
                 onClick={() => handlePage(safePage - 1)}
               >
                 <ChevronLeft className="size-4" />
-                Previous
+                Sebelumnya
               </Button>
               <div className="flex items-center space-x-1">
                 {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
@@ -333,7 +399,9 @@ export function DataTable<T>({
                     type="button"
                     variant={p === safePage ? "default" : "ghost"}
                     size="sm"
-                    className="size-8 px-0"
+                    className="size-8 px-0 sentuh-nyaman"
+                    aria-label={`Halaman ${p}`}
+                    aria-current={p === safePage ? "page" : undefined}
                     onClick={() => handlePage(p)}
                   >
                     {p}
@@ -347,7 +415,7 @@ export function DataTable<T>({
                 disabled={safePage >= pageCount}
                 onClick={() => handlePage(safePage + 1)}
               >
-                Next
+                Berikutnya
                 <ChevronRight className="size-4" />
               </Button>
             </div>

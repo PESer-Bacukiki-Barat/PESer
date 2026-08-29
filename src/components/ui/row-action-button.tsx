@@ -13,6 +13,14 @@ const intentClass: Record<RowActionIntent, string> = {
   delete: "text-on-surface-variant hover:text-error hover:bg-error-container/20",
 };
 
+/**
+ * Tombol aksi pada baris tabel.
+ *
+ * `sentuh-nyaman` memperluas daerah tangkapnya ke 44x44px di perangkat sentuh
+ * (PRD §8.7) tanpa membesarkan tampilannya: ukuran ikon 32px pas untuk kursor,
+ * tapi di bawah ambang jari — dan membesarkannya secara visual akan merusak
+ * kepadatan tabel admin di desktop.
+ */
 export function RowActionButton({
   intent = "view",
   className,
@@ -24,7 +32,7 @@ export function RowActionButton({
       type="button"
       variant="ghost"
       size="icon"
-      className={cn(intentClass[intent], className)}
+      className={cn("sentuh-nyaman", intentClass[intent], className)}
     />
   );
 }

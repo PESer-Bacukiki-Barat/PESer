@@ -143,3 +143,56 @@ describe("PWA di HP", () => {
     expect(css.length).toBeGreaterThan(1000)
   })
 })
+
+describe("kenyamanan pakai", () => {
+  it("Field menyambungkan error & petunjuk ke input-nya", () => {
+    // Tanpa aria-describedby, pesan error dirender berdekatan secara visual
+    // tapi tidak terhubung — pembaca layar membacakan input tanpa pernah
+    // menyebut apa yang salah dengannya.
+    const f = isi.get("src/components/admin/form-fields.tsx")!
+    expect(f).toContain("aria-describedby")
+    expect(f).toContain("aria-invalid")
+    // Pesan yang MUNCUL setelah submit harus diumumkan, bukan hanya tampil.
+    expect(f).toContain('role="alert"')
+    // Tanda bintang telanjang dibacakan "star" tanpa makna.
+    expect(f).toContain("wajib diisi")
+  })
+
+  it("tombol aksi baris punya daerah sentuh 44px (PRD §8.7)", () => {
+    // Ukuran visual tetap 32px supaya kepadatan tabel desktop tidak rusak;
+    // yang diperbesar hanya daerah tangkapnya, dan hanya di perangkat sentuh.
+    expect(isi.get("src/components/ui/row-action-button.tsx")).toContain("sentuh-nyaman")
+    expect(css).toContain("@utility sentuh-nyaman")
+    expect(css).toContain("pointer: coarse")
+    expect(css).toMatch(/min-width:\s*44px/)
+    expect(css).toMatch(/min-height:\s*44px/)
+  })
+
+  it("UI berbahasa Indonesia — tidak ada sisa salin bawaan Inggris", () => {
+    // AGENTS.md: "UI copy is Indonesian". Paginasi DataTable sempat tertinggal
+    // dalam bahasa Inggris karena ia komponen yang jarang dibaca ulang.
+    const dt = isi.get("src/components/ui/data-table.tsx")!
+    // Hanya salin UI yang dulu benar-benar ada di berkas ini. Substring umum
+    // seperti "of " ikut cocok dengan sintaks TypeScript (`for (const x of …)`)
+    // dan akan membuat tes merah tanpa ada yang salah.
+    for (const inggris of ["Showing", "Previous", "results</p>"]) {
+      expect(dt).not.toContain(inggris)
+    }
+    expect(dt).toContain("Menampilkan")
+    expect(dt).toContain("Sebelumnya")
+    expect(dt).toContain("Berikutnya")
+  })
+
+  it("tabel memberi tahu saat isinya berubah karena filter", () => {
+    // Menyaring mengubah isi tanpa memindahkan fokus; tanpa aria-live pengguna
+    // pembaca layar tidak akan tahu hasilnya berubah.
+    expect(isi.get("src/components/ui/data-table.tsx")).toContain('aria-live="polite"')
+  })
+
+  it("keadaan kosong membedakan 'belum ada data' dari 'tersaring habis'", () => {
+    // Yang kedua butuh jalan keluar, bukan sekadar pemberitahuan.
+    const dt = isi.get("src/components/ui/data-table.tsx")!
+    expect(dt).toContain("sedangMenyaring")
+    expect(dt).toContain("Hapus filter")
+  })
+})
