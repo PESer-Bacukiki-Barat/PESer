@@ -15,6 +15,7 @@ import {
   AksiDispatchPanel,
   type ItemAksi,
 } from "@/components/dispatch/aksi-dispatch"
+import { FotoBukti } from "@/components/dispatch/foto-bukti"
 
 export const metadata: Metadata = {
   title: "Detail Dispatch",
@@ -143,6 +144,23 @@ export default async function DetailDispatchPetugasPage({
           />
         )}
       </section>
+
+      {/* FR-D5. Foto hanya relevan sejak petugas memegang barang; sebelum
+          DITERIMA belum ada yang bisa dipotret. Setelah final ia terkunci
+          mengikuti BR-13, tapi tetap ditampilkan sebagai bukti. */}
+      {(dispatch.status === "DITERIMA" ||
+        dispatch.status === "SERAH_TERIMA" ||
+        dispatch.fotoBuktiUrl) && (
+        <div className="mb-4">
+          <FotoBukti
+            dispatchId={dispatch.id}
+            adaFoto={!!dispatch.fotoBuktiUrl}
+            bisaUbah={
+              dispatch.status === "DITERIMA" || dispatch.status === "SERAH_TERIMA"
+            }
+          />
+        </div>
+      )}
 
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
         <div className="px-4 py-3 border-b border-outline-variant bg-surface-bright flex items-baseline justify-between gap-2">

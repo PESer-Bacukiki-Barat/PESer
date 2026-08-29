@@ -35,6 +35,7 @@ import * as batalkan from "@/app/api/dispatch/[id]/batalkan/route"
 import * as revisi from "@/app/api/dispatch/[id]/revisi/route"
 import * as notifikasi from "@/app/api/notifikasi/route"
 import * as notifikasiBaca from "@/app/api/notifikasi/baca/route"
+import * as foto from "@/app/api/dispatch/[id]/foto/route"
 
 jest.mock("@/lib/auth", () => ({ requireAuth: jest.fn() }))
 jest.mock("@/lib/prisma", () => ({ prisma: {} }))
@@ -122,6 +123,11 @@ const ANY_LOGGED_IN: [string, Handler][] = [
  * ("ADMIN" atau "PETUGAS pemilik"), bukan per endpoint. Karena itu handler
  * hanya menuntut login, dan pengecekan peran ada di transisiDispatch() supaya
  * tetap satu sumber kebenaran — diuji di lib/__tests__/dispatch-transisi.test.ts.
+ *
+ * Foto bukti (FR-D5) mengikuti pola yang sama: handler hanya menuntut login,
+ * dan "PETUGAS pemilik" diperiksa di dalamnya lewat `pelakuBoleh` — helper yang
+ * sama dengan state machine, bukan definisi kedua. Aturan siapa-boleh-apa-nya
+ * diuji di foto-bukti.test.ts.
  */
 const AKSI_DISPATCH: [string, Handler][] = [
   ["POST   /api/dispatch/[id]/terbitkan", terbitkan.POST as Handler],
@@ -131,6 +137,9 @@ const AKSI_DISPATCH: [string, Handler][] = [
   ["POST   /api/dispatch/[id]/tutup", tutup.POST as Handler],
   ["POST   /api/dispatch/[id]/batalkan", batalkan.POST as Handler],
   ["POST   /api/dispatch/[id]/revisi", revisi.POST as Handler],
+  ["GET    /api/dispatch/[id]/foto", foto.GET as Handler],
+  ["POST   /api/dispatch/[id]/foto", foto.POST as Handler],
+  ["DELETE /api/dispatch/[id]/foto", foto.DELETE as Handler],
 ]
 
 beforeEach(() => {

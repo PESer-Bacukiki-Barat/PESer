@@ -15,6 +15,7 @@ import {
   AksiDispatchPanel,
   type ItemAksi,
 } from "@/components/dispatch/aksi-dispatch"
+import { FotoBukti } from "@/components/dispatch/foto-bukti"
 
 export const metadata: Metadata = {
   title: "Detail Dispatch",
@@ -265,6 +266,15 @@ export default async function DetailDispatchPage({
           )}
         </div>
       </section>
+
+      {/* FR-D6: admin memverifikasi sebelum menutup dispatch, dan foto bukti
+          adalah salah satu yang diverifikasi. Hanya baca — yang memotret
+          adalah petugas di lokasi (FR-D5). */}
+      {dispatch.fotoBuktiUrl && (
+        <section className="mt-4">
+          <FotoBukti dispatchId={dispatch.id} adaFoto bisaUbah={false} />
+        </section>
+      )}
     </>
   )
 }

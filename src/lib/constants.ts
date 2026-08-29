@@ -30,3 +30,24 @@ export const BATAS_NOTIFIKASI = 20
  * dan cukup jarang agar tidak membebani perangkat petugas di lapangan.
  */
 export const JEDA_POLL_NOTIFIKASI_MS = 60_000
+
+/**
+ * Foto bukti serah terima — FR-D5 / BR-19.
+ *
+ * Nilai yang sama ditegakkan CHECK constraint di migration
+ * 20260829120000_add_gerbang_kualitas_dan_foto_bukti: validasi aplikasi bisa
+ * dilewati skrip atau perbaikan manual, CHECK tidak.
+ */
+export const MAKS_UKURAN_FOTO_BYTE = 1_048_576 // 1 MB
+
+/** Sisi terpanjang setelah kompresi di klien, dalam piksel. */
+export const MAKS_DIMENSI_FOTO_PX = 1600
+
+/** Mutu JPEG hasil kompresi klien. 0,8 sudah tak terbedakan untuk bukti foto. */
+export const MUTU_KOMPRESI_FOTO = 0.8
+
+export const TIPE_FOTO_DIIZINKAN = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const
