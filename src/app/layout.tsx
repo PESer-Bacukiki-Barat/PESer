@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { PenyediaToast } from "@/components/ui/toast";
 import { SKRIP_TEMA } from "@/components/ui/penukar-tema";
+import { SKRIP_BUANG_SW } from "@/lib/skrip-dev";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -65,6 +66,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             gelap melihat kilatan putih di setiap muat halaman, karena React
             baru bisa memasang kelasnya setelah hydrate. */}
         <script dangerouslySetInnerHTML={{ __html: SKRIP_TEMA }} />
+        {/* Hanya di pengembangan: membuang service worker beserta cache-nya.
+            sw.js menyajikan /_next/static/ cache-first — aman di produksi
+            karena nama berkasnya ber-hash isi, tapi di dev Turbopack memakai
+            ulang nama chunk, jadi peramban menjalankan JS lama di atas HTML
+            baru. Sumber basinya di peramban, jadi menyalakan ulang server dan
+            menghapus .next tidak menolong. */}
+        {process.env.NODE_ENV !== "production" && (
+          <script dangerouslySetInnerHTML={{ __html: SKRIP_BUANG_SW }} />
+        )}
       </head>
       <body
         className="min-h-full flex flex-col"

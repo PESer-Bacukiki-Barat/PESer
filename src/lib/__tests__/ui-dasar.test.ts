@@ -622,3 +622,61 @@ describe("keadaan kosong & fokus", () => {
     }
   })
 })
+
+describe("penggabungan kelas", () => {
+  it("className tidak digabung dengan +, selalu lewat cn()", () => {
+    // Penggabungan string melewati tailwind-merge sepenuhnya, jadi kelas yang
+    // bertabrakan sama-sama ikut terpasang dan yang menang ditentukan urutan
+    // Tailwind memancarkan CSS-nya — bukan oleh kode. password-field menyusun
+    // `inputClass(...) + " pr-12"`, sehingga px-4 dan pr-12 keduanya terpasang
+    // dan kebetulan berhasil.
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => /className=\{[^}]*\+\s*"/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("cn() menyisakan padding yang lebih spesifik, bukan membuangnya", () => {
+    // pr-12 harus menang di sisi kanan tanpa menghapus px-4 untuk sisi kiri,
+    // dan ukuran teks DESIGN.md tidak boleh ikut terbuang.
+    const h = cn(
+      "w-full rounded-lg px-4 py-2.5 font-body-md text-body-md text-on-surface",
+      "pr-12",
+    )
+    expect(h).toContain("px-4")
+    expect(h).toContain("pr-12")
+    expect(h).toContain("text-body-md")
+  })
+})
+
+describe("service worker di pengembangan", () => {
+  it("registrasi dibatasi ke produksi", () => {
+    // sw.js menyajikan /_next/static/ cache-first dengan alasan "aset build
+    // Next.js diberi hash" — benar di produksi, tapi TIDAK di dev: Turbopack
+    // memakai ulang nama chunk dengan isi berbeda, jadi peramban menjalankan
+    // JS lama di atas HTML baru. Galat hidrasinya menunjuk komponen yang tidak
+    // bersalah, dan tetap muncul walau server dinyalakan ulang dan .next
+    // dihapus — karena sumber basinya ada di peramban.
+    const p = isi.get("src/components/petugas/antrean-provider.tsx")!
+    const i = p.indexOf('register("/sw.js")')
+    expect(i).toBeGreaterThan(-1)
+    // Gerbang produksinya harus berada di atas panggilan register.
+    expect(p.slice(0, i)).toContain('process.env.NODE_ENV === "production"')
+  })
+
+  it("pendaftaran & cache lama dibuang di setiap halaman saat dev", () => {
+    // AntreanProvider hanya mount di area petugas dan warga, sementara scope
+    // service worker "/" ikut mencegat /login dan /admin. Jadi pembersihannya
+    // harus berjalan dari root layout, bukan dari tempat ia didaftarkan.
+    const l = isi.get("src/app/layout.tsx")!
+    expect(l).toContain("SKRIP_BUANG_SW")
+    expect(l).toContain('process.env.NODE_ENV !== "production"')
+
+    const s = isi.get("src/lib/skrip-dev.ts")!
+    expect(s).toContain("unregister()")
+    // Membatalkan pendaftaran tidak menghapus respons yang sudah tersimpan.
+    expect(s).toContain("caches.delete")
+    // Hanya cache milik aplikasi ini yang disentuh.
+    expect(s).toContain('"peser-"')
+  })
+})

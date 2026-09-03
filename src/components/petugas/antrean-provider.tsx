@@ -135,9 +135,26 @@ export function AntreanProvider({ children }: { children: React.ReactNode }) {
     void muat()
 
     if ("serviceWorker" in navigator) {
-      // Kegagalan registrasi tidak boleh menjatuhkan aplikasi: PWA adalah
-      // peningkatan, bukan syarat untuk bisa mencatat setoran.
-      navigator.serviceWorker.register("/sw.js").catch(() => {})
+      if (process.env.NODE_ENV === "production") {
+        // Kegagalan registrasi tidak boleh menjatuhkan aplikasi: PWA adalah
+        // peningkatan, bukan syarat untuk bisa mencatat setoran.
+        navigator.serviceWorker.register("/sw.js").catch(() => {})
+      } else {
+        // Di pengembangan service worker justru merugikan. sw.js menyajikan
+        // `/_next/static/` secara cache-first dengan alasan "aset build Next
+        // diberi hash" — benar di produksi, tapi TIDAK di dev: Turbopack
+        // memakai ulang nama chunk dengan isi yang berbeda, jadi peramban
+        // menjalankan JS lama di atas HTML baru. Hasilnya galat hidrasi yang
+        // menyalahkan komponen yang tidak bersalah, dan tetap muncul walau
+        // server sudah dinyalakan ulang serta .next sudah dihapus.
+        //
+        // Yang sudah terpasang juga dibuang, karena scope-nya "/" sehingga ia
+        // ikut mencegat permintaan halaman lain seperti /login.
+        void navigator.serviceWorker
+          .getRegistrations()
+          .then((daftar) => Promise.all(daftar.map((r) => r.unregister())))
+          .catch(() => {})
+      }
     }
   }, [muat])
 

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 
 import { Field, inputClass } from "@/components/admin/form-fields"
+import { cn } from "@/lib/utils"
 
 /**
  * Input password dengan tombol lihat/sembunyi.
@@ -15,11 +16,15 @@ import { Field, inputClass } from "@/components/admin/form-fields"
  * tangkap ke 44px di perangkat sentuh, jadi jari tetap mudah mengenainya tanpa
  * membuat kotaknya terlihat besar.
  *
- * Kelasnya digabung dengan `+` biasa, bukan `cn()`: tailwind-merge sempat
- * membuang `text-body-md` di sini karena ia menyangkanya sekelompok dengan
+ * Kelasnya sempat digabung dengan `+` biasa sebagai jalan pintas: tailwind-merge
+ * dulu membuang `text-body-md` di sini karena menyangkanya sekelompok dengan
  * `text-on-surface`, sehingga ukuran font kolom ini berbeda dari kolom email di
- * atasnya. Akar masalahnya sudah diperbaiki di src/lib/utils.ts, dan di sini
- * penggabungan sederhana memang sudah cukup — tidak ada kelas yang bertabrakan.
+ * atasnya. Akar masalahnya sudah diperbaiki di src/lib/utils.ts, jadi jalan
+ * pintasnya tinggal warisan — dan warisan yang merugikan, karena `+` melewati
+ * tailwind-merge sepenuhnya: `px-4` dari inputClass dan `pr-12` di sini
+ * sama-sama terpasang, dan yang menang di sisi kanan ditentukan urutan Tailwind
+ * memancarkan CSS-nya, bukan oleh kode ini. Sekarang lewat `cn()`, dan tesnya
+ * membuktikan ketiganya bertahan: px-4, pr-12, dan text-body-md.
  *
  * `tabIndex={-1}`: urutan tab yang wajar dari kolom password adalah langsung ke
  * tombol Masuk, bukan mampir ke pengalih visibilitas. Ia tetap bisa dijangkau
@@ -53,7 +58,7 @@ export function PasswordField({
           autoComplete={autoComplete}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={inputClass(!!error) + " pr-12"}
+          className={cn(inputClass(!!error), "pr-12")}
         />
         <button
           type="button"
