@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Berkas perantara render PDF panduan (dihasilkan docs/buat-pdf.py)
+docs/panduan-cetak.html

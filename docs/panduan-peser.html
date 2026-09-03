@@ -1,0 +1,1366 @@
+<title>Panduan PESer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Palet & tipografi diambil langsung dari DESIGN.md proyek PESer,
+   bukan dikarang ulang: emerald #006c49, netral bernuansa hijau
+   (#bbcabf, #3c4a42), Hanken Grotesk + JetBrains Mono.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --kertas: #f7f9fb;
+  --kartu: #ffffff;
+  --kartu-2: #f2f4f6;
+  --tinta: #191c1e;
+  --redup: #3c4a42;
+  --garis: #bbcabf;
+  --garis-halus: #dde5e0;
+  --primer: #006c49;
+  --primer-lembut: #e3f3ec;
+  --hutan: #2b6954;
+  --warga: #0f7a55;
+  --bahaya: #ba1a1a;
+  --bahaya-lembut: #fdecec;
+  --sorot: #fff8e1;
+  --sorot-garis: #e8d9a8;
+  --sorot-tinta: #6b5514;
+
+  --sans: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  --lebar-baca: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --kertas: #191c1e;
+    --kartu: #101315;
+    --kartu-2: #232628;
+    --tinta: #e0e3e5;
+    --redup: #bbcabf;
+    --garis: #3c4a42;
+    --garis-halus: #2d3133;
+    --primer: #4edea3;
+    --primer-lembut: #05271b;
+    --hutan: #6ffbbe;
+    --warga: #34d399;
+    --bahaya: #ffb4ab;
+    --bahaya-lembut: #2c1512;
+    --sorot: #241f0d;
+    --sorot-garis: #4a3f1c;
+    --sorot-tinta: #f0dfa6;
+  }
+}
+
+:root[data-theme="dark"] {
+  --kertas: #191c1e;
+  --kartu: #101315;
+  --kartu-2: #232628;
+  --tinta: #e0e3e5;
+  --redup: #bbcabf;
+  --garis: #3c4a42;
+  --garis-halus: #2d3133;
+  --primer: #4edea3;
+  --primer-lembut: #05271b;
+  --hutan: #6ffbbe;
+  --warga: #34d399;
+  --bahaya: #ffb4ab;
+  --bahaya-lembut: #2c1512;
+  --sorot: #241f0d;
+  --sorot-garis: #4a3f1c;
+  --sorot-tinta: #f0dfa6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--kertas);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Kerangka: TOC menempel di kiri pada layar lebar ── */
+.bingkai {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px 96px;
+}
+@media (min-width: 1000px) {
+  .bingkai {
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 56px;
+    padding: 0 32px 120px;
+  }
+}
+
+/* ── Kepala halaman ── */
+.masthead {
+  grid-column: 1 / -1;
+  padding: 56px 0 40px;
+  border-bottom: 1px solid var(--garis);
+  margin-bottom: 44px;
+}
+.merek {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.marka {
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  background: var(--primer);
+  display: grid; place-items: center;
+  flex: none;
+}
+.marka svg { width: 23px; height: 23px; }
+.merek-teks {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--redup);
+  line-height: 1.35;
+}
+.masthead h1 {
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  margin: 0 0 18px;
+  text-wrap: balance;
+  max-width: 22ch;
+}
+.dek {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--redup);
+  max-width: 58ch;
+  margin: 0;
+}
+.meta-baris {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin-top: 30px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--redup);
+}
+.meta-baris b {
+  color: var(--tinta);
+  font-weight: 500;
+}
+
+/* ── Daftar isi ── */
+.toc { margin-bottom: 44px; }
+@media (min-width: 1000px) {
+  .toc {
+    position: sticky;
+    top: 28px;
+    align-self: start;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    margin-bottom: 0;
+  }
+}
+.toc-judul {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--redup);
+  margin: 0 0 14px;
+}
+.toc ol {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  gap: 1px;
+  counter-reset: bab;
+}
+.toc a {
+  display: flex;
+  gap: 10px;
+  padding: 7px 10px 7px 8px;
+  border-radius: 6px;
+  color: var(--redup);
+  text-decoration: none;
+  font-size: 14.5px;
+  line-height: 1.35;
+  border-left: 2px solid transparent;
+}
+.toc a:hover { background: var(--kartu-2); color: var(--tinta); }
+.toc a:focus-visible {
+  outline: 2px solid var(--primer);
+  outline-offset: 1px;
+}
+.toc a .n {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--primer);
+  padding-top: 2.5px;
+  flex: none;
+  font-weight: 500;
+}
+
+/* ── Bab ── */
+.bab {
+  scroll-margin-top: 24px;
+  padding-top: 8px;
+  margin-bottom: 68px;
+}
+.bab-kepala {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+  margin-bottom: 8px;
+}
+.bab-no {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primer);
+  letter-spacing: 0.05em;
+  flex: none;
+  padding-top: 1px;
+}
+.bab h2 {
+  font-size: 27px;
+  line-height: 1.2;
+  letter-spacing: -0.016em;
+  font-weight: 700;
+  margin: 0;
+  text-wrap: balance;
+}
+.bab > p, .bab > ul, .bab > ol { max-width: var(--lebar-baca); }
+.bab p { margin: 0 0 15px; }
+.bab h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 34px 0 12px;
+}
+.pengantar {
+  font-size: 17.5px;
+  color: var(--redup);
+  margin-bottom: 26px !important;
+  max-width: 62ch;
+}
+
+/* ── Kartu peran: dibedakan oleh kedalaman warna dari satu keluarga
+      hijau merek, bukan warna asing ── */
+.peran-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  margin: 26px 0 8px;
+}
+@media (min-width: 720px) {
+  .peran-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.peran {
+  background: var(--kartu);
+  border: 1px solid var(--garis-halus);
+  border-top: 3px solid var(--aksen);
+  border-radius: 10px;
+  padding: 20px 19px 19px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.peran[data-p="admin"]   { --aksen: var(--primer); }
+.peran[data-p="petugas"] { --aksen: var(--hutan); }
+.peran[data-p="warga"]   { --aksen: var(--warga); }
+.peran-nama {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--aksen);
+  font-weight: 500;
+}
+.peran h3 {
+  margin: 0;
+  font-size: 18.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.peran p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--redup); }
+.peran dl {
+  margin: 4px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--garis-halus);
+  display: grid;
+  gap: 7px;
+  font-size: 13.5px;
+}
+.peran dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--redup);
+}
+.peran dd { margin: 0 0 4px; line-height: 1.45; }
+
+/* ── Langkah bernomor: hanya untuk yang benar-benar berurutan ── */
+.langkah {
+  list-style: none;
+  counter-reset: l;
+  margin: 24px 0;
+  padding: 0;
+  max-width: var(--lebar-baca);
+  display: flex;
+  flex-direction: column;
+}
+.langkah > li {
+  counter-increment: l;
+  position: relative;
+  padding: 0 0 22px 46px;
+  border-left: 1px solid var(--garis);
+  margin-left: 13px;
+}
+.langkah > li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.langkah > li::before {
+  content: counter(l);
+  position: absolute;
+  left: -13.5px; top: -2px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--primer);
+  color: var(--kartu);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  display: grid; place-items: center;
+}
+:root[data-theme="dark"] .langkah > li::before,
+:root:not([data-theme="light"]) .langkah > li::before { color: #05271b; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .langkah > li::before { color: #ffffff; }
+}
+.langkah h4 {
+  margin: 1px 0 6px;
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.langkah p { margin: 0 0 9px; font-size: 15px; }
+.langkah p:last-child { margin-bottom: 0; }
+
+/* ── Rel status dispatch ── */
+.rel-bungkus {
+  overflow-x: auto;
+  margin: 24px 0 10px;
+  padding-bottom: 8px;
+}
+.rel {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: max-content;
+}
+.rel-simpul {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 9px 13px;
+  border-radius: 7px;
+  border: 1px solid var(--primer);
+  color: var(--primer);
+  background: var(--primer-lembut);
+  white-space: nowrap;
+}
+.rel-simpul[data-akhir] {
+  background: var(--primer);
+  color: var(--kartu);
+  border-color: var(--primer);
+}
+:root[data-theme="dark"] .rel-simpul[data-akhir],
+:root:not([data-theme="light"]) .rel-simpul[data-akhir] { color: #05271b; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .rel-simpul[data-akhir] { color: #ffffff; }
+}
+.rel-panah {
+  flex: none;
+  width: 26px;
+  height: 1px;
+  background: var(--garis);
+  position: relative;
+}
+.rel-panah::after {
+  content: "";
+  position: absolute;
+  right: 0; top: -3px;
+  border-left: 5px solid var(--garis);
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+}
+.rel-aktor {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--redup);
+  text-align: center;
+  margin-top: 5px;
+}
+.rel-kolom { display: flex; flex-direction: column; align-items: center; }
+.cabang {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 0;
+}
+.cabang span {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 7px 11px;
+  border-radius: 7px;
+  border: 1px dashed var(--garis);
+  color: var(--redup);
+  background: var(--kartu);
+}
+
+/* ── Tabel ── */
+.tabel-bungkus {
+  overflow-x: auto;
+  border: 1px solid var(--garis-halus);
+  border-radius: 10px;
+  margin: 22px 0;
+  background: var(--kartu);
+}
+table { border-collapse: collapse; width: 100%; min-width: 540px; }
+th, td {
+  text-align: left;
+  padding: 11px 15px;
+  border-bottom: 1px solid var(--garis-halus);
+  font-size: 14.5px;
+  line-height: 1.5;
+  vertical-align: top;
+}
+th {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--redup);
+  font-weight: 500;
+  background: var(--kartu-2);
+  white-space: nowrap;
+}
+tbody tr:last-child td { border-bottom: none; }
+td code { white-space: nowrap; }
+.angka { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ── Kode sebaris: konvensi proyek — mono untuk kode, berat, harga ── */
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--kartu-2);
+  border: 1px solid var(--garis-halus);
+  border-radius: 4px;
+  padding: 1.5px 5px;
+}
+
+/* ── Catatan ── */
+.nota {
+  max-width: var(--lebar-baca);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 22px 0;
+  border: 1px solid var(--sorot-garis);
+  background: var(--sorot);
+  color: var(--sorot-tinta);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.nota[data-jenis="jangan"] {
+  border-color: var(--bahaya);
+  background: var(--bahaya-lembut);
+  color: var(--bahaya);
+}
+.nota b { font-weight: 600; }
+.nota-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}
+.nota p { margin: 0 0 9px; }
+.nota p:last-child { margin-bottom: 0; }
+.nota code { background: transparent; border-color: currentColor; }
+
+/* ── Daftar biasa ── */
+.bab ul { padding-left: 21px; margin: 0 0 16px; }
+.bab ul li { margin-bottom: 7px; line-height: 1.58; }
+.bab ul li::marker { color: var(--primer); }
+
+/* ── Kamus ── */
+.kamus {
+  max-width: var(--lebar-baca);
+  display: grid;
+  gap: 0;
+  margin: 22px 0;
+  border-top: 1px solid var(--garis-halus);
+}
+.kamus > div {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--garis-halus);
+}
+@media (min-width: 620px) {
+  .kamus > div { grid-template-columns: 190px minmax(0, 1fr); gap: 20px; align-items: baseline; }
+}
+.kamus dt {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primer);
+}
+.kamus dd { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--redup); }
+
+/* ── Kaki ── */
+.kaki {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--garis);
+  padding-top: 26px;
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--redup);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 36px;
+}
+
+a { color: var(--primer); }
+a:focus-visible { outline: 2px solid var(--primer); outline-offset: 2px; border-radius: 3px; }
+h1, h2, h3, h4 { text-wrap: balance; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto; }
+}
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="bingkai">
+
+  <header class="masthead">
+    <div class="merek">
+      <span class="marka" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round">
+          <path d="M26.5 19.2A11 11 0 1 1 22.6 7.2"/>
+          <path d="M22.9 2.6v4.9h-4.9" stroke-linejoin="round"/>
+          <path d="M16 22.5V13"/>
+        </svg>
+      </span>
+      <span class="merek-teks">PESer<br>Bank Sampah Digital</span>
+    </div>
+    <h1>Panduan memakai PESer</h1>
+    <p class="dek">
+      PESer mencatat perjalanan sampah bernilai dari rumah warga sampai terjual
+      ke pengepul — siapa menyetor, berapa kilogram, berapa rupiah, dan di mana
+      barangnya sekarang. Panduan ini menjelaskan setiap layar menurut siapa
+      yang memakainya.
+    </p>
+    <div class="meta-baris">
+      <span><b>Wilayah</b> &nbsp;Kecamatan Bacukiki Barat, Parepare</span>
+      <span><b>Peran</b> &nbsp;Admin · Petugas · Warga</span>
+      <span><b>Satuan</b> &nbsp;kilogram, 2 desimal</span>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Daftar isi">
+    <p class="toc-judul">Daftar isi</p>
+    <ol>
+      <li><a href="#apa"><span class="n">01</span> Apa itu PESer</a></li>
+      <li><a href="#peran"><span class="n">02</span> Tiga peran</a></li>
+      <li><a href="#masuk"><span class="n">03</span> Masuk ke sistem</a></li>
+      <li><a href="#setor"><span class="n">04</span> Menimbang setoran</a></li>
+      <li><a href="#gerbang"><span class="n">05</span> Gerbang kualitas</a></li>
+      <li><a href="#dispatch"><span class="n">06</span> Menjual: siklus dispatch</a></li>
+      <li><a href="#induk"><span class="n">07</span> Data induk</a></li>
+      <li><a href="#pantau"><span class="n">08</span> Stock, peta, laporan</a></li>
+      <li><a href="#warga"><span class="n">09</span> Halaman warga</a></li>
+      <li><a href="#aturan"><span class="n">10</span> Aturan yang menentukan</a></li>
+      <li><a href="#offline"><span class="n">11</span> Saat sinyal hilang</a></li>
+      <li><a href="#masalah"><span class="n">12</span> Kalau ada yang aneh</a></li>
+      <li><a href="#kamus"><span class="n">13</span> Kamus istilah</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════ 01 -->
+    <section class="bab" id="apa">
+      <div class="bab-kepala"><span class="bab-no">01</span><h2>Apa itu PESer</h2></div>
+      <p class="pengantar">
+        Bank sampah sudah berjalan sebelum ada aplikasinya. PESer tidak
+        mengubah cara kerjanya — ia mencatatnya.
+      </p>
+      <p>
+        Alurnya di lapangan begini: warga membawa sampah yang sudah dipisah ke
+        pos bank sampah kelurahannya. Petugas menimbang, memeriksa
+        kondisinya, lalu membayar tunai di tempat. Barang menumpuk di gudang
+        sampai cukup banyak, lalu dijual ke pengepul. Uangnya diterima Pak
+        Camat langsung.
+      </p>
+      <p>
+        Yang selama ini sulit adalah menjawab pertanyaan sederhana: bulan ini
+        masuk berapa kilogram, dari kelurahan mana saja, dan gudang mana yang
+        sudah penuh dan perlu segera dijemput. PESer menjawab itu dengan
+        mencatat setiap penimbangan dan setiap penjualan sebagai satu
+        transaksi yang tidak bisa dihapus.
+      </p>
+      <p>
+        Satu kelurahan punya tepat satu bank sampah. Satu petugas bekerja di
+        satu bank sampah saja, dan hanya melihat data bank sampahnya sendiri.
+        Admin melihat seluruh kecamatan.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 02 -->
+    <section class="bab" id="peran">
+      <div class="bab-kepala"><span class="bab-no">02</span><h2>Tiga peran</h2></div>
+      <p class="pengantar">
+        Yang bisa Anda lakukan sepenuhnya ditentukan peran akun Anda. Layar
+        yang bukan hak Anda tidak akan terbuka meski alamatnya diketik langsung.
+      </p>
+
+      <div class="peran-grid">
+        <article class="peran" data-p="admin">
+          <span class="peran-nama">Admin</span>
+          <h3>Mengelola kecamatan</h3>
+          <p>
+            Menyiapkan semua data induk, membuat penjualan ke pembeli, dan
+            membaca laporan seluruh kecamatan.
+          </p>
+          <dl>
+            <dt>Melihat</dt>
+            <dd>Semua bank sampah</dd>
+            <dt>Tidak bisa</dt>
+            <dd>Menimbang setoran — admin tidak terikat satu gudang</dd>
+          </dl>
+        </article>
+
+        <article class="peran" data-p="petugas">
+          <span class="peran-nama">Petugas</span>
+          <h3>Bekerja di pos</h3>
+          <p>
+            Menimbang setoran warga, mengelola nasabah, dan menerima serta
+            menyerahkan barang saat dijemput pembeli.
+          </p>
+          <dl>
+            <dt>Melihat</dt>
+            <dd>Hanya bank sampahnya sendiri</dd>
+            <dt>Tidak bisa</dt>
+            <dd>Mengubah harga, membuat penjualan, menutup dispatch</dd>
+          </dl>
+        </article>
+
+        <article class="peran" data-p="warga">
+          <span class="peran-nama">Warga</span>
+          <h3>Melihat setorannya</h3>
+          <p>
+            Membaca riwayat setorannya sendiri dan total nilainya. Halaman ini
+            hanya membaca, tidak mengubah apa pun.
+          </p>
+          <dl>
+            <dt>Melihat</dt>
+            <dd>Setoran atas nomor HP-nya sendiri</dd>
+            <dt>Tidak bisa</dt>
+            <dd>Menimbang atau mengubah catatan setoran</dd>
+          </dl>
+        </article>
+      </div>
+
+      <div class="nota">
+        <span class="nota-label">Perlu diketahui</span>
+        <p>
+          Warga dan pembeli <b>bukan pengguna sistem</b> dalam arti punya
+          kredensial sendiri. Nasabah dicatat petugas sebagai data, dan
+          halaman warga menautkan diri lewat nomor HP yang sama. Kalau satu
+          nomor HP terdaftar pada dua nasabah, halaman itu berhenti dan
+          menjelaskan — lebih baik daripada menampilkan setoran milik orang lain.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 03 -->
+    <section class="bab" id="masuk">
+      <div class="bab-kepala"><span class="bab-no">03</span><h2>Masuk ke sistem</h2></div>
+      <p class="pengantar">
+        Satu halaman masuk untuk semua peran. Sistem yang menentukan Anda
+        mendarat di mana.
+      </p>
+      <p>
+        Buka alamat aplikasi, masukkan email dan password, lalu tekan
+        <b>Masuk</b>. Anda langsung diantar ke beranda sesuai peran:
+      </p>
+
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Peran</th><th>Mendarat di</th><th>Tampilan</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Admin</td>
+              <td><code>/admin</code></td>
+              <td>Sidebar kiri, dirancang untuk layar lebar</td>
+            </tr>
+            <tr>
+              <td>Petugas</td>
+              <td><code>/petugas</code></td>
+              <td>Menu bawah, dirancang untuk HP</td>
+            </tr>
+            <tr>
+              <td>Warga</td>
+              <td><code>/</code></td>
+              <td>Menu bawah, dirancang untuk HP</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Area petugas memang mobile-first: petugas bekerja sambil berdiri di
+        dekat timbangan, satu tangan memegang HP. Karena itu tombol utamanya
+        besar dan menunya di bawah, dalam jangkauan jempol.
+      </p>
+
+      <h3>Mengganti password sendiri</h3>
+      <p>
+        Buka <b>Profil</b> dari menu. Untuk mengganti password, sistem meminta
+        password lama meski Anda sudah masuk — supaya HP yang tertinggal dalam
+        keadaan terbuka tidak bisa dipakai mengambil alih akun. Dari halaman
+        yang sama Anda juga bisa mengubah nama dan memilih tema terang, gelap,
+        atau ikut pengaturan HP.
+      </p>
+
+      <div class="nota">
+        <span class="nota-label">Akun contoh</span>
+        <p>
+          Pemasangan baru menyediakan <code>admin@peser.local</code> dengan
+          password <code>admin123</code>, dan <code>petugas@peser.local</code>
+          dengan <code>petugas123</code>. Keduanya hanya untuk mencoba.
+          <b>Ganti sebelum dipakai sungguhan</b>, lalu buat akun asli tiap
+          petugas dari menu Users.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 04 -->
+    <section class="bab" id="setor">
+      <div class="bab-kepala"><span class="bab-no">04</span><h2>Menimbang setoran</h2></div>
+      <p class="pengantar">
+        Pekerjaan harian petugas. Satu setoran bisa memuat banyak jenis sampah
+        sekaligus, dan totalnya dihitung sistem — bukan dihitung tangan.
+      </p>
+
+      <ol class="langkah">
+        <li>
+          <h4>Buka Setor</h4>
+          <p>
+            Tombol <b>Setor</b> ada di tengah menu bawah dan dibuat paling
+            menonjol karena inilah layar yang paling sering dipakai.
+          </p>
+        </li>
+        <li>
+          <h4>Pilih nasabahnya</h4>
+          <p>
+            Ketik nama atau kode nasabah di kolom <b>Cari nasabah</b>. Yang
+            muncul hanya nasabah bank sampah Anda.
+          </p>
+          <p>
+            Kalau warganya belum terdaftar, daftarkan dulu lewat menu
+            <b>Nasabah</b> — cukup nama dan nomor HP. Nomor HP itulah yang
+            nanti menyambungkan warga ke halaman riwayatnya sendiri.
+          </p>
+        </li>
+        <li>
+          <h4>Masukkan barangnya satu per satu</h4>
+          <p>
+            Untuk tiap tumpukan: pilih <b>Jenis sampah</b>, lalu isi
+            <b>Berat (kg)</b>. Harganya terisi otomatis dari harga jenis itu,
+            dan subtotalnya langsung terhitung.
+          </p>
+          <p>
+            Jenis sampah yang harganya masih <code>0</code> tidak akan muncul
+            di pilihan — supaya tidak ada setoran bernilai nol karena harganya
+            lupa diisi.
+          </p>
+        </li>
+        <li>
+          <h4>Tentukan kondisinya</h4>
+          <p>
+            Tiap barang punya <b>Kondisi</b>. Kalau layak, biarkan
+            <code>BERSIH</code>. Kalau tidak layak, tolak dan sebutkan
+            alasannya — ini dijelaskan di bab berikutnya.
+          </p>
+        </li>
+        <li>
+          <h4>Simpan</h4>
+          <p>
+            Tekan <b>Simpan Setoran</b>. Tombolnya berubah menjadi
+            <b>Menyimpan…</b> dan terkunci, jadi tekanan kedua tidak membuat
+            setoran ganda.
+          </p>
+          <p>
+            Sekali tersimpan, stock gudang bertambah dan riwayat tercatat
+            dalam satu tindakan yang tidak bisa setengah jadi.
+          </p>
+        </li>
+        <li>
+          <h4>Bayar tunai dan serahkan bukti</h4>
+          <p>
+            Sistem menampilkan halaman bukti setor berisi rincian, total, dan
+            kode transaksinya. Uang diserahkan tunai di tempat, dibulatkan ke
+            <code>Rp 500</code> terdekat.
+          </p>
+        </li>
+      </ol>
+
+      <div class="nota" data-jenis="jangan">
+        <span class="nota-label">Tidak bisa dibatalkan</span>
+        <p>
+          Setoran yang sudah tersimpan <b>tidak bisa dihapus</b>, oleh siapa
+          pun. Itu disengaja: catatan keuangan yang bisa dihapus tidak bisa
+          dipercaya. Periksa berat dan jenisnya sebelum menekan simpan.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 05 -->
+    <section class="bab" id="gerbang">
+      <div class="bab-kepala"><span class="bab-no">05</span><h2>Gerbang kualitas</h2></div>
+      <p class="pengantar">
+        Tidak semua yang dibawa warga bisa diterima. Menolaknya bukan sekadar
+        tidak mencatat — penolakan itu sendiri yang dicatat.
+      </p>
+      <p>
+        Saat memasukkan barang, ubah <b>Kondisi</b> menjadi ditolak, lalu pilih
+        <b>Alasan</b>:
+      </p>
+
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Alasan</th><th>Artinya</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>TIDAK_TERSORTIR</code></td>
+              <td>Masih campur, belum dipisah per jenis</td>
+            </tr>
+            <tr>
+              <td><code>TIDAK_SESUAI_MASTER</code></td>
+              <td>Jenisnya tidak ada dalam daftar jenis sampah</td>
+            </tr>
+            <tr>
+              <td><code>TERKONTAMINASI</code></td>
+              <td>Basah, berminyak, atau bercampur sisa makanan</td>
+            </tr>
+            <tr>
+              <td><code>LAINNYA</code></td>
+              <td>Selain di atas — wajib diisi <b>Catatan</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Barang yang ditolak <b>tidak masuk stock, tidak dibayar, dan tidak
+        masuk laporan volume</b>. Ia disimpan terpisah, semata sebagai
+        keterangan.
+      </p>
+      <p>
+        Gunanya muncul setelah beberapa bulan. Kalau satu kelurahan sering
+        muncul dengan alasan <code>TIDAK_TERSORTIR</code>, yang dibutuhkan di
+        sana bukan gudang lebih besar melainkan penyuluhan cara memisah sampah.
+        Tanpa catatan ini, penolakan hanya jadi cerita lisan yang hilang.
+      </p>
+
+      <div class="nota">
+        <span class="nota-label">Cara menyampaikan</span>
+        <p>
+          Sebutkan alasannya ke warganya langsung, dan katakan apa yang perlu
+          diperbaiki lain kali — misalnya kardus dikeringkan dulu, atau plastik
+          dipisah dari organik. Penolakan yang dijelaskan membuat setoran
+          berikutnya lebih baik; penolakan tanpa penjelasan membuat warga
+          berhenti datang.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 06 -->
+    <section class="bab" id="dispatch">
+      <div class="bab-kepala"><span class="bab-no">06</span><h2>Menjual: siklus dispatch</h2></div>
+      <p class="pengantar">
+        Dispatch adalah satu penjualan barang gudang ke pembeli. Ia melewati
+        tahapan berurutan, dan tiap tahap punya pemiliknya sendiri — inilah
+        bagian yang paling sering bikin bingung, jadi baca sekali dengan tenang.
+      </p>
+
+      <h3>Jalur normal</h3>
+      <div class="rel-bungkus">
+        <div class="rel">
+          <div class="rel-kolom">
+            <span class="rel-simpul">DRAFT</span>
+            <span class="rel-aktor">Admin</span>
+          </div>
+          <span class="rel-panah" aria-hidden="true"></span>
+          <div class="rel-kolom">
+            <span class="rel-simpul">DISPATCHED</span>
+            <span class="rel-aktor">Admin</span>
+          </div>
+          <span class="rel-panah" aria-hidden="true"></span>
+          <div class="rel-kolom">
+            <span class="rel-simpul">DITERIMA</span>
+            <span class="rel-aktor">Petugas</span>
+          </div>
+          <span class="rel-panah" aria-hidden="true"></span>
+          <div class="rel-kolom">
+            <span class="rel-simpul">SERAH_TERIMA</span>
+            <span class="rel-aktor">Petugas</span>
+          </div>
+          <span class="rel-panah" aria-hidden="true"></span>
+          <div class="rel-kolom">
+            <span class="rel-simpul" data-akhir>SELESAI</span>
+            <span class="rel-aktor">Admin</span>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:14.5px;color:var(--redup);margin-top:2px">
+        Dua jalur keluar dari jalur normal:
+      </p>
+      <div class="cabang">
+        <span>DITOLAK &nbsp;· petugas menolak, admin bisa merevisi</span>
+        <span>DIBATALKAN &nbsp;· admin membatalkan</span>
+      </div>
+
+      <h3>Apa yang terjadi pada stock di tiap tahap</h3>
+      <p>
+        Ini inti yang perlu dipegang: <b>stock baru benar-benar berkurang di
+        tahap SERAH_TERIMA</b>, bukan sejak barangnya dijanjikan.
+      </p>
+
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Siapa bertindak</th><th>Efek pada stock gudang</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>DRAFT</code></td>
+              <td>Admin menyusun daftar barang &amp; pembelinya</td>
+              <td>Belum ada. Masih bisa diubah bebas.</td>
+            </tr>
+            <tr>
+              <td><code>DISPATCHED</code></td>
+              <td>Admin menerbitkan ke bank sampah</td>
+              <td><b>Direservasi.</b> Barang masih di gudang, tapi sudah dikunci supaya tidak dijanjikan ke pembeli kedua.</td>
+            </tr>
+            <tr>
+              <td><code>DITERIMA</code></td>
+              <td>Petugas menyanggupi</td>
+              <td>Tetap direservasi.</td>
+            </tr>
+            <tr>
+              <td><code>SERAH_TERIMA</code></td>
+              <td>Petugas menyerahkan ke pembeli, isi berat aktual, unggah foto</td>
+              <td><b>Berkurang sungguhan.</b> Barangnya memang sudah keluar gudang.</td>
+            </tr>
+            <tr>
+              <td><code>SELESAI</code></td>
+              <td>Admin memverifikasi lalu menutup</td>
+              <td>Tidak berubah lagi — <b>final dan tidak bisa diedit</b>.</td>
+            </tr>
+            <tr>
+              <td><code>DITOLAK</code></td>
+              <td>Petugas menolak, dengan alasan</td>
+              <td>Reservasi dilepas. Admin bisa merevisi lalu terbitkan ulang.</td>
+            </tr>
+            <tr>
+              <td><code>DIBATALKAN</code></td>
+              <td>Admin membatalkan</td>
+              <td>Reservasi dilepas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Tombol yang muncul di halaman dispatch selalu hanya tombol yang sah
+        untuk status dan peran Anda saat itu. Kalau tombol yang Anda cari tidak
+        ada, biasanya karena tahapnya belum sampai — atau memang bukan Anda
+        yang berhak.
+      </p>
+
+      <h3>Kalau beratnya tidak sama</h3>
+      <p>
+        Saat serah terima, petugas mengisi <b>berat aktual</b> hasil timbangan
+        pembeli. Kalau berbeda dari rencana, sistem menandai selisihnya dan
+        admin melihatnya sebelum menutup. Isi apa adanya — angka yang dikarang
+        supaya "pas" membuat stock di sistem tidak lagi cocok dengan isi gudang.
+      </p>
+
+      <div class="nota">
+        <span class="nota-label">Foto bukti</span>
+        <p>
+          Serah terima meminta foto. Ambil satu foto yang memperlihatkan
+          barangnya saat diserahkan. Ukurannya dibatasi 1 MB dan formatnya JPG,
+          PNG, atau WebP — foto dari kamera HP otomatis dikecilkan agar masuk.
+        </p>
+      </div>
+
+      <div class="nota" data-jenis="jangan">
+        <span class="nota-label">SELESAI tidak bisa dibuka lagi</span>
+        <p>
+          Status <code>SELESAI</code> bersifat final. Laporan penjualan hanya
+          menghitung dispatch yang sudah <code>SELESAI</code>, sehingga angka
+          laporan bulan lalu tidak akan pernah berubah sendiri. Periksa
+          sebelum menutup.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 07 -->
+    <section class="bab" id="induk">
+      <div class="bab-kepala"><span class="bab-no">07</span><h2>Data induk</h2></div>
+      <p class="pengantar">
+        Isi ini lebih dulu, sekali di awal. Tanpanya petugas tidak bisa
+        menimbang apa pun.
+      </p>
+      <p>Urutan pengisian yang benar, karena tiap baris bergantung pada baris di atasnya:</p>
+
+      <ol class="langkah">
+        <li>
+          <h4>Kelurahan</h4>
+          <p>Daftar kelurahan di kecamatan. Ini dasar semua yang lain.</p>
+        </li>
+        <li>
+          <h4>Bank Sampah</h4>
+          <p>
+            Satu per kelurahan. Ada pemilih titik di peta — geser penanda ke
+            lokasi pos sebenarnya, karena titik inilah yang nanti muncul di
+            Peta Sebaran.
+          </p>
+        </li>
+        <li>
+          <h4>Jenis Sampah &amp; harganya</h4>
+          <p>
+            Misalnya kardus, botol plastik, kaleng. Harga per kilogram diisi di
+            sini. Jenis berharga <code>0</code> tidak akan muncul di form
+            setoran, jadi pastikan harganya terisi.
+          </p>
+        </li>
+        <li>
+          <h4>Users — akun petugas</h4>
+          <p>
+            Buat satu akun per petugas dan <b>tentukan bank sampahnya</b>.
+            Petugas tanpa bank sampah tidak bisa masuk ke areanya, karena
+            sistem tidak tahu gudang mana yang jadi tanggung jawabnya.
+          </p>
+        </li>
+        <li>
+          <h4>Pembeli</h4>
+          <p>Pengepul yang membeli barang gudang. Dipakai saat membuat dispatch.</p>
+        </li>
+        <li>
+          <h4>Nasabah</h4>
+          <p>
+            Warga penyetor: nama dan nomor HP. Biasanya diisi petugas saat
+            warga pertama kali datang.
+          </p>
+        </li>
+      </ol>
+
+      <div class="nota">
+        <span class="nota-label">Kenapa harga disimpan ulang di tiap setoran</span>
+        <p>
+          Saat setoran disimpan, harga yang berlaku saat itu <b>dicatat menempel
+          pada setorannya</b>. Jadi kalau harga kardus naik bulan depan, bukti
+          setor bulan ini tetap menunjukkan angka yang benar-benar dibayarkan
+          waktu itu. Mengubah harga tidak akan pernah mengubah transaksi lama.
+        </p>
+      </div>
+
+      <p>
+        Menghapus data induk tidak benar-benar membuangnya dari database — ia
+        hanya disembunyikan, supaya transaksi lama yang merujuknya tetap utuh
+        dan bisa dibaca.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 08 -->
+    <section class="bab" id="pantau">
+      <div class="bab-kepala"><span class="bab-no">08</span><h2>Stock, peta, laporan</h2></div>
+
+      <h3>Stock</h3>
+      <p>
+        Berapa kilogram tiap jenis yang ada di gudang sekarang. Petugas melihat
+        gudangnya sendiri; admin melihat semuanya. Angka yang tampil membedakan
+        stock <b>tersedia</b> dari yang sudah <b>direservasi</b> untuk dispatch
+        berjalan — yang direservasi masih ada fisiknya, tapi sudah dijanjikan.
+      </p>
+
+      <h3>Peta Sebaran</h3>
+      <p>
+        Semua bank sampah sebagai penanda di peta, diwarnai menurut seberapa
+        penuh gudangnya. Ini cara tercepat melihat mana yang perlu segera
+        dijemput tanpa membuka satu per satu.
+      </p>
+      <p>
+        Penanda hanya berwarna "siap jemput" kalau ambang batasnya memang sudah
+        diisi di data bank sampahnya. Bank sampah tanpa ambang batas ditandai
+        belum diatur — bukan dianggap penuh.
+      </p>
+
+      <h3>Laporan</h3>
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Laporan</th><th>Isinya</th><th>Menghitung</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Volume masuk</td>
+              <td>Berapa kg masuk per periode, per kelurahan dan per jenis</td>
+              <td>Setoran yang diterima. Barang tolakan tidak dihitung.</td>
+            </tr>
+            <tr>
+              <td>Penjualan</td>
+              <td>Berapa kg dan berapa rupiah terjual, per pembeli</td>
+              <td>Hanya dispatch berstatus <code>SELESAI</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Pilih rentang tanggalnya, lalu tekan <b>Unduh CSV</b> untuk membukanya
+        di Excel. Angka di layar dan angka di CSV berasal dari perhitungan yang
+        sama, jadi keduanya tidak mungkin berbeda.
+      </p>
+
+      <h3>Notifikasi</h3>
+      <p>
+        Lonceng di kanan atas. Ia berbunyi saat stock melewati ambang batas
+        (sekali saat melewatinya, bukan berulang selama masih di atas) dan saat
+        ada dispatch masuk untuk bank sampah Anda.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 09 -->
+    <section class="bab" id="warga">
+      <div class="bab-kepala"><span class="bab-no">09</span><h2>Halaman warga</h2></div>
+      <p class="pengantar">
+        Layar paling sederhana di aplikasi ini, dan satu-satunya yang tidak
+        mengubah apa pun.
+      </p>
+      <p>Empat menu di bawah:</p>
+      <ul>
+        <li><b>Beranda</b> — total berat dan total nilai setoran Anda, ringkasan bulan ini, dan tiga setoran terakhir.</li>
+        <li><b>Aktivitas</b> — seluruh riwayat setoran, bisa dibuka satu per satu untuk melihat rinciannya.</li>
+        <li><b>Setor</b> — perkiraan nilai sebelum datang ke pos: pilih jenis dan berat, lihat kira-kira dibayar berapa.</li>
+        <li><b>Profil</b> — nama, kontak, ganti password, dan pilihan tema.</li>
+      </ul>
+
+      <div class="nota">
+        <span class="nota-label">Kalau setoran tidak muncul</span>
+        <p>
+          Halaman ini menemukan setoran Anda lewat <b>nomor HP</b>. Kalau
+          kosong padahal Anda sudah pernah menyetor, nomor HP di akun Anda
+          berbeda dengan yang dicatat petugas. Minta petugas memperbaiki nomor
+          di data nasabah, dan riwayatnya akan langsung muncul.
+        </p>
+      </div>
+
+      <p>
+        Perkiraan di menu <b>Setor</b> memakai harga yang berlaku hari ini dan
+        menganggap semua barang lolos pemeriksaan. Angka sebenarnya ditentukan
+        saat penimbangan di pos.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 10 -->
+    <section class="bab" id="aturan">
+      <div class="bab-kepala"><span class="bab-no">10</span><h2>Aturan yang menentukan</h2></div>
+      <p class="pengantar">
+        Aturan-aturan ini bukan pengaturan yang bisa diubah dari layar. Ia
+        tertanam di sistem, dan menjelaskan kenapa aplikasi ini kadang menolak
+        melakukan yang Anda minta.
+      </p>
+
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Aturan</th><th>Alasannya</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Satu kelurahan tepat satu bank sampah</td><td>Mengikuti kenyataan di lapangan</td></tr>
+            <tr><td>Satu petugas terikat satu bank sampah</td><td>Supaya jelas siapa bertanggung jawab atas isi gudang mana</td></tr>
+            <tr><td>Stock tidak boleh minus</td><td>Gudang tidak bisa mengeluarkan barang yang tidak ada. Dispatch melebihi stock akan ditolak sejak awal.</td></tr>
+            <tr><td>Berat selalu kilogram, 2 desimal</td><td>Sesuai ketelitian timbangan yang dipakai</td></tr>
+            <tr><td>Transaksi tidak bisa dihapus</td><td>Catatan keuangan yang bisa dihapus tidak bisa dipercaya</td></tr>
+            <tr><td>Harga dicatat menempel di transaksi</td><td>Bukti setor lama harus tetap menunjukkan angka yang dibayar waktu itu</td></tr>
+            <tr><td>Jenis berharga <code>0</code> tidak muncul di form</td><td>Mencegah setoran bernilai nol karena harga lupa diisi</td></tr>
+            <tr><td>Barang tolakan tidak masuk stock, bayaran, atau laporan</td><td>Yang tidak diterima tidak boleh ikut dihitung</td></tr>
+            <tr><td>Stock berkurang hanya saat serah terima</td><td>Sebelum itu barangnya masih fisik di gudang</td></tr>
+            <tr><td>Stock direservasi saat diterbitkan</td><td>Mencegah barang yang sama dijanjikan ke dua pembeli</td></tr>
+            <tr><td><code>SELESAI</code> bersifat final</td><td>Laporan tidak boleh berubah retroaktif</td></tr>
+            <tr><td>Pembayaran warga tunai di luar sistem</td><td>Tidak ada dompet digital; petugas membayar di tempat</td></tr>
+            <tr><td>Uang pembeli tidak dipegang petugas</td><td>Diterima Pak Camat langsung</td></tr>
+            <tr><td>Dispatch tidak pernah otomatis</td><td>Selalu ada orang yang memutuskan dan bisa dimintai keterangan</td></tr>
+            <tr><td>Setiap perubahan dicatat siapa &amp; kapan</td><td>Ketertelusuran; bisa ditelusuri kalau ada selisih</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════ 11 -->
+    <section class="bab" id="offline">
+      <div class="bab-kepala"><span class="bab-no">11</span><h2>Saat sinyal hilang</h2></div>
+      <p class="pengantar">
+        Pos bank sampah sering ada di tempat bersinyal tipis. Penimbangan tidak
+        boleh berhenti hanya karena internetnya mati.
+      </p>
+      <p>
+        Setoran yang Anda simpan tanpa sinyal <b>tidak hilang</b>. Ia
+        diantrekan di HP Anda dan dikirim sendiri begitu sinyalnya kembali.
+        Jumlah yang masih menunggu terlihat sebagai penanda di aplikasi.
+      </p>
+
+      <ul>
+        <li>Antrean tersimpan di HP itu, jadi aplikasinya boleh ditutup dan HP-nya boleh dimatikan.</li>
+        <li>Satu setoran tidak akan terkirim dua kali walau pengirimannya diulang.</li>
+        <li>Kalau server menolaknya karena datanya bermasalah, antreannya ditandai gagal — mengulang tidak akan menolong, jadi perbaiki lalu masukkan lagi.</li>
+      </ul>
+
+      <div class="nota" data-jenis="jangan">
+        <span class="nota-label">Sebelum keluar akun</span>
+        <p>
+          Kalau masih ada setoran menunggu kirim, aplikasi memperingatkan
+          sebelum Anda keluar. <b>Jangan keluar dulu</b> — cari sinyal, tunggu
+          antreannya kosong, baru keluar.
+        </p>
+      </div>
+
+      <p>
+        Halaman stock, dispatch, dan laporan <b>tidak</b> disimpan untuk dibuka
+        offline. Itu disengaja: stock basi bisa membuat barang yang sama dijual
+        dua kali. Untuk ketiganya Anda memang perlu sinyal.
+      </p>
+
+      <p>
+        Aplikasi ini juga bisa dipasang seperti aplikasi biasa. Di Chrome
+        Android pilih <b>Tambahkan ke layar utama</b>; di iPhone buka lewat
+        Safari lalu <b>Bagikan</b>, pilih <b>Tambah ke Layar Utama</b>. Setelah terpasang
+        ia terbuka tanpa bilah alamat dan terasa seperti aplikasi biasa.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 12 -->
+    <section class="bab" id="masalah">
+      <div class="bab-kepala"><span class="bab-no">12</span><h2>Kalau ada yang aneh</h2></div>
+
+      <div class="tabel-bungkus">
+        <table>
+          <thead>
+            <tr><th>Keluhan</th><th>Sebab yang paling mungkin</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nasabah tidak muncul saat mau menyetor</td>
+              <td>Nasabah itu terdaftar di bank sampah lain, atau belum didaftarkan. Daftar dari menu Nasabah.</td>
+            </tr>
+            <tr>
+              <td>Jenis sampah tidak ada di pilihan</td>
+              <td>Harganya masih <code>0</code>, atau jenisnya dinonaktifkan. Minta admin mengisi harganya.</td>
+            </tr>
+            <tr>
+              <td>Petugas tidak bisa masuk ke areanya</td>
+              <td>Akunnya belum ditentukan bank sampahnya. Admin memperbaikinya dari menu Users.</td>
+            </tr>
+            <tr>
+              <td>Tombol yang dicari tidak ada di halaman dispatch</td>
+              <td>Statusnya belum sampai tahap itu, atau tahap itu bukan hak peran Anda.</td>
+            </tr>
+            <tr>
+              <td>Dispatch ditolak karena stock kurang</td>
+              <td>Sebagian stock sudah direservasi dispatch lain yang belum tuntas. Cek halaman Stock.</td>
+            </tr>
+            <tr>
+              <td>Riwayat warga kosong padahal sudah menyetor</td>
+              <td>Nomor HP di akun berbeda dengan yang dicatat petugas.</td>
+            </tr>
+            <tr>
+              <td>Angka laporan terasa kurang</td>
+              <td>Laporan penjualan hanya menghitung dispatch <code>SELESAI</code>. Yang masih berjalan belum masuk.</td>
+            </tr>
+            <tr>
+              <td>Foto serah terima ditolak</td>
+              <td>Lebih dari 1 MB atau formatnya bukan JPG/PNG/WebP.</td>
+            </tr>
+            <tr>
+              <td>Penanda peta abu-abu semua</td>
+              <td>Ambang batas stock belum diisi di data bank sampahnya.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Kalau keluhannya tidak ada di daftar ini, catat <b>apa yang Anda tekan,
+        apa yang Anda harapkan, dan apa yang muncul</b>, beserta kode
+        transaksinya kalau ada. Tiga keterangan itu biasanya cukup untuk
+        menemukan sebabnya, karena setiap perubahan data tercatat lengkap
+        dengan siapa dan kapan.
+      </p>
+    </section>
+
+    <!-- ═══════════════════════════════════ 13 -->
+    <section class="bab" id="kamus">
+      <div class="bab-kepala"><span class="bab-no">13</span><h2>Kamus istilah</h2></div>
+      <p class="pengantar">
+        Istilah yang muncul di layar, dengan arti yang dipakai di sistem ini.
+      </p>
+      <dl class="kamus">
+        <div><dt>Nasabah</dt><dd>Warga yang menyetor sampah. Data, bukan akun — ia tidak punya password.</dd></div>
+        <div><dt>Setoran</dt><dd>Satu kali penimbangan untuk satu nasabah, bisa memuat banyak jenis sampah.</dd></div>
+        <div><dt>Jenis Sampah</dt><dd>Kategori barang beserta harga per kilogramnya, misalnya kardus atau botol plastik.</dd></div>
+        <div><dt>Stock</dt><dd>Barang yang ada di gudang bank sampah sekarang, per jenis.</dd></div>
+        <div><dt>Reservasi</dt><dd>Stock yang sudah dijanjikan ke sebuah dispatch. Fisiknya masih ada, tapi tidak boleh dijual lagi.</dd></div>
+        <div><dt>Dispatch</dt><dd>Satu penjualan barang gudang ke pembeli, dari penyusunan sampai penutupan.</dd></div>
+        <div><dt>Pembeli</dt><dd>Pengepul yang membeli barang dari bank sampah.</dd></div>
+        <div><dt>Serah terima</dt><dd>Tahap saat barang benar-benar diserahkan ke pembeli. Di sinilah stock berkurang.</dd></div>
+        <div><dt>Gerbang kualitas</dt><dd>Pemeriksaan kelayakan tiap barang saat ditimbang, beserta alasan kalau ditolak.</dd></div>
+        <div><dt>Ambang batas</dt><dd>Berat yang dianggap "gudang sudah penuh", dipakai untuk warna penanda peta dan notifikasi.</dd></div>
+        <div><dt>Kode transaksi</dt><dd>Nomor unik tiap setoran, tercetak di bukti setor. Sebutkan ini kalau melaporkan masalah.</dd></div>
+      </dl>
+    </section>
+
+  </main>
+
+  <footer class="kaki">
+    <span>PESer · Bank Sampah Digital Kecamatan</span>
+    <span>Kecamatan Bacukiki Barat, Parepare</span>
+    <span>Panduan pengguna</span>
+  </footer>
+
+</div>
