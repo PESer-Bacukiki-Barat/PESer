@@ -12,6 +12,7 @@ import { EditJenisSampahModal } from "@/components/admin/jenis-sampah-edit-modal
 import { TambahJenisSampahModal } from "@/components/admin/jenis-sampah-tambah-modal";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import { KATEGORI, type JenisSampah, type JenisSampahStatus } from "@/lib/jenis-sampah-data";
 
 const STATUS_VARIANT: Record<JenisSampahStatus, "secondary" | "outline"> = {
@@ -74,6 +75,7 @@ const columns: Column<JenisSampah>[] = [
 
 export function JenisSampahTable({ jenisSampahs }: { jenisSampahs: JenisSampah[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [items, setItems] = useState<JenisSampah[]>(jenisSampahs);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<JenisSampah | null>(null);
@@ -96,10 +98,11 @@ export function JenisSampahTable({ jenisSampahs }: { jenisSampahs: JenisSampah[]
     try {
       await api.delete(`/jenis-sampah/${deleting.id}`);
       setItems((prev) => prev.filter((j) => j.id !== deleting.id));
+      toast.sukses("Jenis sampah dihapus");
       setDeleting(null);
       router.refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -134,11 +137,11 @@ export function JenisSampahTable({ jenisSampahs }: { jenisSampahs: JenisSampah[]
         toolbarActions={
           <>
             <Button variant="outline" onClick={() => window.print()} className="h-10 px-4 font-medium">
-              <Download className="size-[18px]" />
+              <Download className="size-4" aria-hidden />
               <span className="hidden sm:inline">Export Data</span>
             </Button>
             <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
-              <Plus className="size-[18px]" />
+              <Plus className="size-4" aria-hidden />
               <span className="hidden sm:inline">Tambah Jenis Sampah</span>
             </Button>
           </>

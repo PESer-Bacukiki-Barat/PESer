@@ -139,7 +139,7 @@ export function SelectField({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none size-4" />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none size-4" aria-hidden />
       </div>
     </Field>
   );

@@ -53,7 +53,7 @@ export default async function ProfilUserPage() {
       <form action={logout}>
         <button
           type="submit"
-          className="h-12 min-h-11 w-full rounded-full border border-outline-variant font-label-md text-label-md font-medium text-error transition-colors hover:bg-error-container/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="tekan-halus h-12 min-h-11 w-full rounded-full border border-outline-variant font-label-md text-label-md font-medium text-error hover:bg-error-container/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Keluar
         </button>

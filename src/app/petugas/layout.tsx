@@ -37,7 +37,7 @@ export default async function PetugasLayout({
           <form action={logout} className="mt-4">
             <button
               type="submit"
-              className="h-11 w-full rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+              className="tekan-halus h-11 w-full rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
             >
               Keluar
             </button>
@@ -59,7 +59,7 @@ export default async function PetugasLayout({
               sentuh di bawah TARGET_SENTUH_MIN_PX. */}
           <Link
             href="/petugas/profil"
-            className="min-w-0 rounded-lg px-1 -mx-1 transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+            className="tekan-halus min-w-0 rounded-lg px-1 -mx-1 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
             <p className="font-label-sm text-label-sm text-on-surface-variant">
               {user.nama}

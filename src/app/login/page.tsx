@@ -66,7 +66,7 @@ export default async function LoginPage({
               role="alert"
               className="flex items-start gap-2 rounded-lg border border-error/30 bg-error-container px-3 py-2.5 font-label-md text-label-md text-on-error-container"
             >
-              <AlertCircle className="mt-px size-[18px] shrink-0" aria-hidden />
+              <AlertCircle className="mt-px size-4 shrink-0" aria-hidden />
               {error}
             </p>
           )}

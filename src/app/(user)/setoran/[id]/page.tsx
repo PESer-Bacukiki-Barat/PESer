@@ -161,7 +161,7 @@ export default async function BuktiSetoranPage({
 
       <Link
         href="/aktivitas"
-        className="flex h-12 min-h-11 items-center justify-center gap-1 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+        className="tekan-halus flex h-12 min-h-11 items-center justify-center gap-1 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
       >
         Lihat Riwayat Setoran
         <ChevronRight className="size-4" aria-hidden />

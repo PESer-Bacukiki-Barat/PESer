@@ -77,14 +77,14 @@ export default async function DetailDispatchPage({
         aria-label="Breadcrumb"
         className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm mb-6"
       >
-        <Link className="hover:text-primary transition-colors" href="/admin">
+        <Link className="tekan-halus hover:text-primary" href="/admin">
           Dashboard
         </Link>
-        <ChevronRight className="size-4" />
-        <Link className="hover:text-primary transition-colors" href="/admin/transaksi">
+        <ChevronRight className="size-4" aria-hidden />
+        <Link className="tekan-halus hover:text-primary" href="/admin/transaksi">
           Manajemen Transaksi
         </Link>
-        <ChevronRight className="size-4" />
+        <ChevronRight className="size-4" aria-hidden />
         <span className="text-on-surface font-semibold font-mono">
           {dispatch.kodeDispatch}
         </span>

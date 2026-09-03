@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { BankSampah, BankSampahStatus } from "@/lib/bank-sampah-data";
 import type { SelectOption } from "@/components/admin/form-fields";
 
@@ -27,6 +28,7 @@ export function BankSampahTable({
   kelurahanOptions: SelectOption[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [items, setItems] = useState<BankSampah[]>(bankSampah);
   const [deleting, setDeleting] = useState<BankSampah | null>(null);
   const [deletingLoading, setDeletingLoading] = useState(false);
@@ -44,10 +46,11 @@ export function BankSampahTable({
     try {
       await api.delete(`/bank-sampah/${deleting.id}`);
       setItems((prev) => prev.filter((x) => x.id !== deleting.id));
+      toast.sukses("Bank sampah dihapus");
       setDeleting(null);
       refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -137,7 +140,7 @@ export function BankSampahTable({
         pageSize={10}
         toolbarActions={
           <Button render={<Link href="/admin/bank-sampah/tambah" />} nativeButton={false} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
+            <Plus className="size-4" aria-hidden />
             <span className="hidden sm:inline">Tambah Bank Sampah</span>
           </Button>
         }

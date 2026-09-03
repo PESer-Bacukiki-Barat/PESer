@@ -63,7 +63,7 @@ export function PetugasNav() {
                 href={item.href}
                 aria-current={isAktif ? "page" : undefined}
                 className={cn(
-                  "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50",
+                  "tekan-halus flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50",
                   isAktif ? "text-primary" : "text-on-surface-variant hover:text-on-surface",
                 )}
               >

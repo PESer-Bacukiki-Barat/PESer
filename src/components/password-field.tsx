@@ -64,9 +64,9 @@ export function PasswordField({
           className="sentuh-nyaman absolute inset-y-1.5 right-1.5 flex w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors duration-fast hover:bg-surface-container-high hover:text-on-surface focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           {terlihat ? (
-            <EyeOff className="size-[18px]" aria-hidden />
+            <EyeOff className="size-4" aria-hidden />
           ) : (
-            <Eye className="size-[18px]" aria-hidden />
+            <Eye className="size-4" aria-hidden />
           )}
         </button>
       </div>

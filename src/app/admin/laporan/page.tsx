@@ -63,10 +63,10 @@ export default async function LaporanPage({
         aria-label="Breadcrumb"
         className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm mb-6"
       >
-        <Link className="hover:text-primary transition-colors" href="/admin">
+        <Link className="tekan-halus hover:text-primary" href="/admin">
           Dashboard
         </Link>
-        <ChevronRight className="size-4" />
+        <ChevronRight className="size-4" aria-hidden />
         <span className="text-on-surface font-semibold">Laporan</span>
       </nav>
 
@@ -117,14 +117,14 @@ export default async function LaporanPage({
         </div>
         <button
           type="submit"
-          className="h-10 rounded-lg bg-primary px-4 font-label-md text-label-md text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="sentuh-nyaman tekan-halus h-10 rounded-lg bg-primary px-4 font-label-md text-label-md text-on-primary hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Terapkan
         </button>
         {(q.dari || q.sampai) && (
           <Link
             href="/admin/laporan"
-            className="h-10 flex items-center rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+            className="sentuh-nyaman tekan-halus h-10 flex items-center rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
           >
             Reset
           </Link>
@@ -144,7 +144,7 @@ export default async function LaporanPage({
           </h2>
           <a
             href={qs("/api/laporan/penjualan")}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+            className="sentuh-nyaman tekan-halus inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
           >
             <Download className="size-4" aria-hidden />
             Export CSV
@@ -222,7 +222,7 @@ export default async function LaporanPage({
           </h2>
           <a
             href={qs("/api/laporan/volume")}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+            className="sentuh-nyaman tekan-halus inline-flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
           >
             <Download className="size-4" aria-hidden />
             Export CSV

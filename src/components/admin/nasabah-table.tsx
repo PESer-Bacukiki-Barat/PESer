@@ -13,6 +13,7 @@ import { NasabahForm } from "@/components/admin/nasabah-form";
 import { EditNasabahModal } from "@/components/admin/nasabah-edit-modal";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { Nasabah } from "@/lib/nasabah-data";
 import type { SelectOption } from "@/components/admin/form-fields";
 
@@ -31,6 +32,7 @@ export function NasabahTable({
   bankSampahOptions: SelectOption[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Nasabah | null>(null);
   const [deleting, setDeleting] = useState<Nasabah | null>(null);
@@ -44,10 +46,11 @@ export function NasabahTable({
     setDeletingLoading(true);
     try {
       await api.delete(`/nasabah/${deleting.id}`);
+      toast.sukses("Nasabah dihapus");
       setDeleting(null);
       router.refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -150,7 +153,7 @@ export function NasabahTable({
         pageSize={10}
         toolbarActions={
           <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
+            <Plus className="size-4" aria-hidden />
             <span className="hidden sm:inline">Tambah Nasabah</span>
           </Button>
         }

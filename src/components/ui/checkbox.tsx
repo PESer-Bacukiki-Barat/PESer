@@ -26,7 +26,7 @@ function Checkbox({
         {props.indeterminate ? (
           <Minus className="size-4" />
         ) : (
-          <Check className="size-4" />
+          <Check className="size-4" aria-hidden />
         )}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

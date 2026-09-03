@@ -60,7 +60,7 @@ export default async function RiwayatPage() {
       {setoran.length === 0 ? (
         <Link
           href="/petugas/setor"
-          className="flex h-12 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary transition-colors hover:bg-primary/90"
+          className="tekan-halus flex h-12 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary hover:bg-primary/90"
         >
           Catat Setoran Pertama
         </Link>
@@ -70,7 +70,7 @@ export default async function RiwayatPage() {
             <li key={s.id}>
               <Link
                 href={`/petugas/setoran/${s.id}`}
-                className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+                className="tekan-halus flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
               >
                 <div className="min-w-0 flex-1">
                   <p className="font-label-md text-label-md font-mono text-on-surface truncate">

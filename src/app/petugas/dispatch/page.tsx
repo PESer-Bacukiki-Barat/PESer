@@ -116,7 +116,7 @@ function Bagian({
               <li key={d.id}>
                 <Link
                   href={`/petugas/dispatch/${d.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+                  className="tekan-halus flex items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="font-label-md text-label-md font-mono text-on-surface truncate">

@@ -180,9 +180,9 @@ export function SetoranTable({
         <button
           type="button"
           onClick={onExport}
-          className="flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md font-medium focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="sentuh-nyaman tekan-halus flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low font-label-md text-label-md font-medium focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
-          <Download className="size-[18px]" />
+          <Download className="size-4" aria-hidden />
           <span className="hidden sm:inline">Export Data</span>
         </button>
       }

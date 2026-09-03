@@ -13,6 +13,7 @@ import { PembeliForm } from "@/components/admin/pembeli-form";
 import { EditPembeliModal } from "@/components/admin/pembeli-edit-modal";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { Pembeli } from "@/lib/pembeli-data";
 
 export type { Pembeli } from "@/lib/pembeli-data";
@@ -73,6 +74,7 @@ const columns: Column<Pembeli>[] = [
 
 export function PembeliTable({ pembelis }: { pembelis: Pembeli[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Pembeli | null>(null);
   const [deleting, setDeleting] = useState<Pembeli | null>(null);
@@ -83,10 +85,11 @@ export function PembeliTable({ pembelis }: { pembelis: Pembeli[] }) {
     setDeletingLoading(true);
     try {
       await api.delete(`/pembeli/${deleting.id}`);
+      toast.sukses("Pembeli dihapus");
       setDeleting(null);
       router.refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -114,7 +117,7 @@ export function PembeliTable({ pembelis }: { pembelis: Pembeli[] }) {
         pageSize={10}
         toolbarActions={
           <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
+            <Plus className="size-4" aria-hidden />
             <span className="hidden sm:inline">Tambah Pembeli</span>
           </Button>
         }

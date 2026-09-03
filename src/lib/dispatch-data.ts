@@ -23,16 +23,6 @@ export const DISPATCH_STATUS_LABEL: Record<DispatchStatus, string> = {
   DIBATALKAN: "Dibatalkan",
 };
 
-export const DISPATCH_STATUS_OPTIONS = [
-  { value: "DRAFT", label: "Draft" },
-  { value: "DISPATCHED", label: "Diproses" },
-  { value: "DITERIMA", label: "Diterima" },
-  { value: "DITOLAK", label: "Ditolak" },
-  { value: "SERAH_TERIMA", label: "Serah Terima" },
-  { value: "SELESAI", label: "Selesai" },
-  { value: "DIBATALKAN", label: "Dibatalkan" },
-];
-
 const STATUS_STYLES: Record<DispatchStatus, string> = {
   DRAFT: "bg-surface-dim text-on-surface-variant border border-outline-variant",
   DISPATCHED:

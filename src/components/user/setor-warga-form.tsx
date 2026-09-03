@@ -344,7 +344,7 @@ export function SetorWargaForm({
       )}
       <p className="text-center font-label-sm text-label-sm text-on-surface-variant">
         Sudah pernah setor? Lihat{" "}
-        <Link href="/aktivitas" className="font-medium text-primary underline-offset-4 hover:underline">
+        <Link href="/aktivitas" className="tekan-halus font-medium text-primary underline-offset-4 hover:underline">
           riwayat setoran
         </Link>
         .

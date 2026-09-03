@@ -67,7 +67,7 @@ export default async function DetailDispatchPetugasPage({
     <>
       <Link
         href="/petugas/dispatch"
-        className="inline-flex items-center gap-1 mb-3 font-label-sm text-label-sm text-on-surface-variant hover:text-primary"
+        className="tekan-halus inline-flex items-center gap-1 mb-3 font-label-sm text-label-sm text-on-surface-variant hover:text-primary"
       >
         <ChevronLeft className="size-4" aria-hidden />
         Semua dispatch

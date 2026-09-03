@@ -462,6 +462,42 @@
  * tidak ada pseudo-element sama sekali, jadi tidak ada risiko ia menutupi
  * elemen tetangga.
  */
+/* Umpan balik saat DITEKAN.
+ *
+ * Di HP tidak ada hover, jadi elemen yang cuma punya `hover:` tidak merespons
+ * apa pun di bawah jari — dan 62 target ketuk di 39 berkas persis seperti itu,
+ * sementara hanya 5 yang punya `active:`. Area petugas dan warga justru yang
+ * mobile-first.
+ *
+ * Skalanya mengikuti preseden yang sudah ada di beranda warga
+ * (`active:scale-[0.98]`), sekarang jadi token supaya tidak ditulis ulang
+ * sebagai nilai arbitrer di tiap tempat.
+ *
+ * Transisinya sengaja mencakup warna sekaligus: utilitas ini menggantikan
+ * `transition-colors` pada elemen yang memakainya, karena dua deklarasi
+ * transition-property tidak menyatu — yang belakangan menimpa yang lain. Jadi
+ * satu utilitas memegang keduanya, dan hover tetap beranimasi.
+ */
+@utility tekan-halus {
+  transition-property: transform, color, background-color, border-color, box-shadow;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  /* Aturan reduced-motion global hanya memendekkan durasi ke 1ms — transform-nya
+   * tetap terjadi, cuma jadi lompatan mendadak, yang justru lebih buruk bagi
+   * orang yang sensitif gerak. WCAG 2.3.3 menyoal gerak yang dipicu interaksi,
+   * jadi di sini skalanya dimatikan sama sekali dan warnanya saja yang bekerja. */
+  @media (prefers-reduced-motion: reduce) {
+    &:active {
+      transform: none;
+    }
+  }
+}
+
 @utility sentuh-nyaman {
   position: relative;
 

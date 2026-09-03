@@ -12,6 +12,7 @@ import { UsersEditModal } from "@/components/admin/users-edit-modal";
 import { UsersAddModal } from "@/components/admin/users-add-modal";
 import { deleteAction, editAction, viewAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import {
   STATUS_OPTIONS,
   ROLE_OPTIONS,
@@ -40,6 +41,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 export function UsersTable() {
+  const toast = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<UserRow | null>(null);
@@ -53,12 +55,15 @@ export function UsersTable() {
     api
       .get("/users")
       .then((res) => active && setUsers(res.data ?? []))
-      .catch((err) => active && console.error(apiError(err)))
+      .catch(
+        (err) =>
+          active && toast.gagal("Gagal memuat daftar akun", apiError(err)),
+      )
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [toast]);
 
   useEffect(() => load(), [load]);
 
@@ -76,9 +81,10 @@ export function UsersTable() {
     try {
       await api.delete(`/users/${deleting.id}`);
       setUsers((prev) => prev.filter((x) => x.id !== deleting.id));
+      toast.sukses("Akun dihapus");
       setDeleting(null);
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -159,7 +165,7 @@ export function UsersTable() {
         pageSize={10}
         toolbarActions={
           <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
+            <Plus className="size-4" aria-hidden />
             <span className="hidden sm:inline">Tambah User</span>
           </Button>
         }

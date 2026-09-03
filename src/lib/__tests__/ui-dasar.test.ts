@@ -391,3 +391,151 @@ describe("ikon aplikasi", () => {
     expect(isi.get("src/app/layout.tsx")).toContain('url: "/icon.svg"')
   })
 })
+
+describe("umpan balik & gerak", () => {
+  const TAG_KETUK = /<(Link|button|a)\b((?:[^>]|\n)*?)>/g
+
+  it("galat dilaporkan lewat toast, bukan window.alert", () => {
+    // Enam tabel admin memakai alert(apiError(err)) — modal peramban mentah,
+    // memblokir, tanpa gaya, di luar sistem tampilan aplikasi — padahal
+    // keenam FORM admin sudah memakai toast. Jadi menyimpan memunculkan toast
+    // rapi sementara menghapus memunculkan alert. AGENTS.md melarang
+    // window.confirm dengan alasan yang persis sama.
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => /(?:^|[^.\w])alert\(/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("kegagalan jaringan tidak berhenti di console", () => {
+    // users-table hanya console.error saat GET /users gagal: admin melihat
+    // tabel kosong tanpa keterangan dan menyangka memang belum ada akun.
+    // error.tsx dikecualikan — di sana penggunanya sudah melihat UI galat dan
+    // yang dicatat adalah digest untuk penelusuran.
+    const pelanggar = [...isi.entries()]
+      .filter(([f]) => f !== "src/app/error.tsx")
+      .filter(([, teks]) => /console\.error/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("setiap target ketuk merespons saat DITEKAN, bukan cuma di-hover", () => {
+    // Di HP tidak ada hover. 62 target ketuk di 39 berkas hanya punya
+    // `hover:`, jadi tidak memberi umpan balik apa pun di bawah jari —
+    // sementara area petugas dan warga justru yang mobile-first.
+    const pelanggar: string[] = []
+    for (const [f, teks] of isi) {
+      for (const m of teks.matchAll(TAG_KETUK)) {
+        const atr = m[2]
+        if (!atr.includes("hover:")) continue
+        if (atr.includes("active:") || atr.includes("tekan-halus")) continue
+        pelanggar.push(`${f}:${teks.slice(0, m.index).split("\n").length}`)
+      }
+    }
+    expect(pelanggar).toEqual([])
+  })
+
+  it("tekan-halus tidak bertabrakan dengan transition sendiri", () => {
+    // Dua deklarasi transition-property tidak menyatu — yang belakangan
+    // menimpa yang lain, jadi transform tekannya kehilangan transisi. Satu
+    // utilitas memegang keduanya.
+    const pelanggar: string[] = []
+    for (const [f, teks] of isi) {
+      for (const m of teks.matchAll(TAG_KETUK)) {
+        if (m[2].includes("tekan-halus") && /\btransition-/.test(m[2])) {
+          pelanggar.push(`${f}:${teks.slice(0, m.index).split("\n").length}`)
+        }
+      }
+    }
+    expect(pelanggar).toEqual([])
+  })
+
+  it("durasi & easing diambil dari token, tidak ditulis angka", () => {
+    // globals.css sudah menyebut peruntukannya: slow untuk drawer/sheet,
+    // normal untuk dialog/panel. Drawer admin dan backdrop dialog justru
+    // memakai duration-300 + ease bawaan.
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => /\bduration-\d+\b|\bease-in-out\b/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("utilitas tekan-halus mematikan skalanya untuk prefers-reduced-motion", () => {
+    // Aturan global hanya memendekkan durasi ke 1ms — transform-nya tetap
+    // terjadi, cuma jadi lompatan mendadak, yang lebih buruk bagi orang yang
+    // sensitif gerak (WCAG 2.3.3 menyoal gerak yang dipicu interaksi).
+    const util = css.slice(css.indexOf("@utility tekan-halus"))
+    const blok = util.slice(0, util.indexOf("\n}\n"))
+    expect(blok).toContain("prefers-reduced-motion")
+    expect(blok).toContain("transform: none")
+  })
+
+  it("useToast mengembalikan rujukan stabil", () => {
+    // Sebelumnya ia mengembalikan objek literal baru setiap render, jadi
+    // komponen yang menaruh `toast` di dependency array — sesuatu yang bahkan
+    // diminta react-hooks/exhaustive-deps — mendapat fungsi baru tiap render
+    // dan effect-nya berjalan tanpa henti. Di users-table itu berarti GET
+    // /users berulang selamanya.
+    expect(isi.get("src/components/ui/toast.tsx")).toMatch(
+      /export function useToast\(\)[\s\S]{0,900}return useMemo\(/,
+    )
+  })
+})
+
+describe("skala ikon", () => {
+  it("tidak ada ukuran ikon yang dikarang di tempat", () => {
+    // size-[18px] dipakai 24x — di luar skala 4px Tailwind maupun baseline
+    // 8px DESIGN.md — dan bertabrakan dengan peran yang sama: <Plus> di
+    // tombol "Tambah" 7x pada 18px tapi 1x pada 16px, <Download> 3x vs 2x.
+    // Button base-nova sendiri sudah menetapkan ikonnya size-4.
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => /\bsize-\[\d+px\]/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("ikon dekoratif disembunyikan dari pembaca layar", () => {
+    // 43 dari 75 ikon belum punya aria-hidden — konvensinya sudah ada tapi
+    // separuh terlewat. Tombolnya entah sudah punya teks di sebelahnya atau
+    // sudah punya aria-label sendiri, jadi ikonnya hanya menambah kebisingan.
+    const IKON =
+      /<(ArrowRight|ArrowLeft|Recycle|Scale|Wallet|MapPin|Package|Truck|History|Home|UserRound|Activity|Search|ChevronLeft|ChevronRight|ChevronDown|ChevronUp|Plus|Pencil|Trash2|Eye|EyeOff|X|Check|Bell|LogOut|LogIn|Download|Upload|Camera|AlertTriangle|AlertCircle|Shield|RotateCcw|Save)(\s+[^>]*?)?\/>/g
+    const pelanggar: string[] = []
+    for (const [f, teks] of isi) {
+      for (const m of teks.matchAll(IKON)) {
+        if (m[0].includes("aria-hidden")) continue
+        // Induk yang sudah aria-hidden membuat anaknya ikut tersembunyi.
+        const sebelum = teks.slice(Math.max(0, m.index - 260), m.index)
+        if (sebelum.split("\n").slice(-4).some((b) => b.includes("aria-hidden"))) continue
+        pelanggar.push(`${f}:${teks.slice(0, m.index).split("\n").length}`)
+      }
+    }
+    expect(pelanggar).toEqual([])
+  })
+})
+
+describe("target sentuh", () => {
+  it("tidak ada kontrol di bawah 44px tanpa perbesaran daerah tangkap", () => {
+    // PRD §8.7 menetapkan 44px, dan proyek sudah punya TARGET_SENTUH_MIN_PX
+    // beserta utilitas sentuh-nyaman. Sepuluh kontrol tetap di bawahnya: empat
+    // h-10 di laporan, tombol ekspor/tambah di dua tabel, "Tandai semua
+    // dibaca", dan dua tombol "Keluar" h-9 di bilah antrean — dua terakhir
+    // justru di area petugas dan warga yang mobile-first.
+    //
+    // src/components/ui/* dikecualikan: primitifnya memang menyediakan varian
+    // ukuran kecil, dan pemanggilnya yang memutuskan.
+    const KECIL = /\b(h-[6-9]|h-10|size-[6-9]|size-10)\b/
+    const TAG = /<(button|Link|a)\b((?:[^>]|\n)*?)>/g
+    const pelanggar: string[] = []
+    for (const [f, teks] of isi) {
+      if (f.startsWith("src/components/ui/")) continue
+      for (const m of teks.matchAll(TAG)) {
+        const atr = m[2]
+        if (!KECIL.test(atr)) continue
+        if (atr.includes("sentuh-nyaman") || atr.includes("min-h-11")) continue
+        pelanggar.push(`${f}:${teks.slice(0, m.index).split("\n").length}`)
+      }
+    }
+    expect(pelanggar).toEqual([])
+  })
+})

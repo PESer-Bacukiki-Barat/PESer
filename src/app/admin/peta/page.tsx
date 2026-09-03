@@ -31,7 +31,7 @@ export default async function PetaAdminPage() {
         aria-label="Breadcrumb"
         className="mb-6 flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant"
       >
-        <Link href="/admin" className="hover:text-primary">
+        <Link href="/admin" className="tekan-halus hover:text-primary">
           Dashboard
         </Link>
         <ChevronRight className="size-4" aria-hidden />

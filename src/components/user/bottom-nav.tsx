@@ -63,7 +63,7 @@ export function UserBottomNav() {
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 // Target sentuh penuh tinggi bar (≥ TARGET_SENTUH_MIN_PX).
-                "flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 text-label-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg",
+                "tekan-halus flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 text-label-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-lg",
                 isActive
                   ? "text-primary font-semibold"
                   : "text-on-surface-variant hover:text-on-surface",

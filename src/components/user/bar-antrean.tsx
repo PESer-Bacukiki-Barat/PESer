@@ -162,7 +162,7 @@ export function TombolKeluar() {
       <form action={logout}>
         <button
           type="submit"
-          className="h-9 shrink-0 rounded-lg border border-outline-variant px-3 font-label-sm text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="sentuh-nyaman tekan-halus h-9 shrink-0 rounded-lg border border-outline-variant px-3 font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Keluar
         </button>

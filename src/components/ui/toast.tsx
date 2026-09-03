@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Toast } from "@base-ui/react/toast"
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react"
 
@@ -79,7 +80,7 @@ function DaftarToast() {
           kelas,
         )}
       >
-        <Ikon className="mt-px size-[18px] shrink-0" aria-hidden />
+        <Ikon className="mt-px size-4 shrink-0" aria-hidden />
         <div className="min-w-0 flex-1">
           <Toast.Title className="font-label-md text-label-md font-semibold" />
           <Toast.Description className="mt-0.5 font-body-md text-body-md opacity-90" />
@@ -106,27 +107,39 @@ function DaftarToast() {
 export function useToast() {
   const manajer = Toast.useToastManager()
 
-  return {
-    sukses: (judul: string, pesan?: string) =>
-      manajer.add({
-        title: judul,
-        description: pesan,
-        data: { nada: "sukses" satisfies Nada },
-        timeout: 4000,
-      }),
-    gagal: (judul: string, pesan?: string) =>
-      manajer.add({
-        title: judul,
-        description: pesan,
-        data: { nada: "gagal" satisfies Nada },
-        timeout: 8000,
-      }),
-    info: (judul: string, pesan?: string) =>
-      manajer.add({
-        title: judul,
-        description: pesan,
-        data: { nada: "info" satisfies Nada },
-        timeout: 4000,
-      }),
-  }
+  /**
+   * Dimemo supaya rujukannya stabil antar render.
+   *
+   * Sebelumnya hook ini mengembalikan objek literal baru setiap render, jadi
+   * komponen yang menaruh `toast` di dependency array useCallback/useEffect
+   * — sesuatu yang wajar dan bahkan diminta aturan react-hooks/exhaustive-deps
+   * — mendapat fungsi baru tiap render, dan effect-nya berjalan terus tanpa
+   * henti. Di users-table itu berarti permintaan GET /users berulang selamanya.
+   */
+  return useMemo(
+    () => ({
+      sukses: (judul: string, pesan?: string) =>
+        manajer.add({
+          title: judul,
+          description: pesan,
+          data: { nada: "sukses" satisfies Nada },
+          timeout: 4000,
+        }),
+      gagal: (judul: string, pesan?: string) =>
+        manajer.add({
+          title: judul,
+          description: pesan,
+          data: { nada: "gagal" satisfies Nada },
+          timeout: 8000,
+        }),
+      info: (judul: string, pesan?: string) =>
+        manajer.add({
+          title: judul,
+          description: pesan,
+          data: { nada: "info" satisfies Nada },
+          timeout: 4000,
+        }),
+    }),
+    [manajer],
+  )
 }

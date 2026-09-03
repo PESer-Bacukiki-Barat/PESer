@@ -79,7 +79,7 @@ export default async function BerandaPetugasPage() {
       {/* Aksi utama: yang paling sering dilakukan petugas */}
       <Link
         href="/petugas/setor"
-        className="mb-4 flex items-center gap-3 rounded-xl bg-primary px-5 py-4 text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+        className="tekan-halus mb-4 flex items-center gap-3 rounded-xl bg-primary px-5 py-4 text-on-primary hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
       >
         <Scale className="size-6 shrink-0" aria-hidden />
         <span>
@@ -106,7 +106,7 @@ export default async function BerandaPetugasPage() {
               aria-hidden
               className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN.gerak}`}
             >
-              <Scale className="size-[18px]" />
+              <Scale className="size-5" />
             </span>
           </div>
           <p className="text-headline-md font-mono font-semibold text-on-surface">
@@ -125,7 +125,7 @@ export default async function BerandaPetugasPage() {
               aria-hidden
               className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN.barang}`}
             >
-              <Package className="size-[18px]" />
+              <Package className="size-5" />
             </span>
           </div>
           <p className="text-headline-md font-mono font-semibold text-on-surface">
@@ -141,7 +141,7 @@ export default async function BerandaPetugasPage() {
         // Peringatan diberi ikon: di layar sempit, blok berwarna tanpa lambang
         // mudah terbaca sebagai dekorasi, bukan sesuatu yang menuntut tindakan.
         <p className="mb-4 flex items-start gap-2.5 rounded-xl border border-error/40 bg-error-container/50 p-4 font-label-md text-label-md text-on-error-container">
-          <AlertTriangle className="mt-px size-[18px] shrink-0" aria-hidden />
+          <AlertTriangle className="mt-px size-4 shrink-0" aria-hidden />
           <span>
             {tunaiBelum} setoran hari ini belum ditandai tunai diserahkan.
           </span>
@@ -156,7 +156,7 @@ export default async function BerandaPetugasPage() {
           </h2>
           <Link
             href="/petugas/dispatch"
-            className="font-label-sm text-label-sm text-primary hover:underline"
+            className="tekan-halus font-label-sm text-label-sm text-primary hover:underline"
           >
             Semua
           </Link>
@@ -171,7 +171,7 @@ export default async function BerandaPetugasPage() {
               <li key={d.id}>
                 <Link
                   href={`/petugas/dispatch/${d.id}`}
-                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-container-low"
+                  className="tekan-halus flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low"
                 >
                   <Truck className="size-4 shrink-0 text-on-surface-variant" aria-hidden />
                   <span className="min-w-0 flex-1">

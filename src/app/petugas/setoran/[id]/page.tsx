@@ -177,13 +177,13 @@ export default async function BuktiSetorPage({
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Link
           href="/petugas/setor"
-          className="flex h-11 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="tekan-halus flex h-11 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Setor Lagi
         </Link>
         <Link
           href="/petugas/riwayat"
-          className="flex h-11 items-center justify-center rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="tekan-halus flex h-11 items-center justify-center rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Lihat Riwayat
         </Link>

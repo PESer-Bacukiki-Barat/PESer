@@ -167,7 +167,7 @@ export function FotoBukti({
             onClick={() => inputRef.current?.click()}
             disabled={mengirim}
           >
-            {adaFoto ? <Upload className="size-[18px]" /> : <Camera className="size-[18px]" />}
+            {adaFoto ? <Upload className="size-4" aria-hidden /> : <Camera className="size-4" aria-hidden />}
             {mengirim ? "Mengunggah…" : adaFoto ? "Ganti foto" : "Ambil foto"}
           </Button>
 
@@ -178,7 +178,7 @@ export function FotoBukti({
               onClick={() => setKonfirmasiHapus(true)}
               disabled={mengirim}
             >
-              <Trash2 className="size-[18px]" />
+              <Trash2 className="size-4" aria-hidden />
               Hapus
             </Button>
           )}

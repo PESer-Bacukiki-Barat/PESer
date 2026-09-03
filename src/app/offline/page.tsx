@@ -39,13 +39,13 @@ export default function OfflinePage() {
 
         <Link
           href="/petugas/setor"
-          className="mt-4 flex h-12 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary transition-colors hover:bg-primary/90"
+          className="tekan-halus mt-4 flex h-12 items-center justify-center rounded-lg bg-primary font-label-md text-label-md text-on-primary hover:bg-primary/90"
         >
           Buka Form Setoran
         </Link>
         <Link
           href="/petugas"
-          className="mt-2 flex h-11 items-center justify-center rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+          className="tekan-halus mt-2 flex h-11 items-center justify-center rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
         >
           Coba Beranda
         </Link>

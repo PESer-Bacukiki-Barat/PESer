@@ -195,7 +195,7 @@ export function DispatchForm({
                   aria-label="Hapus item"
                   className="mb-[22px] px-3 py-2 text-error hover:bg-error-container/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-4" aria-hidden />
                 </button>
               )}
             </div>
@@ -204,9 +204,9 @@ export function DispatchForm({
           <button
             type="button"
             onClick={addItem}
-            className="flex items-center gap-2 text-primary hover:text-on-primary-fixed-variant font-label-md text-label-md transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+            className="tekan-halus flex items-center gap-2 text-primary hover:text-on-primary-fixed-variant font-label-md text-label-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
-            <Plus className="size-4" />
+            <Plus className="size-4" aria-hidden />
             Tambah Item
           </button>
         </div>

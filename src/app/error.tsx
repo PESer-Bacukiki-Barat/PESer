@@ -58,7 +58,7 @@ export default function Error({
         )}
 
         <Button type="button" onClick={reset} className="mt-5 h-11 w-full">
-          <RotateCcw className="size-[18px]" aria-hidden />
+          <RotateCcw className="size-4" aria-hidden />
           Coba lagi
         </Button>
       </div>

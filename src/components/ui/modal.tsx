@@ -51,7 +51,7 @@ export function Modal({
       {trigger && <Dialog.Trigger render={trigger} />}
 
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
+        <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px] transition-opacity duration-normal ease-standard data-[starting-style]:opacity-0 data-[ending-style]:opacity-0" />
 
         <Dialog.Popup
           className={cn(
@@ -94,7 +94,7 @@ export function Modal({
                   aria-label="Tutup"
                   className="p-2 -mr-2 -mt-1 shrink-0 rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface active:opacity-80 transition-colors"
                 >
-                  <X className="size-5" />
+                  <X className="size-5" aria-hidden />
                 </Dialog.Close>
               )}
             </div>

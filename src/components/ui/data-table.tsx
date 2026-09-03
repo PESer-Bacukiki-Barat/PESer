@@ -177,7 +177,7 @@ export function DataTable<T>({
             <div className="flex flex-wrap items-center gap-3">
               {searchKeys.length > 0 && (
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant size-4" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant size-4" aria-hidden />
                   <Input
                     className="pl-10"
                     value={query}
@@ -206,7 +206,7 @@ export function DataTable<T>({
                       </option>
                     ))}
                   </select>
-                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-on-surface-variant pointer-events-none size-4" />
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-on-surface-variant pointer-events-none size-4" aria-hidden />
                 </div>
               ))}
             </div>
@@ -389,7 +389,7 @@ export function DataTable<T>({
                 disabled={safePage <= 1}
                 onClick={() => handlePage(safePage - 1)}
               >
-                <ChevronLeft className="size-4" />
+                <ChevronLeft className="size-4" aria-hidden />
                 Sebelumnya
               </Button>
               <div className="flex items-center space-x-1">
@@ -416,7 +416,7 @@ export function DataTable<T>({
                 onClick={() => handlePage(safePage + 1)}
               >
                 Berikutnya
-                <ChevronRight className="size-4" />
+                <ChevronRight className="size-4" aria-hidden />
               </Button>
             </div>
           )}

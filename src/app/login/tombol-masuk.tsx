@@ -22,7 +22,7 @@ export function TombolMasuk() {
 
   return (
     <Button type="submit" disabled={pending} className="h-11 w-full">
-      <LogIn className="size-[18px]" aria-hidden />
+      <LogIn className="size-4" aria-hidden />
       {pending ? "Memeriksa…" : "Masuk"}
     </Button>
   )

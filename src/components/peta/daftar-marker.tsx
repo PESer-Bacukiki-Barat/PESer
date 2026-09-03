@@ -38,7 +38,7 @@ export function DaftarMarker({ markers }: { markers: MarkerBankSampah[] }) {
               <div className="min-w-0">
                 <Link
                   href={`/admin/bank-sampah/${m.id}/edit`}
-                  className="font-label-md text-label-md text-on-surface hover:text-primary hover:underline"
+                  className="tekan-halus font-label-md text-label-md text-on-surface hover:text-primary hover:underline"
                 >
                   {m.nama}
                 </Link>

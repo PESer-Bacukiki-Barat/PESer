@@ -11,6 +11,7 @@ import { EditKelurahanModal } from "@/components/admin/kelurahan-edit-modal";
 import { AddKelurahanModal } from "@/components/admin/kelurahan-add-modal";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
+import { useToast } from "@/components/ui/toast";
 import type { Kelurahan } from "@/lib/kelurahan-data";
 import { fmtTanggal } from "@/lib/format";
 
@@ -39,6 +40,7 @@ const columns: Column<Kelurahan>[] = [
 
 export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
   const router = useRouter();
+  const toast = useToast();
   const [items, setItems] = useState<Kelurahan[]>(kelurahans);
   const [editing, setEditing] = useState<Kelurahan | null>(null);
   const [adding, setAdding] = useState(false);
@@ -56,10 +58,11 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
       setItems((prev) =>
         prev.map((k) => (k.id === editing.id ? { ...k, ...values } : k)),
       );
+      toast.sukses("Kelurahan diperbarui");
       setEditing(null);
       refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal memperbarui", apiError(err));
     }
   }
 
@@ -67,10 +70,11 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
     try {
       const { data } = await api.post<Kelurahan>("/kelurahan", values);
       setItems((prev) => [...prev, data]);
+      toast.sukses("Kelurahan ditambahkan");
       setAdding(false);
       refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menambahkan", apiError(err));
     }
   }
 
@@ -80,10 +84,11 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
     try {
       await api.delete(`/kelurahan/${deleting.id}`);
       setItems((prev) => prev.filter((x) => x.id !== deleting.id));
+      toast.sukses("Kelurahan dihapus");
       setDeleting(null);
       refresh();
     } catch (err) {
-      alert(apiError(err));
+      toast.gagal("Gagal menghapus", apiError(err));
     } finally {
       setDeletingLoading(false);
     }
@@ -100,7 +105,7 @@ export function KelurahanTable({ kelurahans }: { kelurahans: Kelurahan[] }) {
         pageSize={10}
         toolbarActions={
           <Button onClick={() => setAdding(true)} className="h-10 px-4 font-semibold">
-            <Plus className="size-[18px]" />
+            <Plus className="size-4" aria-hidden />
             <span className="hidden sm:inline">Tambah Kelurahan</span>
           </Button>
         }

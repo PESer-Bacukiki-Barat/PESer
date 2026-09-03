@@ -138,7 +138,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={k.label}
             href={k.href}
-            className="group bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm transition-[color,background-color,border-color,box-shadow] duration-fast hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+            className="tekan-halus group bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm hover:border-primary hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
             <div className="flex items-start justify-between gap-2 mb-3">
               <p className="font-label-sm text-label-sm text-on-surface-variant">{k.label}</p>
@@ -149,7 +149,7 @@ export default async function AdminDashboardPage() {
                 aria-hidden
                 className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${AKSEN[k.aksen]}`}
               >
-                <k.Icon className="size-[18px]" />
+                <k.Icon className="size-5" />
               </span>
             </div>
             <p className="text-headline-md font-mono font-semibold text-on-surface">
@@ -171,7 +171,7 @@ export default async function AdminDashboardPage() {
             </h2>
             <Link
               href="/admin/transaksi"
-              className="font-label-sm text-label-sm text-primary hover:underline"
+              className="tekan-halus font-label-sm text-label-sm text-primary hover:underline"
             >
               Semua transaksi
             </Link>
@@ -186,7 +186,7 @@ export default async function AdminDashboardPage() {
                 <li key={d.id}>
                   <Link
                     href={`/admin/transaksi/${d.id}`}
-                    className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+                    className="tekan-halus flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
                   >
                     <span className="min-w-0">
                       <span className="block font-label-md text-label-md font-mono text-on-surface truncate">

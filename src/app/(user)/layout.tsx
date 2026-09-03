@@ -35,7 +35,7 @@ export default async function UserLayout({
           <form action={logout} className="mt-4">
             <button
               type="submit"
-              className="h-11 w-full rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+              className="tekan-halus h-11 w-full rounded-lg border border-outline-variant font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
             >
               Keluar
             </button>
@@ -56,7 +56,7 @@ export default async function UserLayout({
                 slot dan menambah keenam akan memecah TARGET_SENTUH_MIN_PX. */}
             <Link
               href="/profil"
-              className="-mx-1 flex min-w-0 items-center gap-2.5 rounded-lg px-1 transition-colors duration-fast hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+              className="tekan-halus -mx-1 flex min-w-0 items-center gap-2.5 rounded-lg px-1 hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
             >
               {/* Lambang yang sama dengan layar masuk dan panel admin —
                   sebelumnya area ini satu-satunya yang tanpa identitas apa

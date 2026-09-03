@@ -63,7 +63,7 @@ function AdminSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-fast",
+              "tekan-halus flex items-center gap-3 px-4 py-3 rounded-lg",
               active
                 ? "bg-secondary-container text-on-secondary-container font-semibold"
                 : "text-on-surface-variant hover:bg-surface-container-high",
@@ -163,7 +163,7 @@ export function AdminShell({
           <LoncengNotifikasi />
           <Link
             href="/admin/profil"
-            className="flex items-center gap-2 rounded-full border border-outline-variant py-1 pr-3 pl-1 transition-colors duration-fast hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+            className="tekan-halus flex items-center gap-2 rounded-full border border-outline-variant py-1 pr-3 pl-1 hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
             <span
               aria-hidden
@@ -196,7 +196,7 @@ export function AdminShell({
       <aside
         className={cn(
           "fixed left-0 top-0 md:top-16 w-64 bg-surface-container-low border-r border-outline-variant flex flex-col py-6 gap-y-2 z-50 md:z-40 h-dvh md:h-[calc(100vh-64px)]",
-          "transition-transform duration-300 ease-in-out",
+          "transition-transform duration-slow ease-emphasized",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}
       >
@@ -211,7 +211,7 @@ export function AdminShell({
             aria-label="Tutup menu"
             className="md:hidden p-2 rounded-full hover:bg-surface-container-low text-on-surface-variant transition-colors active:opacity-80 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
           >
-            <X className="size-5" />
+            <X className="size-5" aria-hidden />
           </button>
         </div>
 
@@ -229,14 +229,14 @@ export function AdminShell({
           </div>
           <a
             href="/admin/privacy"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-fast font-label-md text-label-md"
+            className="tekan-halus flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high font-label-md text-label-md"
           >
-            <Shield className="size-5 shrink-0" />
+            <Shield className="size-5 shrink-0" aria-hidden />
             <span>Privacy Policy</span>
           </a>
           <form action={logout}>
             <Button type="submit" variant="destructive" className="w-full mt-4">
-              <LogOut className="size-5" />
+              <LogOut className="size-5" aria-hidden />
               Logout
             </Button>
           </form>

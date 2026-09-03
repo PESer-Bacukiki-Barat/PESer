@@ -52,7 +52,7 @@ export function ConfirmDialog({
     >
       <div className="flex items-start gap-3">
         <div className="shrink-0 flex size-10 items-center justify-center rounded-full bg-error-container">
-          <AlertTriangle className="size-5 text-error" />
+          <AlertTriangle className="size-5 text-error" aria-hidden />
         </div>
         <p className="font-body-md text-body-md text-on-surface-variant">
           Tindakan ini tidak dapat dibatalkan.

@@ -125,14 +125,14 @@ export default async function AktivitasPage({
         </div>
         <button
           type="submit"
-          className="h-11 rounded-lg bg-primary px-4 font-label-md text-label-md font-medium text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+          className="tekan-halus h-11 rounded-lg bg-primary px-4 font-label-md text-label-md font-medium text-on-primary hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
         >
           Terapkan
         </button>
         {(q.dari || q.sampai) && (
           <Link
             href="/aktivitas"
-            className="flex h-11 items-center rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-low"
+            className="tekan-halus flex h-11 items-center rounded-lg border border-outline-variant px-4 font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
           >
             Reset
           </Link>
@@ -142,7 +142,7 @@ export default async function AktivitasPage({
       {setoran.length === 0 ? (
         <Link
           href="/setor"
-          className="flex h-12 items-center justify-center gap-2 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary transition-colors hover:bg-primary/90"
+          className="tekan-halus flex h-12 items-center justify-center gap-2 rounded-full bg-primary font-label-md text-label-md font-semibold text-on-primary hover:bg-primary/90"
         >
           <Recycle className="size-5" aria-hidden />
           Catat Setoran Pertama
@@ -153,7 +153,7 @@ export default async function AktivitasPage({
             <li key={s.id}>
               <Link
                 href={`/setoran/${s.id}`}
-                className="flex min-h-11 items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+                className="tekan-halus flex min-h-11 items-center gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 hover:border-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-mono font-label-md text-label-md text-on-surface">
