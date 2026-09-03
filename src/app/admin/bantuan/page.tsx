@@ -81,7 +81,7 @@ export default function BantuanPage() {
             key={bagian.judul}
             className="rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden"
           >
-            <h2 className="px-5 py-4 border-b border-outline-variant bg-surface-bright font-headline-md text-[18px] font-semibold text-on-surface">
+            <h2 className="px-5 py-4 border-b border-outline-variant bg-surface-bright text-title-md text-on-surface">
               {i + 1}. {bagian.judul}
             </h2>
             <ol className="divide-y divide-outline-variant">

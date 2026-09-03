@@ -22,13 +22,8 @@ const STATUS_VARIANT: Record<JenisSampahStatus, "secondary" | "outline"> = {
 const STATUS_LABEL: (j: JenisSampah) => JenisSampahStatus = (j) =>
   j.isActive ? "Aktif" : "Non-aktif";
 
-const rupiah = new Intl.NumberFormat("id-ID", {
-  style: "currency",
-  currency: "IDR",
-  maximumFractionDigits: 0,
-});
-
 export type { JenisSampah, JenisSampahStatus } from "@/lib/jenis-sampah-data";
+import { fmtRupiah } from "@/lib/format";
 
 const columns: Column<JenisSampah>[] = [
   {
@@ -57,7 +52,7 @@ const columns: Column<JenisSampah>[] = [
     align: "right",
     cell: (j) => (
       <p className="font-label-sm text-label-sm text-right text-on-surface">
-        {rupiah.format(j.harga)}
+        {fmtRupiah(j.harga)}
       </p>
     ),
   },
@@ -66,7 +61,7 @@ const columns: Column<JenisSampah>[] = [
     header: "Deskripsi",
     className: "hidden lg:table-cell",
     cell: (j) => (
-      <p className="text-on-surface-variant text-sm truncate max-w-xs">{j.deskripsi}</p>
+      <p className="font-body-md text-body-md text-on-surface-variant truncate max-w-xs">{j.deskripsi}</p>
     ),
   },
   {

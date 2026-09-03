@@ -16,6 +16,8 @@
 import { readdirSync, readFileSync } from "node:fs"
 import { join, relative, sep } from "node:path"
 
+import { cn } from "@/lib/utils"
+
 const AKAR = join(__dirname, "..", "..", "..")
 const css = readFileSync(join(AKAR, "src", "app", "globals.css"), "utf8")
 
@@ -202,11 +204,63 @@ describe("konsistensi tampilan", () => {
     // 34 definisi lokal di 19 berkas sudah mulai menyimpang sebelum disatukan:
     // sebelas membulatkan rupiah, empat membiarkan desimal. Angka yang sama
     // tampil berbeda antar layar.
+    //
+    // Versi pertama penjaga ini hanya mencari `const fmtX =`, jadi 16 tempat
+    // lolos — yang memakai `function formatCurrency()` atau memanggil
+    // `Intl.NumberFormat` langsung di tempat. Dua di antaranya lupa
+    // `maximumFractionDigits`, sehingga Rp 15.000,5 tampil apa adanya di satu
+    // layar sementara layar lain membulatkannya ke Rp 15.001. Sekarang yang
+    // dilarang adalah APInya, bukan nama variabelnya.
     const pelanggar = [...isi.entries()]
       .filter(([f]) => f !== "src/lib/format.ts")
-      .filter(([, teks]) => /const (fmtRupiah|fmtBerat|fmtTanggal|formatCurrency)\s*=/.test(teks))
+      .filter(([, teks]) => /new Intl\.NumberFormat/.test(teks))
       .map(([f]) => f)
     expect(pelanggar).toEqual([])
+  })
+
+  it("tanggal juga hanya diformat di src/lib/format.ts", () => {
+    // Kolom "Dibuat" di tabel kelurahan memakai toLocaleDateString tanpa opsi
+    // sama sekali, jadi tampil "3/9/2026" sementara setiap tanggal lain di
+    // aplikasi tampil "3 Sep 2026". Dua halaman bukti setor pun memformat
+    // setoran yang SAMA dengan bulan penuh di sisi warga dan bulan singkat di
+    // sisi petugas.
+    const pelanggar = [...isi.entries()]
+      .filter(([f]) => f !== "src/lib/format.ts")
+      .filter(([, teks]) => /\.toLocale(Date|Time)?String\(/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("skala tipografi dipakai — tidak ada ukuran font yang dikarang di tempat", () => {
+    // Celah antara headline-md (24px) dan body-lg (18px) dulu tidak punya
+    // token, jadi judul bagian mengarang ukurannya sendiri: 44 nilai
+    // `text-[Npx]` di 20 berkas, dan <h2> saja tampil 16px, 18px, dan 20px
+    // untuk peran yang persis sama. Tingkat title-lg/md/sm menutup celahnya,
+    // dan tes ini menjaga celahnya tetap tertutup.
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => /text-\[\d+px\]/.test(teks))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("cn() mengenali tingkat title & label-xs", () => {
+    // Kalau token baru tidak didaftarkan di tailwind-merge, ia menganggap
+    // `text-title-md` (ukuran) sekelompok dengan `text-on-surface` (warna)
+    // dan membuang salah satunya tanpa peringatan apa pun.
+    for (const t of ["title-lg", "title-md", "title-sm", "label-xs"]) {
+      expect(cn(`text-${t}`, "text-on-surface")).toContain(`text-${t}`)
+      expect(cn(`text-${t}`, "text-on-surface")).toContain("text-on-surface")
+    }
+  })
+
+  it("setiap tingkat title & label-xs benar-benar menghasilkan CSS", () => {
+    // Tiga token pernah jadi hantu di repo ini: dipakai di komponen tapi tidak
+    // pernah didefinisikan di @theme, jadi kelasnya tidak menghasilkan aturan
+    // apa pun dan ukurannya diam-diam jatuh ke bawaan peramban.
+    for (const t of ["title-lg", "title-md", "title-sm", "label-xs"]) {
+      expect(css).toContain(`--text-${t}:`)
+      expect(css).toContain(`--font-${t}:`)
+    }
   })
 
   it("blok aksi form memakai komponen bersama, bukan susunan sendiri", () => {

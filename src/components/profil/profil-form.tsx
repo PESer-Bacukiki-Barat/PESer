@@ -95,7 +95,7 @@ export function ProfilForm({ profil }: { profil: Profil }) {
 
       {/* Identitas yang tidak bisa diubah sendiri */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface mb-3">
+        <h2 className="text-title-sm text-on-surface mb-3">
           Identitas
         </h2>
         <dl className="space-y-2">
@@ -118,7 +118,7 @@ export function ProfilForm({ profil }: { profil: Profil }) {
 
       {/* Nama */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+        <h2 className="text-title-sm text-on-surface">
           Nama
         </h2>
         <Field label="Nama lengkap" htmlFor="nama" error={fieldError.nama} required>
@@ -134,7 +134,7 @@ export function ProfilForm({ profil }: { profil: Profil }) {
 
       {/* Password */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+        <h2 className="text-title-sm text-on-surface">
           Ganti Password
         </h2>
         <p className="font-label-sm text-label-sm text-on-surface-variant">

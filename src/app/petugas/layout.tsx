@@ -27,7 +27,7 @@ export default async function PetugasLayout({
     return (
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-10">
         <div className="rounded-xl border border-error bg-error-container/40 p-5">
-          <h1 className="font-headline-md text-[18px] font-semibold text-on-error-container mb-1">
+          <h1 className="text-title-md text-on-error-container mb-1">
             Belum ditugaskan
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant">
@@ -64,7 +64,7 @@ export default async function PetugasLayout({
             <p className="font-label-sm text-label-sm text-on-surface-variant">
               {user.nama}
             </p>
-            <p className="font-headline-md text-[16px] font-semibold text-on-surface truncate">
+            <p className="text-title-sm text-on-surface truncate">
               {user.bankSampah.nama}
             </p>
           </Link>

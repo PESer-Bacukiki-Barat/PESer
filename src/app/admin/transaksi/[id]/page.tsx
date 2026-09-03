@@ -140,7 +140,7 @@ export default async function DetailDispatchPage({
         {/* Ringkasan */}
         <section className="lg:col-span-1 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright">
-            <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+            <h2 className="text-title-md text-on-surface">
               Ringkasan
             </h2>
           </div>
@@ -168,7 +168,7 @@ export default async function DetailDispatchPage({
         {/* Item */}
         <section className="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright">
-            <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+            <h2 className="text-title-md text-on-surface">
               Item Dispatch
             </h2>
           </div>
@@ -222,7 +222,7 @@ export default async function DetailDispatchPage({
       {/* Aksi */}
       <section className="mt-6 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm">
         <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright">
-          <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+          <h2 className="text-title-md text-on-surface">
             Aksi
           </h2>
           <p className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">

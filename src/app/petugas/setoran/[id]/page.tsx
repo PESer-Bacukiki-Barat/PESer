@@ -13,7 +13,7 @@ import {
   type AlasanTolak,
   type KondisiSampah,
 } from "@/lib/setoran-data"
-import { fmtBerat, fmtRupiah } from "@/lib/format"
+import { fmtBerat, fmtRupiah, fmtTanggalPanjangWaktu } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Bukti Setor",
@@ -49,7 +49,7 @@ export default async function BuktiSetorPage({
       <div className="mb-4 flex items-start gap-3 rounded-xl border border-secondary-fixed bg-secondary-container/50 p-4">
         <CheckCircle2 className="size-5 shrink-0 text-on-secondary-container" aria-hidden />
         <div className="min-w-0">
-          <p className="font-headline-md text-[16px] font-semibold text-on-secondary-container">
+          <p className="text-title-sm text-on-secondary-container">
             Setoran tersimpan
           </p>
           <p className="font-label-sm text-label-sm text-on-surface-variant">
@@ -60,7 +60,7 @@ export default async function BuktiSetorPage({
 
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
         <div className="px-4 py-3 border-b border-outline-variant bg-surface-bright flex items-center justify-between gap-2">
-          <h1 className="font-headline-md text-[16px] font-semibold font-mono text-on-surface">
+          <h1 className="font-mono text-title-sm text-on-surface">
             {setoran.kodeTransaksi}
           </h1>
           <Badge variant={setoran.cashDibayar ? "secondary" : "outline"}>
@@ -75,13 +75,7 @@ export default async function BuktiSetorPage({
             ["Petugas", setoran.petugas.nama],
             [
               "Tanggal",
-              setoran.tanggal.toLocaleString("id-ID", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+              fmtTanggalPanjangWaktu(setoran.tanggal),
             ],
           ].map(([k, v]) => (
             <div key={k} className="flex items-baseline justify-between gap-3 px-4 py-2.5">
@@ -146,7 +140,7 @@ export default async function BuktiSetorPage({
       {setoran.ditolak.length > 0 && (
         <section className="mt-4 rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
           <div className="border-b border-outline-variant bg-surface-bright px-4 py-3">
-            <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+            <h2 className="text-title-sm text-on-surface">
               Barang Ditolak
             </h2>
             <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">

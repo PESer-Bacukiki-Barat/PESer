@@ -139,7 +139,7 @@ export default async function LaporanPage({
       {/* Penjualan */}
       <section className="mb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-headline-md text-[20px] font-semibold text-on-surface">
+          <h2 className="text-title-md text-on-surface">
             Penjualan ke Pembeli
           </h2>
           <a
@@ -217,7 +217,7 @@ export default async function LaporanPage({
       {/* Volume masuk */}
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-headline-md text-[20px] font-semibold text-on-surface">
+          <h2 className="text-title-md text-on-surface">
             Volume Masuk dari Warga
           </h2>
           <a

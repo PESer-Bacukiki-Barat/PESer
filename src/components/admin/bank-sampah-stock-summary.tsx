@@ -2,6 +2,9 @@
 // di-query oleh Server Component halaman Bank Sampah lalu diteruskan
 // sebagai props (Decimal sudah dikonversi ke number).
 
+import { fmtBerat } from "@/lib/format";
+
+
 export type StockItem = {
   jenisSampahId: string;
   jenisSampah: string;
@@ -14,10 +17,6 @@ export type BankSampahStock = {
   isActive: boolean;
   stock: StockItem[];
 };
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(value);
-}
 
 function stockTotalBerat(stock: StockItem[]): number {
   return stock.reduce((sum, s) => sum + s.berat, 0);
@@ -76,11 +75,11 @@ export function BankSampahStockSummary({
       aria-label="Total stock se-kecamatan"
       className="mt-8 mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
     >
-      <SummaryCard label="Total Stock" value={`${formatNumber(total)} kg`} />
+      <SummaryCard label="Total Stock" value={`${fmtBerat(total)} kg`} />
       <SummaryCard
         label="Tersedia"
-        value={`${formatNumber(tersedia)} kg`}
-        sub={reservasi > 0 ? `${formatNumber(reservasi)} kg ditahan (dispatch)` : undefined}
+        value={`${fmtBerat(tersedia)} kg`}
+        sub={reservasi > 0 ? `${fmtBerat(reservasi)} kg ditahan (dispatch)` : undefined}
       />
       <SummaryCard
         label="Bank Sampah Aktif dengan Stock"
@@ -106,7 +105,7 @@ export function BankSampahStockSummary({
                   {j.nama}
                 </span>
                 <span className="font-label-md text-label-md font-mono text-on-surface">
-                  {formatNumber(j.berat)} kg
+                  {fmtBerat(j.berat)} kg
                 </span>
               </li>
             ))}

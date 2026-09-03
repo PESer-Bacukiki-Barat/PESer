@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
-import { fmtBerat, fmtRupiah } from "@/lib/format"
+import { fmtBerat, fmtRupiah, fmtTanggal } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Riwayat Setoran",
@@ -78,11 +78,7 @@ export default async function RiwayatPage() {
                   </p>
                   <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
                     {s.nasabah.nama} · {s._count.items} item ·{" "}
-                    {s.tanggal.toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {fmtTanggal(s.tanggal)}
                   </p>
                   {!s.cashDibayar && (
                     <p className="font-label-sm text-label-sm text-error mt-0.5">

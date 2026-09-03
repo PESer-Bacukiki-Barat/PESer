@@ -11,6 +11,7 @@ import { Field, inputClass } from "@/components/admin/form-fields"
 import { api, apiError, apiFieldErrors } from "@/lib/api"
 import { TOLERANSI_SELISIH } from "@/lib/constants"
 import type { AksiDispatch } from "@/lib/dispatch-aksi"
+import { fmtBerat } from "@/lib/format"
 
 export type ItemAksi = {
   id: string
@@ -24,9 +25,6 @@ const gayaTombol: Record<AksiDispatch["gaya"], "default" | "outline" | "destruct
   netral: "outline",
   bahaya: "destructive",
 }
-
-const fmt = (n: number) =>
-  new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(n)
 
 /**
  * Panel aksi dispatch.
@@ -223,7 +221,7 @@ export function AksiDispatchPanel({
                           {i.jenisSampah}
                         </td>
                         <td className="px-3 py-2 font-mono text-body-md text-on-surface-variant text-right">
-                          {fmt(i.beratTarget)}
+                          {fmtBerat(i.beratTarget)}
                         </td>
                         <td className="px-3 py-2">
                           <input

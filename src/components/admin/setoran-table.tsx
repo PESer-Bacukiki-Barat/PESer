@@ -9,15 +9,10 @@ import type { Setoran } from "@/lib/setoran-data";
 import {
   KONDISI_SAMPAH_LABEL,
   kondisiStyle,
-  formatCurrency,
-  formatDateSetoran,
 } from "@/lib/setoran-data";
 
 export type { Setoran, SetoranItem } from "@/lib/setoran-data";
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat("id-ID").format(value);
-}
+import { fmtAngka, fmtBerat, fmtRupiah, fmtTanggal } from "@/lib/format";
 
 export function SetoranTable({
   setorans,
@@ -82,7 +77,7 @@ export function SetoranTable({
         align: "center",
         cell: (s) => (
           <p className="font-label-md text-label-md text-center text-on-surface">
-            {formatNumber(s.items.length)}
+            {fmtAngka(s.items.length)}
           </p>
         ),
       },
@@ -129,7 +124,7 @@ export function SetoranTable({
         align: "right",
         cell: (s) => (
           <p className="font-label-md text-label-md font-mono text-on-surface">
-            {formatNumber(s.totalBerat)}
+            {fmtBerat(s.totalBerat)}
           </p>
         ),
       },
@@ -139,7 +134,7 @@ export function SetoranTable({
         align: "right",
         cell: (s) => (
           <p className="font-label-md text-label-md font-mono text-primary">
-            {formatCurrency(s.totalNilai)}
+            {fmtRupiah(s.totalNilai)}
           </p>
         ),
       },
@@ -163,7 +158,7 @@ export function SetoranTable({
         header: "Tanggal",
         cell: (s) => (
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            {formatDateSetoran(s.tanggal)}
+            {fmtTanggal(s.tanggal)}
           </p>
         ),
       },

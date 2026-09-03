@@ -83,7 +83,7 @@ export default async function BerandaPetugasPage() {
       >
         <Scale className="size-6 shrink-0" aria-hidden />
         <span>
-          <span className="block font-headline-md text-[16px] font-semibold">
+          <span className="block text-title-sm">
             Catat Setoran
           </span>
           <span className="block font-label-sm text-label-sm opacity-90">
@@ -151,7 +151,7 @@ export default async function BerandaPetugasPage() {
       {/* Dispatch yang menunggu petugas */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
         <div className="px-4 py-3 border-b border-outline-variant bg-surface-bright flex items-center justify-between gap-2">
-          <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+          <h2 className="text-title-sm text-on-surface">
             Menunggu Anda
           </h2>
           <Link

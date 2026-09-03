@@ -96,23 +96,7 @@ export function kondisiStyle(kondisi: KondisiSampah): string {
   return KONDISI_STYLES[kondisi];
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-export function formatCurrency(value: number | null | undefined): string {
-  if (value == null) return "—";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
-export function formatDateSetoran(dateStr: string): string {
-  return formatDate(dateStr);
-}
+// Pemformat dulu didefinisikan di sini; sekarang satu-satunya sumber adalah
+// @/lib/format.ts. formatCurrency lokal sempat lupa maximumFractionDigits,
+// jadi Rp 15.000,5 tampil apa adanya di layar ini sementara layar lain
+// membulatkannya ke Rp 15.001 — nilai sama, dua tampilan.

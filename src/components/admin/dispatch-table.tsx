@@ -17,6 +17,7 @@ import {
 } from "@/lib/dispatch-data";
 
 export type { Dispatch, DispatchStatus } from "@/lib/dispatch-data";
+import { fmtRupiah, fmtTanggal } from "@/lib/format";
 
 const STATUS_STYLES: Record<DispatchStatus, string> = {
   DRAFT: "bg-surface-dim text-on-surface-variant border border-outline-variant",
@@ -32,23 +33,6 @@ const STATUS_STYLES: Record<DispatchStatus, string> = {
   DIBATALKAN:
     "bg-surface-variant text-on-surface-variant border border-outline-variant",
 };
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(value: number | null | undefined): string {
-  if (value == null) return "—";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
-}
 
 export function DispatchTable({
   dispatches,
@@ -121,7 +105,7 @@ export function DispatchTable({
         header: "Tgl Jemput",
         cell: (d) => (
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            {formatDate(d.tanggalJemput)}
+            {fmtTanggal(d.tanggalJemput)}
           </p>
         ),
       },
@@ -131,7 +115,7 @@ export function DispatchTable({
         align: "right",
         cell: (d) => (
           <p className="font-label-md text-label-md font-mono text-on-surface">
-            {formatCurrency(d.totalNilai)}
+            {fmtRupiah(d.totalNilai)}
           </p>
         ),
       },

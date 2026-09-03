@@ -11,7 +11,7 @@ import {
   statusStyle,
   type DispatchStatus,
 } from "@/lib/dispatch-data"
-import { fmtBerat } from "@/lib/format"
+import { fmtBerat, fmtTanggalPendek } from "@/lib/format"
 
 export const metadata: Metadata = {
   title: "Dispatch",
@@ -124,10 +124,7 @@ function Bagian({
                     </p>
                     <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
                       {d.pembeli.nama} · {fmtBerat(total)} kg ·{" "}
-                      {d.tanggalJemput.toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                      })}
+                      {fmtTanggalPendek(d.tanggalJemput)}
                     </p>
                   </div>
                   <span

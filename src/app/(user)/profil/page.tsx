@@ -37,11 +37,11 @@ export default async function ProfilUserPage() {
             <CircleUserRound className="size-8" aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="truncate font-headline-md text-[16px] font-semibold">
+            <p className="truncate text-title-sm">
               {user.nama}
             </p>
-            <p className="font-mono text-xs text-on-primary/80">{user.email}</p>
-            <p className="font-mono text-xs text-on-primary/80">
+            <p className="font-mono text-label-sm text-on-primary/80">{user.email}</p>
+            <p className="font-mono text-label-sm text-on-primary/80">
               {user.noHp ?? "Nomor HP belum diisi"}
             </p>
           </div>

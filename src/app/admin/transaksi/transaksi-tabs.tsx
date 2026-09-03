@@ -99,7 +99,7 @@ export default function TransaksiTabs({
               aria-current={activeTab === tab.id ? "page" : undefined}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-headline-md text-[15px] font-semibold transition-colors duration-fast focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50",
+                "flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-title-sm transition-colors duration-fast focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50",
                 activeTab === tab.id
                   ? "bg-primary text-on-primary shadow-md"
                   : "text-on-surface-variant hover:bg-primary-container hover:text-on-primary-container",
@@ -116,10 +116,10 @@ export default function TransaksiTabs({
         <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant bg-surface-bright flex items-start justify-between">
             <div>
-              <h2 className="font-headline-md text-[20px] font-semibold text-on-surface">
+              <h2 className="text-title-md text-on-surface">
                 Transaksi Masuk (Setoran)
               </h2>
-              <p className="font-body-md text-sm text-on-surface-variant mt-1">
+              <p className="font-body-md text-body-md text-on-surface-variant mt-1">
                 Daftar setoran sampah dari nasabat (read-only). Admin hanya dapat
                 melihat dan mengekspor data.
               </p>
@@ -140,10 +140,10 @@ export default function TransaksiTabs({
         <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-outline-variant bg-surface-bright flex items-start justify-between">
             <div>
-              <h2 className="font-headline-md text-[20px] font-semibold text-on-surface">
+              <h2 className="text-title-md text-on-surface">
                 Transaksi Keluar (Dispatch)
               </h2>
-              <p className="font-body-md text-sm text-on-surface-variant mt-1">
+              <p className="font-body-md text-body-md text-on-surface-variant mt-1">
                 Daftar pengiriman sampah ke pembeli (pengepul).
               </p>
             </div>

@@ -66,6 +66,21 @@ typography:
     fontSize: 24px
     fontWeight: '600'
     lineHeight: 32px
+  title-lg:
+    fontFamily: Hanken Grotesk
+    fontSize: 20px
+    fontWeight: '600'
+    lineHeight: 28px
+  title-md:
+    fontFamily: Hanken Grotesk
+    fontSize: 18px
+    fontWeight: '600'
+    lineHeight: 26px
+  title-sm:
+    fontFamily: Hanken Grotesk
+    fontSize: 16px
+    fontWeight: '600'
+    lineHeight: 22px
   body-lg:
     fontFamily: Hanken Grotesk
     fontSize: 18px
@@ -87,6 +102,11 @@ typography:
     fontSize: 12px
     fontWeight: '500'
     lineHeight: 16px
+  label-xs:
+    fontFamily: JetBrains Mono
+    fontSize: 11px
+    fontWeight: '500'
+    lineHeight: 14px
   headline-lg-mobile:
     fontFamily: Hanken Grotesk
     fontSize: 28px
@@ -136,6 +156,16 @@ The typography system focuses on high legibility under varying light conditions 
 - **Hanken Grotesk** serves as the primary typeface. Its contemporary, sharp geometry feels technical yet humanist, making it perfect for both Gen-Z mobile users and administrative dashboards.
 - **JetBrains Mono** is utilized for labels, inventory weights (kg), currency values, and QR code identifiers. This monospaced choice reinforces the "precision" of the measurement and logistical side of the service.
 - **Hierarchy:** Use bold weights for financial values (points/currency) to ensure they are the first thing a user sees.
+- **Title tier (`title-lg` / `title-md` / `title-sm`):** Section headings sit between
+  `headline-md` (24px) and `body-lg` (18px). That gap had no token, so screens invented
+  one-off sizes — 44 hard-coded `text-[Npx]` values across 20 files, with `<h2>` alone
+  rendered at 16px, 18px, and 20px for the same role. The three title sizes close the gap:
+  `title-md` is the default section heading, `title-sm` the compact one for the mobile
+  petugas/warga areas and headings inside cards, and `title-lg` is reserved for prominent
+  monospaced values (a receipt total) where 18px reads too small.
+- **`label-xs` (11px):** the floor of the scale, only for text that must fit inside a
+  control — bottom-nav captions and the count inside a notification badge. Anything larger
+  than a badge uses `label-sm` (12px) or above.
 
 ## Layout & Spacing
 

@@ -153,7 +153,7 @@ export function SetorWargaForm({
         <div className="flex items-start gap-3 rounded-xl border border-tertiary bg-tertiary-container/40 p-4">
           <CloudOff className="size-5 shrink-0 text-on-tertiary-container" aria-hidden />
           <div>
-            <p className="font-headline-md text-[16px] font-semibold text-on-tertiary-container">
+            <p className="text-title-sm text-on-tertiary-container">
               Tersimpan di antrean
             </p>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -173,7 +173,7 @@ export function SetorWargaForm({
           </div>
           <div className="flex items-baseline justify-between">
             <dt className="font-label-md text-label-md text-on-surface-variant">Total nilai</dt>
-            <dd className="font-mono text-[18px] font-semibold text-primary">
+            <dd className="font-mono text-title-md text-primary">
               {fmtRupiah(totalNilai)}
             </dd>
           </div>
@@ -197,7 +197,7 @@ export function SetorWargaForm({
       {/* Item sampah */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+          <h2 className="text-title-sm text-on-surface">
             Item Sampah
           </h2>
           <Button
@@ -302,7 +302,7 @@ export function SetorWargaForm({
               <dt className="font-label-md text-label-md text-on-surface-variant">
                 Total berat
               </dt>
-              <dd className="font-mono text-[18px] text-on-surface">
+              <dd className="font-mono text-title-md font-normal text-on-surface">
                 {fmtBerat(totalBerat)} kg
               </dd>
             </div>
@@ -310,13 +310,13 @@ export function SetorWargaForm({
               <dt className="font-label-md text-label-md text-on-surface-variant">
                 Estimasi diterima
               </dt>
-              <dd className="font-mono text-[18px] font-semibold text-primary">
+              <dd className="font-mono text-title-md text-primary">
                 {fmtRupiah(totalNilai)}
               </dd>
             </div>
           </dl>
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Dibulatkan ke Rp {PEMBULATAN_TUNAI.toLocaleString("id-ID")} terdekat.
+            Dibulatkan ke {fmtRupiah(PEMBULATAN_TUNAI)} terdekat.
             Tunai diserahkan petugas saat penimbangan (BR-04).
           </p>
         </CardContent>

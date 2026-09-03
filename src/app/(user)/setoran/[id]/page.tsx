@@ -8,11 +8,10 @@ import { getServerUser } from "@/lib/auth";
 import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import {
   KONDISI_SAMPAH_LABEL,
-  formatCurrency,
   kondisiStyle,
   type KondisiSampah,
 } from "@/lib/setoran-data";
-import { fmtBerat } from "@/lib/format";
+import { fmtBerat, fmtRupiah, fmtTanggalPanjangWaktu } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Bukti Setor",
@@ -95,13 +94,7 @@ export default async function BuktiSetoranPage({
             {setoran.kodeTransaksi}
           </p>
           <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
-            {setoran.tanggal.toLocaleString("id-ID", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {fmtTanggalPanjangWaktu(setoran.tanggal)}
           </p>
         </header>
 
@@ -114,7 +107,7 @@ export default async function BuktiSetoranPage({
                 </p>
                 <p className="font-mono font-label-sm text-label-sm text-on-surface-variant">
                   {fmtBerat(Number(item.berat))} kg ×{" "}
-                  {formatCurrency(Number(item.hargaSaatItu))}/kg
+                  {fmtRupiah(Number(item.hargaSaatItu))}/kg
                 </p>
                 <span
                   className={`mt-1 inline-block rounded-full border px-2 py-0.5 font-label-sm text-label-sm ${kondisiStyle(item.kondisi as KondisiSampah)}`}
@@ -123,7 +116,7 @@ export default async function BuktiSetoranPage({
                 </span>
               </div>
               <p className="shrink-0 font-mono font-label-md text-label-md text-on-surface">
-                {formatCurrency(Number(item.subtotal))}
+                {fmtRupiah(Number(item.subtotal))}
               </p>
             </li>
           ))}
@@ -142,8 +135,8 @@ export default async function BuktiSetoranPage({
             <span className="font-label-sm text-label-sm text-on-surface-variant">
               Total nilai
             </span>
-            <span className="font-mono text-[20px] font-semibold text-primary">
-              {formatCurrency(Number(setoran.totalNilai))}
+            <span className="font-mono text-title-lg text-primary">
+              {fmtRupiah(Number(setoran.totalNilai))}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">

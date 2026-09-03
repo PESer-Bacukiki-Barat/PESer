@@ -17,10 +17,14 @@ const UKURAN_TEKS = [
   "headline-lg",
   "headline-lg-mobile",
   "headline-md",
+  "title-lg",
+  "title-md",
+  "title-sm",
   "body-lg",
   "body-md",
   "label-md",
   "label-sm",
+  "label-xs",
 ]
 
 /** Keluarga font DESIGN.md; bermasalah sama dengan ukuran di atas. */
@@ -29,10 +33,14 @@ const KELUARGA_FONT = [
   "headline-lg",
   "headline-lg-mobile",
   "headline-md",
+  "title-lg",
+  "title-md",
+  "title-sm",
   "body-lg",
   "body-md",
   "label-md",
   "label-sm",
+  "label-xs",
 ]
 
 const twMerge = extendTailwindMerge({

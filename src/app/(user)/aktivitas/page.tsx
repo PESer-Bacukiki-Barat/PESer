@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import { StatusTaut } from "@/components/user/status-taut";
-import { fmtBerat, fmtRupiah } from "@/lib/format";
+import { fmtBerat, fmtRupiah, fmtTanggal } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Aktivitas",
@@ -161,11 +161,7 @@ export default async function AktivitasPage({
                   </p>
                   <p className="font-label-sm text-label-sm text-on-surface-variant truncate">
                     {s._count.items} item ·{" "}
-                    {s.tanggal.toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {fmtTanggal(s.tanggal)}
                   </p>
                   {!s.cashDibayar && (
                     <p className="mt-0.5 font-label-sm text-label-sm text-error">

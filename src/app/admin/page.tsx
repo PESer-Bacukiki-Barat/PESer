@@ -166,7 +166,7 @@ export default async function AdminDashboardPage() {
         {/* Dispatch yang menunggu tindakan */}
         <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright flex items-center justify-between gap-3">
-            <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+            <h2 className="text-title-md text-on-surface">
               Perlu Tindakan
             </h2>
             <Link
@@ -213,7 +213,7 @@ export default async function AdminDashboardPage() {
         {/* Stock per jenis */}
         <section className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright">
-            <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+            <h2 className="text-title-md text-on-surface">
               Stock per Jenis
             </h2>
           </div>
@@ -241,7 +241,7 @@ export default async function AdminDashboardPage() {
       {/* Setoran terakhir */}
       <section className="mt-6 bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-outline-variant bg-surface-bright flex items-center justify-between gap-3">
-          <h2 className="font-headline-md text-[18px] font-semibold text-on-surface">
+          <h2 className="text-title-md text-on-surface">
             Setoran Terakhir
           </h2>
           <Badge variant="secondary">Transaksi Masuk</Badge>

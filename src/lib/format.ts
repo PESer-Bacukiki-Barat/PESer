@@ -79,6 +79,18 @@ export function fmtTanggal(nilai: MasukanTanggal): string {
   })
 }
 
+/**
+ * "29 Agu" — tanpa tahun, untuk daftar yang isinya memang tahun berjalan.
+ *
+ * Beranda dan riwayat menampilkan setoran terbaru, jadi tahunnya selalu sama
+ * dan hanya memakan lebar baris yang di HP sudah sempit.
+ */
+export function fmtTanggalPendek(nilai: MasukanTanggal): string {
+  const d = keTanggal(nilai)
+  if (!d) return "\u2014"
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" })
+}
+
 /** "29 Agu 2026, 14.30" — dipakai saat jam transaksi ikut penting. */
 export function fmtTanggalWaktu(nilai: MasukanTanggal): string {
   const d = keTanggal(nilai)
@@ -98,4 +110,21 @@ export function fmtTanggalPanjang(nilai: MasukanTanggal): string {
     month: "long",
     year: "numeric",
   })
+}
+
+/**
+ * "29 Agustus 2026, 14.30" — bukti setor.
+ *
+ * Bukti setor adalah dokumen yang dibawa nasabah, jadi bulannya ditulis penuh
+ * supaya tidak ada keraguan. Sebelumnya halaman bukti milik warga memakai
+ * bulan penuh sementara halaman yang sama di sisi petugas memakai singkatan,
+ * padahal keduanya menampilkan setoran yang persis sama.
+ */
+export function fmtTanggalPanjangWaktu(nilai: MasukanTanggal): string {
+  const d = keTanggal(nilai)
+  if (!d) return "—"
+  return `${fmtTanggalPanjang(d)}, ${d.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`
 }

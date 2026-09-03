@@ -9,7 +9,7 @@ import { nasabahTertaut } from "@/lib/nasabah-tertaut";
 import { StatusTaut } from "@/components/user/status-taut";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { fmtBerat, fmtRupiah } from "@/lib/format";
+import { fmtBerat, fmtRupiah, fmtTanggalPendek } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Beranda",
@@ -85,20 +85,20 @@ export default async function HomePage() {
           </div>
           <dl className="grid grid-cols-2 gap-4">
             <div>
-              <dt className="text-xs text-on-primary/70">Berat total</dt>
-              <dd className="mt-1 font-mono text-3xl font-medium tracking-tight">
+              <dt className="font-label-sm text-label-sm text-on-primary/70">Berat total</dt>
+              <dd className="mt-1 font-mono text-headline-md tabular-nums tracking-tight">
                 {fmtBerat(Number(aggTotal._sum.totalBerat ?? 0))}
-                <span className="ml-1 text-sm font-normal">kg</span>
+                <span className="ml-1 font-label-sm text-label-sm font-normal">kg</span>
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-on-primary/70">Nilai setoran</dt>
-              <dd className="mt-1 font-mono text-3xl font-medium tracking-tight">
+              <dt className="font-label-sm text-label-sm text-on-primary/70">Nilai setoran</dt>
+              <dd className="mt-1 font-mono text-headline-md tabular-nums tracking-tight">
                 {fmtRupiah(Number(aggTotal._sum.totalNilai ?? 0))}
               </dd>
             </div>
           </dl>
-          <p className="text-xs text-on-primary/70">
+          <p className="font-label-sm text-label-sm text-on-primary/70">
             Bulan ini: {aggBulan._count}× setor ·{" "}
             {fmtBerat(Number(aggBulan._sum.totalBerat ?? 0))} kg ·{" "}
             {fmtRupiah(Number(aggBulan._sum.totalNilai ?? 0))} — dibayar tunai oleh
@@ -119,7 +119,7 @@ export default async function HomePage() {
       <section aria-labelledby="quick-action-title">
         <h2
           id="quick-action-title"
-          className="mb-3 font-headline-md text-[14px] font-semibold text-on-surface"
+          className="mb-3 text-title-sm text-on-surface"
         >
           Aksi Cepat
         </h2>
@@ -145,7 +145,7 @@ export default async function HomePage() {
         <div className="mb-3 flex items-center justify-between">
           <h2
             id="activity-title"
-            className="font-headline-md text-[14px] font-semibold text-on-surface"
+            className="text-title-sm text-on-surface"
           >
             Setoran Terakhir
           </h2>
@@ -176,10 +176,7 @@ export default async function HomePage() {
                     {s.items.map((i) => i.jenisSampah.nama).join(", ") || "Setoran"}
                   </p>
                   <p className="font-mono font-label-sm text-label-sm text-on-surface-variant">
-                    {s.tanggal.toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                    })}{" "}
+                    {fmtTanggalPendek(s.tanggal)}{" "}
                     · {fmtBerat(Number(s.totalBerat))} kg · {s.kodeTransaksi}
                   </p>
                 </div>

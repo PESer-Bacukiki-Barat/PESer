@@ -91,8 +91,12 @@
   --font-headline-lg-mobile: var(--font-sans);
   --font-body-lg: var(--font-sans);
   --font-body-md: var(--font-sans);
+  --font-title-lg: var(--font-sans);
+  --font-title-md: var(--font-sans);
+  --font-title-sm: var(--font-sans);
   --font-label-md: var(--font-mono);
   --font-label-sm: var(--font-mono);
+  --font-label-xs: var(--font-mono);
 
   --text-headline-xl: 40px;
   --text-headline-xl--line-height: 48px;
@@ -105,6 +109,25 @@
   --text-headline-md: 24px;
   --text-headline-md--line-height: 32px;
   --text-headline-md--font-weight: 600;
+
+  /* Tingkat judul bagian.
+   *
+   * Celah 24px (headline-md) ke 18px (body-lg) sebelumnya tidak punya token,
+   * jadi tiap layar mengarang ukurannya sendiri: 44 nilai `text-[Npx]` di 20
+   * berkas, dan <h2> saja tampil 16px, 18px, dan 20px untuk peran yang sama.
+   *
+   * Ketiganya sudah membawa keluarga font DAN ketebalannya, jadi pemakaian
+   * cukup `text-title-md` — tanpa perlu `font-headline-md font-semibold` yang
+   * dulu selalu menempel dan mudah tertinggal saat disalin. */
+  --text-title-lg: 20px;
+  --text-title-lg--line-height: 28px;
+  --text-title-lg--font-weight: 600;
+  --text-title-md: 18px;
+  --text-title-md--line-height: 26px;
+  --text-title-md--font-weight: 600;
+  --text-title-sm: 16px;
+  --text-title-sm--line-height: 22px;
+  --text-title-sm--font-weight: 600;
   --text-headline-lg-mobile: 28px;
   --text-headline-lg-mobile--line-height: 36px;
   --text-headline-lg-mobile--font-weight: 700;
@@ -121,6 +144,9 @@
   --text-label-sm: 12px;
   --text-label-sm--line-height: 16px;
   --text-label-sm--font-weight: 500;
+  --text-label-xs: 11px;
+  --text-label-xs--line-height: 14px;
+  --text-label-xs--font-weight: 500;
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);

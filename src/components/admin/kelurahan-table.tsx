@@ -12,6 +12,7 @@ import { AddKelurahanModal } from "@/components/admin/kelurahan-add-modal";
 import { deleteAction, editAction } from "@/components/admin/row-actions";
 import { api, apiError } from "@/lib/api";
 import type { Kelurahan } from "@/lib/kelurahan-data";
+import { fmtTanggal } from "@/lib/format";
 
 const columns: Column<Kelurahan>[] = [
   {
@@ -29,7 +30,7 @@ const columns: Column<Kelurahan>[] = [
     header: "Dibuat",
     cell: (k) =>
       k.createdAt ? (
-        <p className="text-on-surface-variant">{new Date(k.createdAt).toLocaleDateString("id-ID")}</p>
+        <p className="text-on-surface-variant">{fmtTanggal(k.createdAt)}</p>
       ) : (
         <span className="text-on-surface-variant">—</span>
       ),

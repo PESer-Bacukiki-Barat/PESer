@@ -115,7 +115,7 @@ export default async function DetailDispatchPetugasPage({
 
       {/* Aksi ditaruh di atas daftar item: itu yang dicari petugas di lapangan. */}
       <section className="mb-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface mb-3">
+        <h2 className="text-title-sm text-on-surface mb-3">
           Aksi
         </h2>
         {final ? (
@@ -153,7 +153,7 @@ export default async function DetailDispatchPetugasPage({
 
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest overflow-hidden">
         <div className="px-4 py-3 border-b border-outline-variant bg-surface-bright flex items-baseline justify-between gap-2">
-          <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+          <h2 className="text-title-sm text-on-surface">
             Item
           </h2>
           <span className="font-label-sm text-label-sm text-on-surface-variant font-mono">

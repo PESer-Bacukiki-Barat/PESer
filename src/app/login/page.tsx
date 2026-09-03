@@ -50,7 +50,7 @@ export default async function LoginPage({
           className="space-y-4 rounded-2xl border border-outline-variant bg-surface-container-lowest p-6 shadow-sm"
         >
           <div className="mb-1">
-            <h1 className="font-headline-md text-[18px] font-semibold text-on-surface">
+            <h1 className="text-title-md text-on-surface">
               Masuk ke akun Anda
             </h1>
             <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">

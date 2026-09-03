@@ -25,7 +25,7 @@ export default async function UserLayout({
     return (
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-10">
         <div className="rounded-xl border border-error bg-error-container/40 p-5">
-          <h1 className="font-headline-md text-[18px] font-semibold text-on-error-container mb-1">
+          <h1 className="text-title-md text-on-error-container mb-1">
             Belum terhubung bank sampah
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant">
@@ -71,7 +71,7 @@ export default async function UserLayout({
                 <span className="block truncate font-label-sm text-label-sm text-on-surface-variant">
                   Selamat datang,
                 </span>
-                <span className="block truncate font-headline-md text-[16px] font-semibold text-on-surface">
+                <span className="block truncate text-title-sm text-on-surface">
                   {user.nama}
                 </span>
               </span>

@@ -143,7 +143,7 @@ export function LoncengNotifikasi({
         {belumDibaca > 0 && (
           <span
             aria-hidden
-            className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-error px-1 font-mono text-[10px] leading-4 text-on-error"
+            className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-error px-1 font-mono text-label-xs leading-4 text-on-error"
           >
             {belumDibaca > 9 ? "9+" : belumDibaca}
           </span>

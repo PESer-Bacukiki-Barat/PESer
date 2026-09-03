@@ -228,7 +228,7 @@ export function SetorForm({
         <div className="flex items-start gap-3 rounded-xl border border-tertiary bg-tertiary-container/40 p-4">
           <CloudOff className="size-5 shrink-0 text-on-tertiary-container" aria-hidden />
           <div className="min-w-0">
-            <p className="font-headline-md text-[16px] font-semibold text-on-tertiary-container">
+            <p className="text-title-sm text-on-tertiary-container">
               Tersimpan di antrean
             </p>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">
@@ -289,7 +289,7 @@ export function SetorForm({
     >
       {/* Nasabah */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+        <h2 className="text-title-sm text-on-surface">
           1. Nasabah
         </h2>
         <Field label="Cari nasabah" htmlFor="cari">
@@ -327,7 +327,7 @@ export function SetorForm({
       {/* Item */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+          <h2 className="text-title-sm text-on-surface">
             2. Item Sampah
           </h2>
           <Button
@@ -428,7 +428,7 @@ export function SetorForm({
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+            <h2 className="text-title-sm text-on-surface">
               3. Barang Ditolak
             </h2>
             <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
@@ -553,7 +553,7 @@ export function SetorForm({
 
       {/* Total & pembayaran */}
       <section className="rounded-xl border border-outline-variant bg-surface-container-lowest p-4 space-y-3">
-        <h2 className="font-headline-md text-[16px] font-semibold text-on-surface">
+        <h2 className="text-title-sm text-on-surface">
           4. Total &amp; Pembayaran
         </h2>
 
