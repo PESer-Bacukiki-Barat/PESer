@@ -9,11 +9,14 @@ export type SelectOption = {
 };
 
 export const inputClasses =
-  "w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary transition-shadow outline-none";
+  "w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-[color,box-shadow,border-color] duration-fast focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/50";
 
 export function inputClass(error?: boolean) {
   return error
-    ? cn(inputClasses, "border-error focus:border-error focus:ring-error")
+    ? cn(
+        inputClasses,
+        "border-error focus-visible:border-error focus-visible:ring-error/50",
+      )
     : inputClasses;
 }
 

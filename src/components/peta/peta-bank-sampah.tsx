@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic"
 
 import type { MarkerBankSampah } from "@/lib/level-stock"
+import { MapPin } from "lucide-react"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 
 /**
  * `leaflet` membaca `window` saat modul dievaluasi, jadi ia harus dimuat hanya
@@ -38,9 +40,10 @@ export function PetaBankSampah({
   // Tanpa marker, Leaflet tidak perlu diunduh sama sekali.
   if (markers.length === 0) {
     return (
-      <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-        Belum ada bank sampah dengan titik koordinat untuk ditampilkan di peta.
-      </p>
+      <KeadaanKosong Ikon={MapPin} aksen="tempat" judul="Belum ada titik di peta">
+        Bank sampah muncul di peta setelah titik koordinatnya diisi pada data
+        bank sampah.
+      </KeadaanKosong>
     )
   }
 

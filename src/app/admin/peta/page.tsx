@@ -1,12 +1,13 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Landmark } from "lucide-react"
 
 import { markerBankSampah } from "@/lib/peta"
 import { GAYA_LEVEL } from "@/lib/level-stock"
 import { PetaBankSampah } from "@/components/peta/peta-bank-sampah"
 import { LegendaLevel } from "@/components/peta/legenda-level"
 import { DaftarMarker } from "@/components/peta/daftar-marker"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 
 export const metadata: Metadata = {
   title: "Peta Sebaran",
@@ -72,13 +73,21 @@ export default async function PetaAdminPage() {
           Daftar bank sampah
         </h2>
         {markers.length === 0 ? (
-          <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-            Belum ada bank sampah terdaftar.{" "}
-            <Link href="/admin/bank-sampah/tambah" className="text-primary underline">
-              Tambah bank sampah
-            </Link>
-            .
-          </p>
+          <KeadaanKosong
+            Ikon={Landmark}
+            aksen="tempat"
+            judul="Belum ada bank sampah terdaftar"
+            aksi={
+              <Link
+                href="/admin/bank-sampah/tambah"
+                className="tekan-halus inline-flex min-h-11 items-center rounded-lg bg-primary px-4 font-label-md text-label-md font-semibold text-on-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/50"
+              >
+                Tambah bank sampah
+              </Link>
+            }
+          >
+            Peta terisi begitu ada bank sampah yang punya titik koordinat.
+          </KeadaanKosong>
         ) : (
           <DaftarMarker markers={markers} />
         )}

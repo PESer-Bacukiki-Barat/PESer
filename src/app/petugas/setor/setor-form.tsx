@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { CloudOff, Plus, Trash2 } from "lucide-react"
+import { CloudOff, Contact, Plus, Tags, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Field, inputClass } from "@/components/admin/form-fields"
@@ -17,6 +17,7 @@ import {
   type KondisiSampah,
 } from "@/lib/setoran-data"
 import { fmtBerat, fmtRupiah } from "@/lib/format"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 
 export type NasabahOpsi = { id: string; kodeNasabah: string; nama: string }
 export type JenisOpsi = { id: string; nama: string; harga: number }
@@ -202,10 +203,9 @@ export function SetorForm({
 
   if (nasabah.length === 0) {
     return (
-      <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-        Belum ada nasabah aktif di bank sampah ini. Nasabah didaftarkan lebih dulu
-        sebelum setoran bisa dicatat.
-      </p>
+      <KeadaanKosong Ikon={Contact} aksen="orang" judul="Belum ada nasabah aktif">
+        Nasabah didaftarkan lebih dulu sebelum setoran bisa dicatat.
+      </KeadaanKosong>
     )
   }
 
@@ -272,10 +272,10 @@ export function SetorForm({
 
   if (jenis.length === 0) {
     return (
-      <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-        Belum ada jenis sampah dengan harga aktif. Jenis sampah berharga 0 tidak
-        boleh masuk setoran (BR-16) — minta admin mengisi harganya lebih dulu.
-      </p>
+      <KeadaanKosong Ikon={Tags} aksen="barang" judul="Belum ada jenis sampah berharga">
+        Jenis sampah berharga 0 tidak boleh masuk setoran (BR-16). Minta admin
+        mengisi harganya lebih dulu.
+      </KeadaanKosong>
     )
   }
 

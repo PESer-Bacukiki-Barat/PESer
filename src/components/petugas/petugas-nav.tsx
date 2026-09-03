@@ -67,7 +67,21 @@ export function PetugasNav() {
                   isAktif ? "text-primary" : "text-on-surface-variant hover:text-on-surface",
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                {/* Penanda aktif. Sebelumnya keadaan aktif hanya dibedakan
+                    warna dan ketebalan huruf; pil ini membuat posisi terbaca
+                    di penglihatan tepi tanpa perlu membaca labelnya. Padding
+                    selalu terpasang dan hanya latarnya yang berubah, jadi
+                    tidak ada geseran tata letak saat berpindah tab. Pasangan
+                    container/on-container menjamin kontrasnya di terang
+                    maupun gelap. */}
+                <span
+                  className={cn(
+                    "flex items-center justify-center rounded-full px-3 py-0.5 transition-colors duration-fast",
+                    isAktif && "bg-secondary-container text-on-secondary-container",
+                  )}
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
                 <span className="font-label-sm text-label-sm">{item.label}</span>
               </Link>
             </li>

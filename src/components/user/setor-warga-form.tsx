@@ -310,7 +310,14 @@ export function SetorWargaForm({
               <dt className="font-label-md text-label-md text-on-surface-variant">
                 Estimasi diterima
               </dt>
-              <dd className="font-mono text-title-md text-primary">
+              {/* key memaksa elemen dipasang ulang setiap nilainya berubah
+                  sehingga denyut `sorot` main lagi — sama seperti total di
+                  form petugas. Tanpa penanda, perubahannya mudah terlewat
+                  karena mata sedang di kolom berat. */}
+              <dd
+                key={totalNilai}
+                className="sorot px-1.5 font-mono text-title-md text-primary"
+              >
                 {fmtRupiah(totalNilai)}
               </dd>
             </div>

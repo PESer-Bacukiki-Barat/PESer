@@ -348,7 +348,7 @@ export function DataTable<T>({
                                 className={action.className}
                                 onClick={() => action.onClick(row)}
                               >
-                                {Icon ? <Icon className="size-5" /> : action.label}
+                                {Icon ? <Icon className="size-5" aria-hidden /> : action.label}
                               </RowActionButton>
                             );
                           })}

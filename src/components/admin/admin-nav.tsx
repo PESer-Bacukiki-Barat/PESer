@@ -69,7 +69,7 @@ function AdminSidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 : "text-on-surface-variant hover:bg-surface-container-high",
             )}
           >
-            <Icon className="size-5 shrink-0" />
+            <Icon className="size-5 shrink-0" aria-hidden />
             <span>{label}</span>
           </Link>
         );

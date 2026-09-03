@@ -50,7 +50,7 @@ export function UserBottomNav() {
                     pathname === item.href && "ring-2 ring-primary/30",
                   )}
                 >
-                  <Icon className="size-6" />
+                  <Icon className="size-6" aria-hidden />
                 </span>
               </Link>
             );
@@ -69,7 +69,21 @@ export function UserBottomNav() {
                   : "text-on-surface-variant hover:text-on-surface",
               )}
             >
-              <Icon className="size-5" />
+              {/* Penanda aktif. Sebelumnya keadaan aktif hanya dibedakan
+                  warna dan ketebalan huruf; pil ini membuat posisi terbaca di
+                  penglihatan tepi tanpa perlu membaca labelnya. Padding selalu
+                  terpasang dan hanya latarnya yang berubah, jadi tidak ada
+                  geseran tata letak saat berpindah tab. Pasangan
+                  container/on-container menjamin kontrasnya di terang maupun
+                  gelap. */}
+              <span
+                className={cn(
+                  "flex items-center justify-center rounded-full px-3 py-0.5 transition-colors duration-fast",
+                  isActive && "bg-secondary-container text-on-secondary-container",
+                )}
+              >
+                <Icon className="size-5" aria-hidden />
+              </span>
               {item.label}
             </Link>
           );

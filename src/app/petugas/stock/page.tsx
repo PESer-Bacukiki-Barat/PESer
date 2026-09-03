@@ -7,6 +7,8 @@ import { markerBankSampah } from "@/lib/peta"
 import { GAYA_LEVEL } from "@/lib/level-stock"
 import { PetaBankSampah } from "@/components/peta/peta-bank-sampah"
 import { fmtBerat } from "@/lib/format"
+import { Package } from "lucide-react"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 
 export const metadata: Metadata = {
   title: "Stock",
@@ -93,9 +95,9 @@ export default async function StockPetugasPage() {
       )}
 
       {stock.length === 0 ? (
-        <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-          Belum ada stock. Stock terbentuk otomatis begitu setoran pertama dicatat.
-        </p>
+        <KeadaanKosong Ikon={Package} aksen="barang" judul="Gudang masih kosong">
+          Stock terbentuk otomatis begitu setoran pertama dicatat.
+        </KeadaanKosong>
       ) : (
         <ul className="space-y-2">
           {stock.map((s) => {

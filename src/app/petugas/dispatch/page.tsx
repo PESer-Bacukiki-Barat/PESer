@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Truck } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
@@ -12,6 +12,7 @@ import {
   type DispatchStatus,
 } from "@/lib/dispatch-data"
 import { fmtBerat, fmtTanggalPendek } from "@/lib/format"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 
 export const metadata: Metadata = {
   title: "Dispatch",
@@ -62,10 +63,10 @@ export default async function DispatchPetugasPage() {
       </div>
 
       {dispatches.length === 0 ? (
-        <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
-          Belum ada dispatch untuk bank sampah ini. Dispatch dibuat dan diterbitkan
-          admin kecamatan.
-        </p>
+        <KeadaanKosong Ikon={Truck} aksen="gerak" judul="Belum ada dispatch">
+          Dispatch dibuat dan diterbitkan admin kecamatan. Begitu ada yang
+          ditujukan ke bank sampah ini, ia muncul di sini.
+        </KeadaanKosong>
       ) : (
         <div className="space-y-6">
           <Bagian

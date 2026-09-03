@@ -539,3 +539,86 @@ describe("target sentuh", () => {
     expect(pelanggar).toEqual([])
   })
 })
+
+describe("keadaan kosong & fokus", () => {
+  it("keadaan kosong memakai komponen bersama, bukan paragraf telanjang", () => {
+    // Ada tiga perlakuan berbeda untuk hal yang sama: beranda warga memakai
+    // kartu berikon di tengah, tujuh tempat lain memakai satu paragraf rata
+    // kiri di dalam kotak, dan halaman laporan bahkan menyimpan helper
+    // `Kosong` sendiri. Polanya sudah dikenali; ia hanya belum dibagikan.
+    const POLA_LAMA =
+      "rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant"
+    const pelanggar = [...isi.entries()]
+      .filter(([, teks]) => teks.includes(POLA_LAMA))
+      .map(([f]) => f)
+    expect(pelanggar).toEqual([])
+  })
+
+  it("KeadaanKosong mengambil tone dari sistem aksen", () => {
+    // Ikonnya memberi tahu JENIS apa yang kosong sebelum kalimatnya dibaca,
+    // dan warnanya harus punya arti yang sama seperti di seluruh aplikasi —
+    // bukan warna yang dipilih per layar.
+    const k = isi.get("src/components/ui/keadaan-kosong.tsx")!
+    expect(k).toContain("AKSEN")
+    // Judul selalu ada, jadi warna tidak pernah jadi satu-satunya pembeda.
+    expect(k).toContain("judul")
+  })
+
+  it("gaya input memakai focus-visible, bukan focus", () => {
+    // inputClasses memakai focus:ring-1 ring-primary sementara primitif Input
+    // dan Textarea memakai focus-visible:ring-3 ring-primary/50 — beda tebal,
+    // beda warna, dan beda pemicu: `focus:` menyala saat diklik mouse,
+    // `focus-visible:` hanya saat navigasi keyboard. Jadi mengklik input di
+    // dalam Field memunculkan cincin sementara mengklik <Input> tidak.
+    for (const f of [
+      "src/components/admin/form-fields.tsx",
+      "src/components/ui/input.tsx",
+      "src/components/ui/textarea.tsx",
+    ]) {
+      const teks = isi.get(f)!
+      expect(teks).not.toMatch(/(?<!-)\bfocus:(?:ring|border)/)
+      expect(teks).toContain("focus-visible:ring-3")
+    }
+  })
+
+  it("kedua bottom nav punya penanda aktif, bukan hanya beda warna", () => {
+    // Pil di belakang ikon membuat posisi terbaca di penglihatan tepi tanpa
+    // perlu membaca labelnya. Padding selalu terpasang dan hanya latarnya yang
+    // berubah, jadi tidak ada geseran tata letak saat berpindah tab.
+    for (const f of [
+      "src/components/petugas/petugas-nav.tsx",
+      "src/components/user/bottom-nav.tsx",
+    ]) {
+      expect(isi.get(f)).toContain("bg-secondary-container text-on-secondary-container")
+    }
+  })
+
+  it("ikon dinamis juga disembunyikan dari pembaca layar", () => {
+    // Penjaga sebelumnya hanya mencocokkan nama ikon lucide secara harfiah,
+    // jadi ikon yang dirender lewat variabel (item.icon, action.icon, k.aksen)
+    // lolos seluruhnya — empat di nav dan tabel.
+    const DINAMIS = /<([A-Z][\w.]*\.)?(Icon|Ikon)\b([^>]*?)\/>/g
+    const pelanggar: string[] = []
+    for (const [f, teks] of isi) {
+      for (const m of teks.matchAll(DINAMIS)) {
+        if (m[0].includes("aria-hidden")) continue
+        const sebelum = teks.slice(Math.max(0, m.index - 260), m.index)
+        if (sebelum.split("\n").slice(-4).some((b) => b.includes("aria-hidden"))) continue
+        pelanggar.push(`${f}:${teks.slice(0, m.index).split("\n").length}`)
+      }
+    }
+    expect(pelanggar).toEqual([])
+  })
+
+  it("angka yang berubah live diberi penanda di kedua form setoran", () => {
+    // Total di form petugas sudah berdenyut saat nilainya berubah; total yang
+    // sama di sisi warga tidak, padahal interaksinya identik — angkanya
+    // berubah tiap kali berat diketik.
+    for (const f of [
+      "src/app/petugas/setor/setor-form.tsx",
+      "src/components/user/setor-warga-form.tsx",
+    ]) {
+      expect(isi.get(f)).toContain('className="sorot')
+    }
+  })
+})

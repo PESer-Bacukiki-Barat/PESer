@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronRight, Download } from "lucide-react"
+import { BarChart3, ChevronRight, Download } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { KeadaanKosong } from "@/components/ui/keadaan-kosong"
 import {
   laporanPenjualan,
   laporanVolume,
@@ -327,9 +328,9 @@ function Kartu({
 
 function Kosong({ pesan }: { pesan: string }) {
   return (
-    <p className="rounded-xl border border-outline-variant bg-surface-container-lowest p-5 font-body-md text-body-md text-on-surface-variant">
+    <KeadaanKosong Ikon={BarChart3} aksen="gerak" judul="Tidak ada data periode ini">
       {pesan}
-    </p>
+    </KeadaanKosong>
   )
 }
 
